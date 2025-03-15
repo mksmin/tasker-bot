@@ -5,6 +5,7 @@ __all__ = (
     'start_engine',
     'User',
     'Task',
+    'connection'
 )
 
 from .config import (async_session,
@@ -13,3 +14,4 @@ from .config import (async_session,
                      TimeStampMixin,
                      )
 from .models import User, Task
+from .requests import connection

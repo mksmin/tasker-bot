@@ -13,6 +13,7 @@ from pathlib import Path
 from app.handlers import router
 from config.config import logger, get_token
 from database import start_engine
+from app.scheduler import setup_scheduler
 
 
 async def start_bot() -> Bot:
@@ -31,6 +32,7 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
+    await setup_scheduler(bot)
     try:
         await dp.start_polling(bot)
     finally:
