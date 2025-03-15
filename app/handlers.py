@@ -44,3 +44,11 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
                    f'{stroke_tasks}')
 
     await bot.send_message(chat_id=user_tgid, text=msg_to_send)
+
+
+@router.message(Command(commands=['daily']))
+async def cmd_daily_tasks(message: Message):
+    await send_daily_tasks(
+        user_tgid=message.from_user.id,
+        bot=message.bot
+    )
