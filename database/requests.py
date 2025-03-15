@@ -32,7 +32,6 @@ def connection(function):
             The result of the wrapped function.
         """
         async with async_session() as session:
-            print(locals())
             return await function(session, *args, **kwargs)
 
     return wrapper
