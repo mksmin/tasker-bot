@@ -4,7 +4,7 @@ from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select
 from database import connection, User
-from handlers import send_daily_tasks
+from app.handlers import send_daily_tasks
 
 async def setup_scheduler(bot: Bot):
     scheduler = AsyncIOScheduler()
