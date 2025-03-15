@@ -29,8 +29,8 @@ async def setup_scheduler(bot: Bot):
     scheduler.add_job(
         daily_send,
         'cron',
-        hour=23,
-        minute=31,
+        hour=9,
+        minute=0,
         timezone='Europe/Moscow',
         misfire_grace_time=300,
         coalesce=False
