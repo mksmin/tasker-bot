@@ -16,19 +16,6 @@ async def cmd_start(message: Message):
     await message.answer("Привет! Добавляй задачи, а я буду каждый день присылать 5 случайных! ")
 
 
-@router.message(F.text)
-async def user_add_task(message: Message):
-    task_added = await rq.add_task(
-        user_tg=message.from_user.id,
-        user_text=message.text
-    )
-
-    if task_added:
-        await message.answer(f"Добавил таску {message.text}")
-    else:
-        await message.answer(f"Возникла ошибка")
-
-
 async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
     tasks: list[Task] = await rq.get_list_of_random_tasks(used_tg=user_tgid)
 
@@ -52,3 +39,16 @@ async def cmd_daily_tasks(message: Message):
         user_tgid=message.from_user.id,
         bot=message.bot
     )
+
+
+@router.message(F.text)
+async def user_add_task(message: Message):
+    task_added = await rq.add_task(
+        user_tg=message.from_user.id,
+        user_text=message.text
+    )
+
+    if task_added:
+        await message.answer(f"Добавил таску {message.text}")
+    else:
+        await message.answer(f"Возникла ошибка")
