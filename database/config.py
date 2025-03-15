@@ -12,14 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_
 from config.config import get_token, logger
 
 
-
-logger.info(f'Start bot: {get_token("POSTGRES_URL")}')
-
 postgres_token = get_token('POSTGRES_URL')
 logger.info(f'postgresql token {postgres_token}')
 
 engine = create_async_engine(
-    url='postgresql+asyncpg://postgres:86Unsq1072@localhost/tasksdb',
+    url=postgres_token,
     echo=False
 )
 async_session = async_sessionmaker(
