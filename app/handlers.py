@@ -1,7 +1,10 @@
 # import from lib
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
+from aiogram.fsm.context import FSMContext
+from app import statesuser as st
+from app import keyboards as kb
 
 # import from modules
 from database import Task
@@ -30,15 +33,68 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
     msg_to_send = (f'Доброе утро, вот твои таски на сегодня:\n\n'
                    f'{stroke_tasks}')
 
-    await bot.send_message(chat_id=user_tgid, text=msg_to_send)
+    await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
 
 
-@router.message(Command(commands=['daily']))
+@router.message(Command('daily'))
 async def cmd_daily_tasks(message: Message):
     await send_daily_tasks(
         user_tgid=message.from_user.id,
         bot=message.bot
     )
+
+
+@router.message(Command('my'))
+async def cmd_my_tasks(message: Message):
+    tasks: list[Task] = await rq.get_list_of_all_tasks(user_tg=message.from_user.id)
+    if not tasks:
+        await message.answer("У тебя нету тасок")
+        return
+
+    list_of_tasks = [task.text_task for task in tasks]
+
+    stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
+    msg_to_send = (f'Вот твои таски:\n\n'
+                   f'{stroke_tasks}')
+
+    await message.answer(msg_to_send, reply_markup=kb.finishing_task)
+
+
+@router.callback_query(F.data == 'finish_task')
+async def cmd_finish_task(callback: CallbackQuery, state: FSMContext):
+    await callback.answer('Начинаю...')
+    await state.set_state(st.TaskFinish.task)
+
+    tasks: list[Task] = await rq.get_list_of_all_tasks(user_tg=callback.from_user.id)
+    if not tasks:
+        await callback.message.answer("У тебя нету тасок")
+        return
+
+    list_of_tasks = [task for task in tasks]
+    await state.update_data(task=list_of_tasks)
+
+    stroke_tasks = '\n'.join(f'{i}. {task.text_task}' for i, task in enumerate(list_of_tasks, 1))
+    msg_to_send = (f'Вот твои таски:\n\n'
+                   f'{stroke_tasks}')
+
+    await callback.message.answer(msg_to_send)
+    await callback.message.answer('Пришли мне номер таски, которую хочешь завершить')
+
+
+@router.message(st.TaskFinish.task)
+async def finished_task(message: Message, state: FSMContext):
+    await state.update_data(number_of_task=message.text)
+    data = await state.get_data()
+
+    if int(data['number_of_task']) > len(data['task']) or int(data['number_of_task']) < 1:
+        await message.answer('Такой таски нету!')
+        return
+
+    task: Task = data['task'][int(data['number_of_task']) - 1]
+
+    await rq.finish_task(task=task)
+    await message.answer(f"Удалил таску: \n\n"
+                         f"{task.text_task}")
 
 
 @router.message(F.text)
@@ -49,6 +105,7 @@ async def user_add_task(message: Message):
     )
 
     if task_added:
-        await message.answer(f"Добавил таску {message.text}")
+        await message.answer(f"Добавил таску: \n\n"
+                             f"{message.text}")
     else:
         await message.answer(f"Возникла ошибка")

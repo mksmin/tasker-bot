@@ -81,3 +81,28 @@ async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: i
     )
 
     return tasks
+
+
+@connection
+async def get_list_of_all_tasks(session: AsyncSession, user_tg: int) -> any:
+    user = await get_user_by_tgid(tgid=user_tg)
+    tasks = await session.scalars(
+        select(Task).where(Task.user_id == user.id,
+                           Task.is_done == False)
+    )
+
+    return tasks
+
+
+@connection
+async def finish_task(session: AsyncSession, task: Task) -> bool:
+    new_task = await session.scalar(
+        select(Task).where(Task.id == task.id)
+    )
+
+    new_task.delete_task()
+
+    if new_task.is_done:
+        session.add(new_task)
+        await session.commit()
+        return True
