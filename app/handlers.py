@@ -104,8 +104,10 @@ async def finished_task(message: Message, state: FSMContext):
     task: Task = data['task'][int(data['number_of_task']) - 1]
 
     await rq.finish_task(task=task)
+    await state.clear()
     await message.answer(f"Удалил таску: \n\n"
-                         f"{task.text_task}")
+                         f"{task.text_task}",
+                         reply_markup=kb.list_of_tasks)
 
 
 @router.message(F.text)
