@@ -1,9 +1,10 @@
 # import from lib
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 
 # import from modules
+from database import Task
 from database import requests as rq
 
 router = Router()
@@ -26,3 +27,20 @@ async def user_add_task(message: Message):
         await message.answer(f"Добавил таску {message.text}")
     else:
         await message.answer(f"Возникла ошибка")
+
+
+async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
+    tasks: list[Task] = await rq.get_list_of_random_tasks(used_tg=user_tgid)
+
+    if not tasks:
+        await bot.send_message(
+            chat_id=user_tgid,
+            text="У вас нету тасок на сегодня")
+        return
+
+    list_of_tasks = [task.text_task for task in tasks]
+    stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
+    msg_to_send = (f'Доброе утро, вот твои таски на сегодня:\n\n'
+                   f'{stroke_tasks}')
+
+    await bot.send_message(chat_id=user_tgid, text=msg_to_send)

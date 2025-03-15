@@ -1,6 +1,6 @@
 # import from lib
 from functools import wraps
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
@@ -68,3 +68,16 @@ async def add_task(session: AsyncSession, user_tg: int, user_text: str) -> bool:
     except Exception as e:
         logger.error("Error add task: ", e)
         return False
+
+
+@connection
+async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: int = 5) -> any:
+    user = await get_user_by_tgid(tgid=used_tg)
+    tasks = await session.scalars(
+        select(Task).where(
+            Task.user_id == user.id,
+            Task.is_done == False
+        ).order_by(func.random()).limit(count)
+    )
+
+    return tasks
