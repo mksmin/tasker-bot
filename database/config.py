@@ -2,15 +2,11 @@
 import asyncio
 
 # import from lib
-from datetime import datetime
-from dotenv import load_dotenv
-from pathlib import Path
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+# from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
 # import from modules
 from config.config import get_token, logger
-
 
 postgres_token = get_token('POSTGRES_URL')
 logger.info(f'postgresql token {postgres_token}')
@@ -25,14 +21,5 @@ async_session = async_sessionmaker(
 )
 
 
-class Base(AsyncAttrs, DeclarativeBase):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-
-class TimeStampMixin:
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=True)
-
-
 async def start_engine():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    pass

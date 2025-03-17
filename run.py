@@ -25,7 +25,7 @@ async def start_bot() -> Bot:
 
 
 async def main() -> None:
-    await start_engine()
+    # await start_engine()
 
     bot = await start_bot()
 

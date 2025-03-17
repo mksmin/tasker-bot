@@ -1,17 +1,17 @@
 __all__ = (
     'async_session',
-    'Base',
-    'TimeStampMixin',
     'start_engine',
+    'Base',
     'User',
     'Task',
-    'connection'
+    'connection',
+    'postgres_token'
 )
 
-from .config import (async_session,
-                     Base,
-                     start_engine,
-                     TimeStampMixin,
-                     )
-from .models import User, Task
+from .config import (
+    async_session,
+    start_engine,
+    postgres_token
+)
+from .models import Base, User, Task
 from .requests import connection

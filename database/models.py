@@ -1,9 +1,16 @@
 # import from lib
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, BigInteger
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from datetime import datetime
 
-# import from modules
-from database import Base, TimeStampMixin
+
+class Base(AsyncAttrs, DeclarativeBase):
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+
+class TimeStampMixin:
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=True)
 
 
 class User(TimeStampMixin, Base):
@@ -17,7 +24,7 @@ class User(TimeStampMixin, Base):
 class Task(TimeStampMixin, Base):
     __tablename__ = 'tasks'
 
-    text_task: Mapped[str] = mapped_column(String(255), nullable=False)
+    text_task: Mapped[str] = mapped_column(String(500), nullable=False)
     is_done: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
 
