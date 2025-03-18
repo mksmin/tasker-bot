@@ -11,8 +11,6 @@ from app import keyboards as kb
 from database import Task, User
 from database import requests as rq
 
-
-
 router = Router()
 
 
@@ -37,6 +35,19 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
                    f'{stroke_tasks}')
 
     await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
+
+
+@rq.connection
+async def daily_send(session, message):
+    users = await session.scalars(
+        select(User.user_tg)
+    )
+
+    for user in users:
+        await send_daily_tasks(
+            user_tgid=user,
+            bot=message.bot
+        )
 
 
 @router.message(Command('daily'))
@@ -115,17 +126,7 @@ async def finished_task(message: Message, state: FSMContext):
 
 @router.message(Command('send'))
 async def cmd_send_tasks(message: Message):
-    @rq.connection
-    async def daily_send(session):
-        users = await session.scalars(
-            select(User.user_tg)
-        )
-
-        for user in users:
-            await send_daily_tasks(
-                user_tgid=user,
-                bot=message.bot
-            )
+    await daily_send(message=message)
 
 
 @router.message(F.text)
