@@ -8,6 +8,7 @@ from sqlalchemy import select
 # import from modules
 from app import statesuser as st
 from app import keyboards as kb
+from config import logger
 from database import Task, User
 from database import requests as rq
 
@@ -35,6 +36,7 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
                    f'{stroke_tasks}')
 
     await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
+    logger.infp(f'Daily tasks sent to user {user_tgid}')
 
 
 @rq.connection
