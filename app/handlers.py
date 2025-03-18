@@ -3,12 +3,15 @@ from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app import statesuser as st
-from app import keyboards as kb
+from sqlalchemy import select
 
 # import from modules
-from database import Task
+from app import statesuser as st
+from app import keyboards as kb
+from database import Task, User
 from database import requests as rq
+
+
 
 router = Router()
 
@@ -108,6 +111,21 @@ async def finished_task(message: Message, state: FSMContext):
     await message.answer(f"Удалил таску: \n\n"
                          f"{task.text_task}",
                          reply_markup=kb.list_of_tasks)
+
+
+@router.message(Command('send'))
+async def cmd_send_tasks(message: Message):
+    @rq.connection
+    async def daily_send(session):
+        users = await session.scalars(
+            select(User.user_tg)
+        )
+
+        for user in users:
+            await send_daily_tasks(
+                user_tgid=user,
+                bot=message.bot
+            )
 
 
 @router.message(F.text)
