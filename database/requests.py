@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
-from database import async_session, User, Task
+from database import User, Task, db_helper
 from config import logger
 
 
@@ -31,7 +31,7 @@ def connection(function):
         Returns:
             The result of the wrapped function.
         """
-        async with async_session() as session:
+        async for session in db_helper.session_getter():
             return await function(session, *args, **kwargs)
 
     return wrapper
