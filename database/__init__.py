@@ -5,7 +5,8 @@ __all__ = (
     'User',
     'Task',
     'connection',
-    'postgres_token'
+    'postgres_token',
+    'db_helper'
 )
 
 from .config import (
@@ -15,3 +16,4 @@ from .config import (
 )
 from .models import Base, User, Task
 from .requests import connection
+from .db_helper import db_helper

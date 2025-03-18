@@ -1,9 +1,5 @@
-# import lib
-import asyncio
 
-# import from lib
-# from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # import from modules
 from config.config import get_token, logger

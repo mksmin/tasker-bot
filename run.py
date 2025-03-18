@@ -12,14 +12,14 @@ from pathlib import Path
 # import from modules
 from app.handlers import router
 from config.config import logger, get_token
-from database import start_engine
 from app.scheduler import setup_scheduler
+from database import db_helper, start_engine
+from config import settings
 
 
 async def start_bot() -> Bot:
-    bot_token = get_token('TOKEN')
-
-    bot_class = Bot(token=bot_token,
+    print(f'Bot token:{settings.bot.token}')
+    bot_class = Bot(token=settings.bot.token,
                     default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     return bot_class
 
@@ -31,12 +31,24 @@ async def main() -> None:
 
     dp = Dispatcher()
     dp.include_router(router)
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_scheduler(bot)
     try:
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
+
+
+async def on_startup() -> None:
+    pass
+
+
+async def on_shutdown() -> None:
+    await db_helper.dispose()
+    logger.info(f'Disposed database')
 
 
 if __name__ == '__main__':
