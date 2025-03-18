@@ -18,7 +18,6 @@ from config import settings
 
 
 async def start_bot() -> Bot:
-    print(f'Bot token:{settings.bot.token}')
     bot_class = Bot(token=settings.bot.token,
                     default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     return bot_class
