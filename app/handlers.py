@@ -36,7 +36,7 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
                    f'{stroke_tasks}')
 
     await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
-    logger.infp(f'Daily tasks sent to user {user_tgid}')
+    logger.info(f'Daily tasks sent to user {user_tgid}')
 
 
 @rq.connection
