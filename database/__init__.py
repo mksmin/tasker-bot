@@ -14,6 +14,6 @@ from .config import (
     start_engine,
     postgres_token
 )
+from .db_helper import db_helper
 from .models import Base, User, Task
 from .requests import connection
-from .db_helper import db_helper

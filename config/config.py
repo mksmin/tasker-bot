@@ -47,5 +47,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-print(f'settings {settings.db.url = }')
-print(f'settings {settings.bot.token = }')
