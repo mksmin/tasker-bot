@@ -18,7 +18,7 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     await rq.get_user_by_tgid(message.from_user.id)
-    await message.answer("Привет! Добавляй задачи, а я буду каждый день присылать 5 случайных! ")
+    await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
 
 
 async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
@@ -28,11 +28,11 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
     if len(list_of_tasks) <= 0:
         await bot.send_message(
             chat_id=user_tgid,
-            text="У вас нету тасок на сегодня")
+            text="У тебя нет текстов")
         return
 
     stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
-    msg_to_send = (f'Доброе утро, вот твои таски на сегодня:\n\n'
+    msg_to_send = (f'Доброе утро, вот твои аффирмации на сегодня:\n\n'
                    f'{stroke_tasks}')
 
     await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
@@ -66,7 +66,7 @@ async def cmd_my_tasks(message: Message | CallbackQuery):
     user_tg_id = message.from_user.id
 
     if isinstance(message, CallbackQuery):
-        await message.answer('Все задачи ')
+        await message.answer('Все тексты')
         message = message.message
 
     tasks: list[Task] = await rq.get_list_of_all_tasks(user_tg=user_tg_id)
@@ -74,11 +74,11 @@ async def cmd_my_tasks(message: Message | CallbackQuery):
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
-        await message.answer("У тебя нету тасок")
+        await message.answer("У тебя нет сохраненных текстов")
         return
 
     stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
-    msg_to_send = (f'Вот твои таски:\n\n'
+    msg_to_send = (f'Вот твои аффирмации:\n\n'
                    f'{stroke_tasks}')
 
     await message.answer(msg_to_send, reply_markup=kb.finishing_task)
@@ -93,18 +93,18 @@ async def cmd_finish_task(callback: CallbackQuery, state: FSMContext):
     list_of_tasks = [task for task in tasks]
 
     if len(list_of_tasks) <= 0:
-        await callback.message.answer("У тебя нету тасок")
+        await callback.message.answer("У тебя нет сохраненных текстов")
         await state.clear()
         return
 
     await state.update_data(task=list_of_tasks)
 
     stroke_tasks = '\n'.join(f'{i}. {task.text_task}' for i, task in enumerate(list_of_tasks, 1))
-    msg_to_send = (f'Вот твои таски:\n\n'
+    msg_to_send = (f'Вот твои аффирмации:\n\n'
                    f'{stroke_tasks}')
 
     await callback.message.answer(msg_to_send)
-    await callback.message.answer('Пришли мне номер таски, которую хочешь завершить')
+    await callback.message.answer('Пришли мне номер аффирмации, которую хочешь удалить')
 
 
 @router.message(F.text.regexp(r"^\d+$"),
@@ -114,14 +114,14 @@ async def finished_task(message: Message, state: FSMContext):
     data = await state.get_data()
 
     if int(data['number_of_task']) > len(data['task']) or int(data['number_of_task']) < 1:
-        await message.answer('Такой таски нету!')
+        await message.answer('Ты ошибся номером, такой аффирмации нет. Пришли еще раз')
         return
 
     task: Task = data['task'][int(data['number_of_task']) - 1]
 
     await rq.finish_task(task=task)
     await state.clear()
-    await message.answer(f"Удалил таску: \n\n"
+    await message.answer(f"Удалил аффирмацию: \n\n"
                          f"{task.text_task}",
                          reply_markup=kb.list_of_tasks)
 
@@ -141,7 +141,7 @@ async def user_add_task(message: Message, state: FSMContext):
     )
 
     if task_added:
-        await message.answer(f"Добавил таску: \n\n"
+        await message.answer(f"Добавил аффирмацию: \n\n"
                              f"{message.text}",
                              reply_markup=kb.list_of_tasks)
     else:
