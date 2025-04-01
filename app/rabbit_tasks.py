@@ -17,10 +17,6 @@ async def process_task(message: aio_pika.IncomingMessage):
 
         print(f"Получено сообщение от {message.routing_key} с данными: {data}")
 
-        # 2. Проверяем обязательные поля
-        if not endpoint or endpoint != "/tasks":
-            return
-
         # 3. Выполняем логику (пример)
         user_id = data.get("user_tg_id")
         tasks = await get_list_of_all_tasks(user_tg=user_id)
