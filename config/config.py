@@ -1,10 +1,11 @@
 # import lib
 import logging
 import os
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 from pathlib import Path
-from pydantic import BaseModel, PostgresDsn, ValidationError
+from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict
@@ -35,6 +36,24 @@ class DatabaseConfig(BaseModel):
     max_overflow: int = 10
 
 
+class RabbitMQConfig(BaseModel):
+    host: str = "localhost"
+    port: int = 5672
+    username: str = "user"
+    password: str = "wpwd"
+    vhostname: str = "vhost"
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        safe_username = quote(self.username, safe="")
+        safe_password = quote(self.password, safe="")
+        safe_vhost = quote(self.vhostname, safe="")
+        domain = quote(self.host.encode("idna").decode())
+
+        return f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(".env.template", ".env"),
@@ -44,6 +63,7 @@ class Settings(BaseSettings):
     )
     bot: BotConfig
     db: DatabaseConfig
+    rabbit: RabbitMQConfig = RabbitMQConfig()
 
 
 settings = Settings()
