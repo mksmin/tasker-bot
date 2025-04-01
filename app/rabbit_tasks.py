@@ -37,8 +37,11 @@ async def process_task(message: aio_pika.IncomingMessage):
         # Получаем канал из сообщения
         channel = message.channel
 
-        # Используем default_exchange через channel
-        await channel.default_exchange.publish(
+        # Используйте пустой exchange (default)
+        exchange = await channel.get_exchange("")
+
+        # Отправляем ответ в очередь reply_to
+        await exchange.publish(
             aio_pika.Message(
                 body=json.dumps(response_data).encode(),
                 correlation_id=message.correlation_id,
