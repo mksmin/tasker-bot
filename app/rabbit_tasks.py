@@ -34,12 +34,14 @@ async def process_task(message: aio_pika.IncomingMessage):
             f"response_data: {response_data}"
         )
 
-        # 5. Отправляем ответ в очередь `reply_to` из исходного сообщения
-        if message.reply_to:
-            await message.channel.default_exchange.publish(
-                aio_pika.Message(
-                    body=json.dumps(response_data).encode(),
-                    correlation_id=message.correlation_id,  # Сохраняем correlation_id
-                ),
-                routing_key=message.reply_to,  # Указываем очередь для ответа
-            )
+        # Получаем канал из сообщения
+        channel = message.channel
+
+        # Используем default_exchange через channel
+        await channel.default_exchange.publish(
+            aio_pika.Message(
+                body=json.dumps(response_data).encode(),
+                correlation_id=message.correlation_id,
+            ),
+            routing_key=message.reply_to,
+        )
