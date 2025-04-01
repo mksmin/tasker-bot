@@ -30,17 +30,16 @@ async def process_task(message: aio_pika.IncomingMessage):
         }
 
         print(
-            f"Получено сообщение от {message.routing_key} с данными: {response_data}"
-            f"response_data: {response_data}"
+            f"Получено сообщение от {message.routing_key} с данными"
         )
 
-        # Получаем канал из сообщения
+        # 1. Получаем канал из сообщения
         channel = message.channel
 
-        # Используйте пустой exchange (default)
-        exchange = await channel.get_exchange("")
+        # 2. Явно объявляем exchange (default)
+        exchange = await channel.get_exchange("")  # Теперь работает в 9.5.5
 
-        # Отправляем ответ в очередь reply_to
+        # 3. Отправляем ответ
         await exchange.publish(
             aio_pika.Message(
                 body=json.dumps(response_data).encode(),
