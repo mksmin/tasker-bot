@@ -15,12 +15,12 @@ async def process_task(message: aio_pika.IncomingMessage):
         endpoint = task_data.get('endpoint', None)
         data = task_data.get('data', None)
 
-        print(f'Request: {request}'
-              f'\nEndpoint: {endpoint}'
-              f'\nData: {data}')
-
-        print(f"type: {type(data)}")
-        print(f"tg_id: {data.get('user_tg_id', None)}")
+        # print(f'Request: {request}'
+        #       f'\nEndpoint: {endpoint}'
+        #       f'\nData: {data}')
+        #
+        # print(f"type: {type(data)}")
+        # print(f"tg_id: {data.get('user_tg_id', None)}")
 
         if request == "GET" and endpoint == "/user/affirmations":
             user_id = data.get('user_tg_id', None)
@@ -42,5 +42,3 @@ async def process_task(message: aio_pika.IncomingMessage):
                     json_response = await response.json()
                     status_code = response.status
 
-            print(f'Response: {status_code}')
-            print(f'Response json: {json_response}')
