@@ -31,6 +31,11 @@ async def process_task(message: aio_pika.IncomingMessage):
             "tasks": formatted_tasks,
         }
 
+        print(
+            f"Получено сообщение от {message.routing_key} с данными: {response_data}"
+            f"response_data: {response_data}"
+        )
+
         # 5. Отправляем ответ в очередь `reply_to` из исходного сообщения
         if message.reply_to:
             await message.channel.default_exchange.publish(
