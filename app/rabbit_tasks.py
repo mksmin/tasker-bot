@@ -10,35 +10,33 @@ from database.requests import get_list_of_all_tasks
 
 async def process_task(message: aio_pika.IncomingMessage):
     async with message.process():
+        # 1. Извлекаем данные из сообщения
         task_data = json.loads(message.body.decode())
-        request = task_data.get('request', None)
-        endpoint = task_data.get('endpoint', None)
-        data = task_data.get('data', None)
+        endpoint = task_data.get("endpoint")
+        data = task_data.get("data", {})
 
-        # print(f'Request: {request}'
-        #       f'\nEndpoint: {endpoint}'
-        #       f'\nData: {data}')
-        #
-        # print(f"type: {type(data)}")
-        # print(f"tg_id: {data.get('user_tg_id', None)}")
+        # 2. Проверяем обязательные поля
+        if not endpoint or endpoint != "/tasks":
+            return
 
-        if request == "GET" and endpoint == "/user/affirmations":
-            user_id = data.get('user_tg_id', None)
-            result: list[Task] = await get_list_of_all_tasks(user_tg=user_id)
-            data_response = {
-                "user_id": user_id,
-                "details": {
+        # 3. Выполняем логику (пример)
+        user_id = data.get("user_tg_id")
+        tasks = await get_list_of_all_tasks(user_tg=user_id)
+        formatted_tasks = {i: task.text_task for i, task in enumerate(tasks, 1)}
 
-                }
-            }
-            for i, task in enumerate(result, start=1):
-                if task.text_task:
-                    data_response["details"][i] = task.text_task
-                else:
-                    data_response["details"][i] = ""
+        # 4. Формируем ответ для отправки обратно
+        response_data = {
+            "status": "success",
+            "user_id": user_id,
+            "tasks": formatted_tasks,
+        }
 
-            async with aiohttp.ClientSession() as session:
-                async with session.post('https://api.mks-min.ru/tasks', json=data_response) as response:
-                    json_response = await response.json()
-                    status_code = response.status
-
+        # 5. Отправляем ответ в очередь `reply_to` из исходного сообщения
+        if message.reply_to:
+            await message.channel.default_exchange.publish(
+                aio_pika.Message(
+                    body=json.dumps(response_data).encode(),
+                    correlation_id=message.correlation_id,  # Сохраняем correlation_id
+                ),
+                routing_key=message.reply_to,  # Указываем очередь для ответа
+            )
