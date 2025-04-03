@@ -26,17 +26,18 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
-        await bot.send_message(
-            chat_id=user_tgid,
-            text="У тебя нет текстов")
+        logger.info(f'No daily tasks to send to user {user_tgid}')
         return
 
     stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
     msg_to_send = (f'Доброе утро, вот твои аффирмации на сегодня:\n\n'
                    f'{stroke_tasks}')
-
-    await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
-    logger.info(f'Daily tasks sent to user {user_tgid}')
+    try:
+        await bot.send_message(chat_id=user_tgid, text=msg_to_send, reply_markup=kb.finishing_task)
+        logger.info(f'Daily tasks sent to user {user_tgid}')
+    except Exception as e:
+        logger.error(f'Error while sending daily tasks to user {user_tgid}: {e}')
+        raise e
 
 
 @rq.connection
@@ -54,10 +55,22 @@ async def daily_send(session, message):
 
 @router.message(Command('daily'))
 async def cmd_daily_tasks(message: Message):
-    await send_daily_tasks(
-        user_tgid=message.from_user.id,
-        bot=message.bot
-    )
+    user_tgid = message.from_user.id
+
+    tasks: list[Task] = await rq.get_list_of_random_tasks(used_tg=user_tgid)
+    list_of_tasks = [task.text_task for task in tasks]
+
+    if len(list_of_tasks) <= 0:
+        logger.info(f'No daily tasks to send to user {user_tgid}')
+        await message.answer("У тебя нет сохраненных текстов")
+        return
+
+    stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
+    msg_to_send = (f'Доброе утро, вот твои аффирмации на сегодня:\n\n'
+                   f'{stroke_tasks}')
+
+    await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
+    logger.info(f'Daily tasks sent to user {user_tgid}')
 
 
 @router.callback_query(F.data == 'my_tasks')

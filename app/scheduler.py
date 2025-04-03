@@ -21,10 +21,14 @@ async def setup_scheduler(bot: Bot):
         logger.info(f'scheduled get user: {users}')
 
         for user in users:
-            await send_daily_tasks(
-                user_tgid=user,
-                bot=bot
-            )
+            try:
+                await send_daily_tasks(
+                    user_tgid=user,
+                    bot=bot
+                )
+            except Exception as e:
+                logger.error(f'Error during sending tasks: {e}')
+                continue
 
     scheduler.add_job(
         daily_send,
