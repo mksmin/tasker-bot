@@ -94,9 +94,9 @@ async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: i
 
 
 @connection
-async def get_list_of_all_tasks(session: AsyncSession, user_tg: int) -> any:
+async def get_list_of_all_tasks(session: AsyncSession, user_tg: int, user_data: dict = None) -> any:
     try:
-        user = await get_user_by_tgid(tgid=user_tg)
+        user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
             select(Task).where(Task.user_id == user.id,
                                Task.is_done == False)
