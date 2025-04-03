@@ -95,12 +95,15 @@ async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: i
 
 @connection
 async def get_list_of_all_tasks(session: AsyncSession, user_tg: int) -> any:
-    user = await get_user_by_tgid(tgid=user_tg)
-    tasks = await session.scalars(
-        select(Task).where(Task.user_id == user.id,
-                           Task.is_done == False)
-    )
-
+    try:
+        user = await get_user_by_tgid(tgid=user_tg)
+        tasks = await session.scalars(
+            select(Task).where(Task.user_id == user.id,
+                               Task.is_done == False)
+        )
+    except Exception as e:
+        logger.error("Error get list of tasks: ", e)
+        raise Exception(f"Error get list of tasks: {e}")
     return tasks
 
 
