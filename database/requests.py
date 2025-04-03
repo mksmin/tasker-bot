@@ -38,13 +38,23 @@ def connection(function):
 
 
 @connection
-async def get_user_by_tgid(session: AsyncSession, tgid: int) -> User:
+async def get_user_by_tgid(session: AsyncSession, tgid: int, user_data: dict = None) -> User:
     user = await session.scalar(
         select(User).where(User.user_tg == tgid)
     )
 
+    if user_data and user:
+        for key, value in user_data.items():
+            setattr(user, key, value)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+
     if not user:
-        user = User(user_tg=tgid)
+        if user_data:
+            user = User(user_tg=tgid, **user_data)
+        else:
+            user = User(user_tg=tgid)
         session.add(user)
         await session.commit()
         await session.refresh(user)
