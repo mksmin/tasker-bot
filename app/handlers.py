@@ -17,7 +17,13 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await rq.get_user_by_tgid(message.from_user.id)
+    user_data = {
+        "first_name": message.from_user.first_name,
+        "last_name": message.from_user.last_name,
+        "username": message.from_user.username,
+    }
+
+    await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
     await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
 
 
@@ -147,6 +153,13 @@ async def cmd_send_tasks(message: Message):
 @router.message(F.text)
 async def user_add_task(message: Message, state: FSMContext):
     await state.clear()
+
+    user_data = {
+        "first_name": message.from_user.first_name,
+        "last_name": message.from_user.last_name,
+        "username": message.from_user.username,
+    }
+    await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
 
     task_added = await rq.add_task(
         user_tg=message.from_user.id,
