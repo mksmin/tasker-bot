@@ -1,12 +1,13 @@
 import asyncio
 from logging.config import fileConfig
+from urllib.parse import unquote
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from database import postgres_token
+from config import settings
 from database.models import Base
 
 # this is the Alembic Config object, which provides
@@ -31,8 +32,8 @@ print('target_metadata:', target_metadata.tables)
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-config.set_main_option('sqlalchemy.url', postgres_token)
-print('token:', postgres_token)
+config.set_main_option('sqlalchemy.url', unquote(str(settings.db.url)))
+print('token:', settings.db.url)
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
