@@ -27,7 +27,10 @@ async def process_task(message: aio_pika.IncomingMessage):
             # 2. Выполняем основную логику
             user_id = int(data.get("user_tg_id"))
             tasks = await get_list_of_all_tasks(user_tg=user_id, user_data=user_data)  # Ваша функция
-            formatted_tasks = {i: task.text_task for i, task in enumerate(tasks, 1)}
+            formatted_tasks = [
+                {"id": task.id, "number": idx, "text": task.text_task}
+                for idx, task in enumerate(tasks, 1)
+            ]
 
             # 3. Формируем ответ
             response_data = {
