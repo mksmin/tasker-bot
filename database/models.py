@@ -17,6 +17,9 @@ class User(TimeStampMixin, Base):
     __tablename__ = 'users'
 
     user_tg = mapped_column(BigInteger, nullable=False, unique=True)
+    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    username: Mapped[str] = mapped_column(String(50), nullable=True)
 
     tasks = relationship('Task', back_populates='user')
 
