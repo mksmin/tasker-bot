@@ -19,7 +19,7 @@ async def process_task(message: aio_pika.IncomingMessage):
             print(f"Получено сообщение от {message.routing_key} с данными: {data}")
 
             # 2. Выполняем основную логику
-            user_id = data.get("user_tg_id")
+            user_id = int(data.get("user_tg_id"))
             tasks = await get_list_of_all_tasks(user_tg=user_id)  # Ваша функция
             formatted_tasks = {i: task.text_task for i, task in enumerate(tasks, 1)}
 
