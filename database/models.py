@@ -22,6 +22,7 @@ class User(TimeStampMixin, Base):
     username: Mapped[str] = mapped_column(String(50), nullable=True)
 
     tasks = relationship('Task', back_populates='user')
+    settings = relationship('UserSettings', back_populates='user')
 
 
 class Task(TimeStampMixin, Base):
@@ -35,3 +36,11 @@ class Task(TimeStampMixin, Base):
 
     def delete_task(self):
         self.is_done = True
+
+
+class UserSettings(TimeStampMixin, Base):
+    __tablename__ = 'user_settings'
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False, index=True)
+    count_tasks: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
+
+    user = relationship('User', back_populates='settings')
