@@ -38,12 +38,12 @@ async def main() -> None:
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_scheduler(bot)
     try:
-        # connection = await aio_pika.connect_robust(
-        #     settings.rabbit.url
-        # )
-        # channel = await connection.channel()
-        # queue = await channel.declare_queue("tasks")
-        # await queue.consume(process_task)
+        connection = await aio_pika.connect_robust(
+            settings.rabbit.url
+        )
+        channel = await connection.channel()
+        queue = await channel.declare_queue("tasks")
+        await queue.consume(process_task)
 
         await dp.start_polling(bot)
     finally:
