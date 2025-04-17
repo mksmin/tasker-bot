@@ -12,6 +12,7 @@ from pydantic_settings import (
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def get_token(name_of_token: str) -> str | None:

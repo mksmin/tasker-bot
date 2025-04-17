@@ -3,14 +3,16 @@ from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
 from app import statesuser as st
 from app import keyboards as kb
 from config import logger
-from database import Task, User
+from database import Task, User, DbSessionMiddleware, SettingsMiddleware, user_settings_ctx, SettingsRepo, db_helper
 from database import requests as rq
+from database.models import UserSettings
 
 router = Router()
 
@@ -28,7 +30,10 @@ async def cmd_start(message: Message):
 
 
 async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
-    tasks: list[Task] = await rq.get_list_of_random_tasks(used_tg=user_tgid)
+
+    settings = await rq.get_user_settings(user_tg=user_tgid)
+
+    tasks: list[Task] = await rq.get_list_of_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
@@ -63,7 +68,9 @@ async def daily_send(session, message):
 async def cmd_daily_tasks(message: Message):
     user_tgid = message.from_user.id
 
-    tasks: list[Task] = await rq.get_list_of_random_tasks(used_tg=user_tgid)
+    settings = await rq.get_user_settings(user_tg=user_tgid)
+
+    tasks: list[Task] = await rq.get_list_of_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
@@ -148,6 +155,72 @@ async def finished_task(message: Message, state: FSMContext):
 @router.message(Command('send'))
 async def cmd_send_tasks(message: Message):
     await daily_send(message=message)
+
+
+@router.message(Command('settings'))
+async def cmd_settings(message: Message, session: AsyncSession):
+    repo: SettingsRepo = user_settings_ctx.get()
+    user = await rq.get_user_by_tgid(message.from_user.id)
+    n = await repo.get(user.id)
+
+    if not n:
+        logger.debug("User has no settings. Creating new one...")
+        await repo.set(user_id=user.id)
+        n = await repo.get(user.id)
+
+    await message.answer(f"Текущие настройки:\n\n"
+                         f"<b>{n.count_tasks}</b> — случайных аффирмаций\n",
+                         reply_markup=kb.settings_start)
+
+
+@router.callback_query(F.data == 'change_settings')
+async def cmd_change_settings(callback: CallbackQuery):
+    await callback.message.edit_text('Выбери, что хочешь изменить', reply_markup=kb.settings_change)
+
+
+@router.callback_query(F.data == 'change_amount')
+async def cmd_change_amount(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(st.Settings.count_tasks)
+    user = await rq.get_user_by_tgid(callback.from_user.id)
+    async for session in db_helper.session_getter():
+        query = select(UserSettings).where(UserSettings.user_id == user.id)
+        executed = await session.execute(query)
+        settings = executed.scalar_one()
+
+    await callback.message.edit_text(f'Отправь число, которое должно быть меньше или равно 5'
+                                     f'\nСейчас у тебя {settings.count_tasks} аффирмаций')
+
+
+@router.message(F.text.regexp(r"^\d+$"),
+                st.Settings.count_tasks)
+async def cmd_change_amount(message: Message, state: FSMContext):
+    if int(message.text) > 5:
+        await message.answer('Ты ошибся, число должно быть меньше или равно 5')
+    else:
+        user = await rq.get_user_by_tgid(message.from_user.id)
+
+        await state.update_data(count_tasks=message.text)
+        data = await state.get_data()
+        try:
+            async for session in db_helper.session_getter():
+                query = select(UserSettings).where(UserSettings.user_id == user.id)
+                executed = await session.execute(query)
+                user_setting = executed.scalar_one()
+                user_setting.count_tasks = int(data['count_tasks'])
+                session.add(user_setting)
+                await session.commit()
+
+            await message.answer(f"Установил число аффирмаций: {data['count_tasks']}")
+
+        except Exception as e:
+            await message.answer('Ошибка при изменении настроек, {e}')
+            await state.clear()
+            return
+
+
+@router.callback_query(F.data == 'back_to_settings')
+async def cmd_back_to_settings(callback: CallbackQuery):
+    await callback.message.edit_text('Ничего менять не будем. Вызови команду /settings, чтобы вернуться к настройкам')
 
 
 @router.message(F.text)

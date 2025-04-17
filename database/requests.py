@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
-from database import User, Task, db_helper
+from database import User, Task, db_helper, UserSettings, SettingsRepo
 from config import logger
 
 
@@ -81,8 +81,8 @@ async def add_task(session: AsyncSession, user_tg: int, user_text: str) -> bool:
 
 
 @connection
-async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: int = 5) -> any:
-    user = await get_user_by_tgid(tgid=used_tg)
+async def get_list_of_random_tasks(session: AsyncSession, user_tg: int, count: int = 5) -> any:
+    user = await get_user_by_tgid(tgid=user_tg)
     tasks = await session.scalars(
         select(Task).where(
             Task.user_id == user.id,
@@ -91,6 +91,20 @@ async def get_list_of_random_tasks(session: AsyncSession, used_tg: int, count: i
     )
 
     return tasks
+
+
+@connection
+async def get_user_settings(session: AsyncSession, user_tg: int) -> any:
+    user = await get_user_by_tgid(tgid=user_tg)
+    settings = await session.scalar(
+        select(UserSettings).where(UserSettings.user_id == user.id)
+    )
+    if not settings:
+        new_settings = SettingsRepo(session)
+        await new_settings.set(user.id)
+        settings = await new_settings.get(user.id)
+
+    return settings
 
 
 @connection

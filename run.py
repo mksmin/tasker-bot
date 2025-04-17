@@ -14,7 +14,7 @@ from pathlib import Path
 from app.handlers import router
 from config.config import logger, get_token
 from app.scheduler import setup_scheduler
-from database import db_helper, start_engine
+from database import db_helper, start_engine, DbSessionMiddleware, SettingsMiddleware
 from config import settings
 from app.rabbit_tasks import process_task
 
@@ -26,29 +26,26 @@ async def start_bot() -> Bot:
 
 
 async def main() -> None:
-    # await start_engine()
-
     bot = await start_bot()
 
     dp = Dispatcher()
     dp.include_router(router)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
+    dp.message.middleware.register(DbSessionMiddleware())
+    dp.message.middleware.register(SettingsMiddleware())
 
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_scheduler(bot)
     try:
-        connection = await aio_pika.connect_robust(
-            settings.rabbit.url
-        )
-        channel = await connection.channel()
-        queue = await channel.declare_queue("tasks")
-        await queue.consume(process_task)
+        # connection = await aio_pika.connect_robust(
+        #     settings.rabbit.url
+        # )
+        # channel = await connection.channel()
+        # queue = await channel.declare_queue("tasks")
+        # await queue.consume(process_task)
 
         await dp.start_polling(bot)
-
-
-
     finally:
         await bot.session.close()
 
