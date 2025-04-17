@@ -26,14 +26,12 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
-print('target_metadata:', target_metadata.tables)
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
 config.set_main_option('sqlalchemy.url', unquote(str(settings.db.url)))
-print('token:', settings.db.url)
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
