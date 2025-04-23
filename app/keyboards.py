@@ -5,7 +5,7 @@ finishing_task = InlineKeyboardMarkup(inline_keyboard=[
     ])
 
 list_of_tasks = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Все аффирмации", web_app=WebAppInfo(url="https://api.mks-min.ru/affirmations"))],
+    [InlineKeyboardButton(text="Все аффирмации", web_app=WebAppInfo(url="https://api.mks-min.ru/apps/bot2"))],
 ])
 
 settings_start = InlineKeyboardMarkup(inline_keyboard=[
