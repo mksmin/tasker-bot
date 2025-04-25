@@ -39,7 +39,7 @@ async def process_task(message: aio_pika.IncomingMessage):
                 "user_id": user_id,
                 "tasks": formatted_tasks,
                 "settings": {
-                    "send_time": user.settings.send_time,
+                    "send_time": str(user.settings.send_time),
                     "count_tasks": user.settings.count_tasks
                 }
             }
