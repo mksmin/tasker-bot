@@ -5,7 +5,7 @@ import asyncio
 
 from config import settings
 from database import Task
-from database.requests import get_list_of_all_tasks
+from database.requests import get_list_of_all_tasks, get_user_relationship
 
 
 async def process_task(message: aio_pika.IncomingMessage):
@@ -26,7 +26,8 @@ async def process_task(message: aio_pika.IncomingMessage):
 
             # 2. Выполняем основную логику
             user_id = int(data.get("user_tg_id"))
-            tasks = await get_list_of_all_tasks(user_tg=user_id, user_data=user_data)  # Ваша функция
+            tasks = await get_list_of_all_tasks(user_tg=user_id, user_data=user_data)
+            user = await get_user_relationship(user_tg=user_id)
             formatted_tasks = [
                 {"id": task.id, "number": idx, "text": task.text_task}
                 for idx, task in enumerate(tasks, 1)
@@ -37,6 +38,10 @@ async def process_task(message: aio_pika.IncomingMessage):
                 "status": "success",
                 "user_id": user_id,
                 "tasks": formatted_tasks,
+                "settings": {
+                    "send_time": user.settings.send_time,
+                    "count_tasks": user.settings.count_tasks
+                }
             }
 
             # --- ИСПРАВЛЕННЫЙ БЛОК ОТПРАВКИ ---

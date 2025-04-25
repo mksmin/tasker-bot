@@ -22,7 +22,7 @@ class User(TimeStampMixin, Base):
     username: Mapped[str] = mapped_column(String(50), nullable=True)
 
     tasks = relationship('Task', back_populates='user')
-    settings = relationship('UserSettings', back_populates='user')
+    settings = relationship('UserSettings', back_populates='user', uselist=False)
 
 
 class Task(TimeStampMixin, Base):
@@ -44,4 +44,4 @@ class UserSettings(TimeStampMixin, Base):
     count_tasks: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     send_time: Mapped[time] = mapped_column(Time, nullable=False, default=lambda: time(9, 0))
 
-    user = relationship('User', back_populates='settings')
+    user = relationship('User', back_populates='settings', uselist=False)

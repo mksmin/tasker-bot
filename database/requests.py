@@ -2,6 +2,7 @@
 from functools import wraps
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 # import from modules
 from database import User, Task, db_helper, UserSettings, SettingsRepo
@@ -119,6 +120,16 @@ async def get_list_of_all_tasks(session: AsyncSession, user_tg: int, user_data: 
         logger.error("Error get list of tasks: ", e)
         raise Exception(f"Error get list of tasks: {e}")
     return tasks
+
+
+@connection
+async def get_user_relationship(session: AsyncSession, user_tg: int) -> any:
+    user = await get_user_by_tgid(tgid=user_tg)
+    # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
+    user = await session.get(User, user.id)
+    await session.refresh(user, attribute_names=['settings'])
+
+    return user
 
 
 @connection
