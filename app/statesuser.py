@@ -8,3 +8,5 @@ class TaskFinish(StatesGroup):
 
 class Settings(StatesGroup):
     count_tasks = State()
+    time_hour = State()
+    time_minute = State()

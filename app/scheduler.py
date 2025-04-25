@@ -2,51 +2,21 @@ import os
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import time
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from app.handlers import send_daily_tasks
+from . import send_daily_tasks
 from database import connection, User, UserSettings
 from database import requests as rq
 from config import logger
 
-
-# async def setup_scheduler(bot: Bot):
-#     scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
-#
-#     @connection
-#     async def daily_send(session):
-#         users = await session.scalars(
-#             select(User.user_tg)
-#         )
-#
-#         logger.info(f'scheduled get user: {users}')
-#
-#         for user in users:
-#             try:
-#                 await send_daily_tasks(
-#                     user_tgid=user,
-#                     bot=bot
-#                 )
-#             except Exception as e:
-#                 logger.error(f'Error during sending tasks: {e}')
-#                 continue
-#
-#     scheduler.add_job(
-#         daily_send,
-#         'cron',
-#         hour=9,
-#         minute=0,
-#         timezone='Europe/Moscow',
-#         misfire_grace_time=300,
-#         coalesce=False
-#     )
-#
-#     scheduler.start()
+SCHEDULER = {}
 
 
 async def setup_scheduler(bot: Bot):
     scheduler = AsyncIOScheduler()
+    SCHEDULER["scheduler"] = scheduler
 
     @connection
     async def schedule_all(session):
@@ -54,7 +24,6 @@ async def setup_scheduler(bot: Bot):
             select(UserSettings).options(joinedload(UserSettings.user))
         )
         for setting in settings:
-
             user_tgid = setting.user.user_tg
             send_time = setting.send_time
 
@@ -77,3 +46,29 @@ async def setup_scheduler(bot: Bot):
 
     await schedule_all()
 
+
+async def update_schedule(
+        user_tg_id: int,
+        new_time: time,
+        bot: Bot
+):
+    scheduler: AsyncIOScheduler = SCHEDULER.get("scheduler")
+
+    user = await rq.get_user_by_tgid(user_tg_id)
+    job_id = f"daily_{user.id}"
+
+    if scheduler.get_job(job_id):
+        scheduler.remove_job(job_id)
+
+    scheduler.add_job(
+        send_daily_tasks,
+        trigger='cron',
+        hour=new_time.hour,
+        minute=new_time.minute,
+        args=[user_tg_id, bot],
+        id=job_id,
+        misfire_grace_time=300,
+        coalesce=False
+    )
+
+    logger.info(f"Added new job: {job_id} with time {new_time}")

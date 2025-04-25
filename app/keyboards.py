@@ -17,6 +17,9 @@ settings_start = InlineKeyboardMarkup(inline_keyboard=[
 settings_change = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Количество аффирмаций", callback_data="change_amount"),
+        InlineKeyboardButton(text="Время отправки", callback_data="change_time")
+    ],
+    [
         InlineKeyboardButton(text="Вернуться назад", callback_data="back_to_settings")
     ]
 ])
