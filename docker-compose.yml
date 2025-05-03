@@ -19,3 +19,5 @@ services:
       - APP_CONFIG__RABBIT__PASSWORD=${APP_CONFIG__RABBIT__PASSWORD}
       - APP_CONFIG__RABBIT__VHOSTNAME=${APP_CONFIG__RABBIT__VHOSTNAME}
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
