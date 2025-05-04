@@ -1,9 +1,16 @@
 FROM python:3.10-slim
-WORKDIR /app
+LABEL authors="mks_min"
 
+# Установка poetry
+ENV POETRY_VERSION=2.1.1
+RUN pip install "poetry==$POETRY_VERSION"
+
+WORKDIR /taskerbot
 # Установка зависимостей
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry config  virtualenvs.create false \
+    && poetry install --no-root --no-interaction --no-ansi --only main
 
 # Копирование исходного кода приложения
 COPY . .
