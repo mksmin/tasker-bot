@@ -12,5 +12,6 @@ tests
 
 .env
 .env.template
+.env.*
 
 tasker-bot.iml

@@ -1,4 +1,6 @@
 tasker-bot.iml
+.env.*
+!.env.template
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
