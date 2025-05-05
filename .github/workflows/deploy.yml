@@ -1,0 +1,27 @@
+# Название action
+name: Deploy to Server
+
+# Основной триггер
+on:
+  push:                 # При пуше в репозиторий
+    branches:
+      - master             # Только если пуш в ветку "master"
+
+jobs:
+  deploy:                # Название работы
+    runs-on: ubuntu-latest   # Где будет выполняться (виртуальная Ubuntu)
+
+    steps:
+    # 1. Клонируем код репозитория внутрь GitHub Runner
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. Подключаемся по SSH к серверу и выполняем команды
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.6  # Используем готовый экшен для SSH подключения
+      with:
+        host: ${{ secrets.SERVER_IP }}          
+        username: ${{ secrets.SERVER_USER }}                
+        key: ${{ secrets.SERVER_SSH_KEY }}       
+        script: |                                # Набор команд для выполнения на сервере
+          /home/github_deployer/deploy.sh        # Запуск скрипта
