@@ -10,6 +10,7 @@ from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict
 )
+from pydantic_core import MultiHostUrl
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -30,11 +31,34 @@ class BotConfig(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
-    url: PostgresDsn
+    scheme: str
+    engine: str = "asyncpg"
+    username: str
+    password: str
+    host: str = "localhost"
+    port: int = 5432
+    path: str = "postgres"
+
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 50
     max_overflow: int = 10
+
+    @property
+    def url(self) -> PostgresDsn:
+        try:
+            url_path = MultiHostUrl.build(
+                scheme=f'{self.scheme}+{self.engine}',
+                username=self.username,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                path=self.path,
+            )
+        except ValidationError as err:
+            logger.error(f"Invalid connection string for {self.name}: {err}")
+            raise err
+        return PostgresDsn(url_path)
 
 
 class RabbitMQConfig(BaseModel):
