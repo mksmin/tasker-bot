@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 @pytest.fixture
 def test_env_path():
-    path = Path(__file__).parent.parent.parent / 'tests' / '.env.test'
+    path = Path(__file__).parent.parent.parent / '.env.template'
     return path
 
 
@@ -69,7 +69,7 @@ def test_database_config(settings):
 
     assert isinstance(db_config, DatabaseConfig), 'Не является экземпляром DatabaseConfig'
     assert isinstance(db_config.url, PostgresDsn), 'URL не является строкой'
-    assert str(db_config.url) == 'postgresql+asyncpg://test:test@localhost/test_db', \
+    assert str(db_config.url) == 'postgresql+asyncpg://user:pwd@host:1234/dbname', \
         'URL не соответствует ожидаемому'
     assert db_config.echo is False, 'echo не False'
 
