@@ -62,11 +62,11 @@ class DatabaseConfig(BaseModel):
 
 
 class RabbitMQConfig(BaseModel):
-    host: str = "localhost"
-    port: int = 5672
-    username: str = "user"
-    password: str = "wpwd"
-    vhostname: str = "vhost"
+    host: str = "host"
+    port: int = 1234
+    username: str = "username"
+    password: str = "password"
+    vhostname: str = "virtual_host_name"
 
     @computed_field
     @property
