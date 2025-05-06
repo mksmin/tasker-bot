@@ -12,16 +12,32 @@ jobs:
     runs-on: ubuntu-latest   # Где будет выполняться (виртуальная Ubuntu)
 
     steps:
-    # 1. Клонируем код репозитория внутрь GitHub Runner
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 1. Клонируем код репозитория внутрь GitHub Runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 2. Подключаемся по SSH к серверу и выполняем команды
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.6  # Используем готовый экшен для SSH подключения
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |                                # Набор команд для выполнения на сервере
+            /home/github_deployer/deploy.sh        # Запуск скрипта
 
-    # 2. Подключаемся по SSH к серверу и выполняем команды
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v0.1.6  # Используем готовый экшен для SSH подключения
-      with:
-        host: ${{ secrets.SERVER_IP }}          
-        username: ${{ secrets.SERVER_USER }}                
-        key: ${{ secrets.SERVER_SSH_KEY }}       
-        script: |                                # Набор команд для выполнения на сервере
-          /home/github_deployer/deploy.sh        # Запуск скрипта
+      # 3. Уведомление в тг, если предыдущие шаги не сработали
+      - name: Send Telegram notification on deploy failure
+        if: failure()
+        run: |
+          curl -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="🚨 Ошибка деплоя tasker-bot"
+
+      # 4. Уведомление в тг, если предыдущие шаги сработали
+      - name: Send Telegram notification on deploy success
+        if: success()
+        run: |
+          curl -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="✅ Бот tasker-bot успешно обновлен"
