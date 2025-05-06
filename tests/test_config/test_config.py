@@ -33,7 +33,6 @@ def settings(monkeypatch, test_env_path):
 
 @pytest.fixture
 def monkeypatch_env(monkeypatch, test_env_path):
-
     # Подменяем путь, который используется внутри get_token, на путь к .env.test
     def mock_get_token_path(*args):
         # Печатаем подмененный путь для отладки
@@ -71,7 +70,15 @@ def test_database_config(settings):
     assert isinstance(db_config.url, PostgresDsn), 'URL не является строкой'
     assert str(db_config.url) == 'postgresql+asyncpg://user:pwd@host:1234/dbname', \
         'URL не соответствует ожидаемому'
-    assert db_config.echo is False, 'echo не False'
+    assert db_config.echo is False, 'echo не False (true используется только в разработке)'
+
+
+def test_rabbitmq_config(settings):
+    rabbit_config = settings.rabbit
+    assert isinstance(rabbit_config, RabbitMQConfig), 'Не является экземпляром RabbitMQConfig'
+    assert isinstance(rabbit_config.url, str), 'URL не является строкой'
+    assert rabbit_config.url == 'amqps://username:password@host:1234/virtual_host_name', ('URL не соответствует '
+                                                                                         'ожидаемому')
 
 
 def test_validation_error():
@@ -79,3 +86,4 @@ def test_validation_error():
     with pytest.raises(ValidationError):
         BotConfig(token=None)
         DatabaseConfig(url="invalid-url")
+        RabbitMQConfig(url="invalid-url")
