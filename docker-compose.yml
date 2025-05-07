@@ -1,7 +1,9 @@
 services:
   bot:
     build: .
-    restart: unless-stopped
+    restart_policy:
+      condition: on-failure
+      max_attempts: 10
     tty: true
     stdin_open: true
     env_file:
