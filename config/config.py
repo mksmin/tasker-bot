@@ -14,6 +14,7 @@ from pydantic_core import MultiHostUrl
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_token(name_of_token: str) -> str | None:
@@ -81,7 +82,7 @@ class RabbitMQConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env.template", ".env"),
+        env_file=(PROJECT_DIR / ".env.template", PROJECT_DIR / ".env"),
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__"
