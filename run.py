@@ -12,6 +12,7 @@ from pathlib import Path
 
 # import from modules
 from app.handlers import router
+from app.handlers_test import router as router_test
 from config.config import logger, get_token
 from app.scheduler import setup_scheduler
 from database import db_helper, start_engine, DbSessionMiddleware, SettingsMiddleware
@@ -29,6 +30,7 @@ async def main() -> None:
     bot = await start_bot()
 
     dp = Dispatcher()
+    dp.include_router(router_test)
     dp.include_router(router)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
