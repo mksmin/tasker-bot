@@ -7,7 +7,6 @@ import asyncio
 
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import clear_mappers
 
 from database.models import Base, User
 from database.schemas import UserCreateSchema
@@ -29,16 +28,15 @@ async def db_engine():
 
 
 @pytest_asyncio.fixture
-async def db_sessionmaker(db_engine):
+async def db_session_maker(db_engine):
     return async_sessionmaker(bind=db_engine, expire_on_commit=False)
 
 
 @pytest.mark.asyncio
-async def test_create_user(db_sessionmaker):
-
+async def test_create_user(db_session_maker):
     user_crud = BaseCRUDManager[User](
         model=User,
-        session_maker=db_sessionmaker  # Используем session_factory из db_helper
+        session_maker=db_session_maker
     )
 
     user_data = UserCreateSchema(
@@ -56,10 +54,10 @@ async def test_create_user(db_sessionmaker):
 
 
 @pytest.mark.asyncio
-async def test_create_user_missing_fields(db_sessionmaker):
+async def test_create_user_missing_fields(db_session_maker):
     user_crud = BaseCRUDManager[User](
         model=User,
-        session_maker=db_sessionmaker
+        session_maker=db_session_maker
     )
 
     with pytest.raises(ValidationError):
