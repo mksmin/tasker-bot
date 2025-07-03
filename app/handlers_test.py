@@ -15,7 +15,7 @@ async def test_reg(message: Message):
         "first_name": "John Test",
     }
 
-    instance = await crud_manager.user.create(user_data)
+    instance = await crud_manager.user.create_user(user_data)
     if instance:
         print("User created successfully!")
         await message.answer(f"Hello, {instance.first_name}!  id={instance.id}, created_at={instance.created_at}")

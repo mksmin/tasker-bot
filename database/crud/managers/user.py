@@ -9,6 +9,6 @@ class UserManager(BaseCRUDManager[User]):
     def __init__(self):
         super().__init__(model=User, session_maker=db_helper.session_factory)
 
-    async def create(self, user_data: dict):
+    async def create_user(self, user_data: dict):
         instance = UserCreateSchema(**user_data)
-        return await super().create(session=, data=instance)
+        return await super().create(data=instance)
