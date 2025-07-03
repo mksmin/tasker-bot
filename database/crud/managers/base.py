@@ -4,6 +4,7 @@ import logging
 # import from libs
 from contextlib import asynccontextmanager
 from functools import wraps
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type, AsyncGenerator
 
@@ -14,6 +15,7 @@ from database.db_helper import db_helper
 ModelType = TypeVar("ModelType")
 P = ParamSpec("P")
 R = TypeVar("R")
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 logger = logging.getLogger(__name__)
 
 
@@ -57,3 +59,8 @@ class BaseCRUDManager(Generic[ModelType]):
         await session.refresh(instance)
         logger.info(f"Created {self.model.__name__} with id={instance.id}")
         return instance
+
+    @_auto_session
+    async def _create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
+        instance = self.model(**data.dict())
+        return await self._create_one_entry(session=session, instance=instance)
