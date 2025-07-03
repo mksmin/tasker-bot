@@ -11,4 +11,4 @@ class UserManager(BaseCRUDManager[User]):
 
     async def create(self, user_data: dict):
         instance = UserCreateSchema(**user_data)
-        return await super()._create(data=instance)
+        return await super().create(session=, data=instance)

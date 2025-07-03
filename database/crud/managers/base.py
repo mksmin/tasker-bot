@@ -61,6 +61,6 @@ class BaseCRUDManager(Generic[ModelType]):
         return instance
 
     @_auto_session
-    async def _create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
+    async def create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
         instance = self.model(**data.dict())
         return await self._create_one_entry(session=session, instance=instance)
