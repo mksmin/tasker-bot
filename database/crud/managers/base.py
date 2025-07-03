@@ -5,7 +5,7 @@ import logging
 from contextlib import asynccontextmanager
 from functools import wraps
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type, AsyncGenerator
 
 # import from modules
@@ -23,7 +23,7 @@ class BaseCRUDManager(Generic[ModelType]):
     def __init__(
             self,
             model: Type[ModelType],
-            session_maker: Callable[[], AsyncGenerator[AsyncSession, None]],
+            session_maker: async_sessionmaker[AsyncSession],
     ):
         self.model = model
         self.session_maker = session_maker
@@ -62,5 +62,5 @@ class BaseCRUDManager(Generic[ModelType]):
 
     @_auto_session
     async def create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
-        instance = self.model(**data.dict())
+        instance = self.model(**data.model_dump())
         return await self._create_one_entry(session=session, instance=instance)
