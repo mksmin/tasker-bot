@@ -13,25 +13,6 @@ from database.schemas import UserCreateSchema
 from database.crud.managers.base import BaseCRUDManager
 
 
-@pytest.fixture(scope="function")
-def anyio_backend():
-    return "asyncio"
-
-
-@pytest_asyncio.fixture(scope="function")
-async def db_engine():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield engine
-    await engine.dispose()
-
-
-@pytest_asyncio.fixture
-async def db_session_maker(db_engine):
-    return async_sessionmaker(bind=db_engine, expire_on_commit=False)
-
-
 @pytest.mark.asyncio
 async def test_create_user(db_session_maker):
     user_crud = BaseCRUDManager[User](
