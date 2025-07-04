@@ -10,7 +10,7 @@ WORKDIR /taskerbot
 
 COPY pyproject.toml poetry.lock ./
 RUN poetry config  virtualenvs.create false \
-    && poetry install --no-root --no-interaction --no-ansi --only main
+    && poetry install --no-root --no-interaction --no-ansi --with main,tests
 
 # Копирование исходного кода приложения
 COPY . .
