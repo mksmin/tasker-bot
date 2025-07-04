@@ -11,34 +11,52 @@ from database.schemas import UserCreateSchema
 from database.crud.managers.base import BaseCRUDManager
 
 
-@pytest.mark.asyncio
-async def test_create_user(db_session_maker):
+@pytest.fixture
+async def instance(db_session_maker):
     user_crud = BaseCRUDManager[User](
         model=User,
         session_maker=db_session_maker
     )
+    return user_crud
 
-    user_data = UserCreateSchema(
-        user_tg=123456789,
-        first_name="John",
-    )
 
-    created = await user_crud.create(data=user_data)
+@pytest.fixture
+async def created_user(user_schema, instance):
+    return await instance.create(data=user_schema)
+
+
+@pytest.mark.asyncio
+async def test_create_user(created_user: User):
+    created = created_user
 
     assert isinstance(created, User)
     assert created.id is not None
     assert isinstance(created.created_at, datetime)
-    assert created.first_name == "John"
-    assert created.user_tg == 123456789
+    assert created.user_tg == 999
+    assert created.first_name == "Max"
+    assert created.last_name == "Test"
+    assert created.username == "test_user"
+
+
+def test_create_user_missing_fields(instance):
+    with pytest.raises(ValidationError):
+        UserCreateSchema(**{})
 
 
 @pytest.mark.asyncio
-async def test_create_user_missing_fields(db_session_maker):
-    user_crud = BaseCRUDManager[User](
-        model=User,
-        session_maker=db_session_maker
+async def test_exists_user(created_user: User, instance: BaseCRUDManager[User]):
+    user = created_user
+    exists = await instance.exist(
+        field="id", value=user.id
     )
 
-    with pytest.raises(ValidationError):
-        invalid_data = UserCreateSchema(**{})
-        await user_crud.create(data=invalid_data)
+    assert exists is not None
+
+
+@pytest.mark.asyncio
+async def test_get_one_user(created_user: User, instance: BaseCRUDManager[User]):
+    get_user = await instance.get(
+        user_tg=created_user.user_tg
+    )
+    assert get_user is not None
+    assert get_user.id == created_user.id
