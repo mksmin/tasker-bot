@@ -3,20 +3,35 @@ name: Deploy to Server
 
 # Основной триггер
 on:
-  push:                 # При пуше в репозиторий
+  push: # При пуше в репозиторий
     branches:
       - master             # Только если пуш в ветку "master"
 
 jobs:
-  deploy:                # Название работы
+  deploy: # Название работы
     runs-on: ubuntu-latest   # Где будет выполняться (виртуальная Ubuntu)
 
     steps:
-      # 1. Клонируем код репозитория внутрь GitHub Runner
+      # Клонирую репозиторий
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      # 2. Подключаемся по SSH к серверу и выполняем команды
+
+      # Устанавливаю Docker Compose
+      - name: Install Docker Compose v2
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
+      # Собираю контейнеры
+      - name: Build docker-compose services
+        run: docker-compose build bot
+
+      # Запускаю тесты внутри контейнера
+      - name: Run tests in bot container
+        run: docker-compose run --rm bot poetry run pytest -s
+
+      # Деплой через SSH если тесты прошли
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.6  # Используем готовый экшен для SSH подключения
         with:
@@ -26,7 +41,7 @@ jobs:
           script: |                                # Набор команд для выполнения на сервере
             /home/github_deployer/deploy.sh        # Запуск скрипта
 
-      # 3. Уведомление в тг, если предыдущие шаги не сработали
+      # Уведомление в тг, если предыдущие шаги не сработали
       - name: Send Telegram notification on deploy failure
         if: failure()
         run: |
@@ -34,7 +49,7 @@ jobs:
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
           -d text="🚨 Ошибка деплоя tasker-bot"
 
-      # 4. Уведомление в тг, если предыдущие шаги сработали
+      # Уведомление в тг, если предыдущие шаги сработали
       - name: Send Telegram notification on deploy success
         if: success()
         run: |
