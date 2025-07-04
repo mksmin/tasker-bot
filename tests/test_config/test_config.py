@@ -45,7 +45,7 @@ def monkeypatch_env(monkeypatch, test_env_path):
     yield
 
 
-def test_get_token(monkeypatch_env):
+def test_get_token(monkeypatch_env, settings):
     """Тест функции get_token"""
     token = get_token('APP_CONFIG__BOT__TOKEN')
     assert token == 'test_bot_token', 'Токен не найден или не соответствует ожидаемому'

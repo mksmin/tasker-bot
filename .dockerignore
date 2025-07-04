@@ -2,7 +2,8 @@
 .vscode
 .venv
 __pycache__
-tests
+htmlcov
+
 
 *.log
 *.sqlite3
@@ -11,7 +12,7 @@ tests
 .gitignore
 
 .env
-.env.template
 .env.*
+!.env.template
 
 tasker-bot.iml
