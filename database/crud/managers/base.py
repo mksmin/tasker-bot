@@ -2,14 +2,12 @@
 import logging
 
 # import from libs
-from contextlib import asynccontextmanager
 from functools import wraps
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type, AsyncGenerator
+from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type
 
-# import from modules
-from database.db_helper import db_helper
 
 # global
 ModelType = TypeVar("ModelType")
@@ -60,7 +58,26 @@ class BaseCRUDManager(Generic[ModelType]):
         logger.info(f"Created {self.model.__name__} with id={instance.id}")
         return instance
 
+    async def _exist_entry_by_field(self, session: AsyncSession, field: str, value: Any) -> bool:
+        logger.info(f"Checking if {self.model.__name__} with {field}={value} exists")
+        stmt = select(self.model).where(getattr(self.model, field) == value)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none() is not None
+
+    async def _get_one_entry(self, session: AsyncSession, **filters: dict) -> ModelType:
+        stmt = select(self.model).filter_by(**filters)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
     @_auto_session
     async def create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
         instance = self.model(**data.model_dump())
         return await self._create_one_entry(session=session, instance=instance)
+
+    @_auto_session
+    async def exist(self, *, session: AsyncSession, field: str, value: Any) -> bool:
+        return await self._exist_entry_by_field(session=session, field=field, value=value)
+
+    @_auto_session
+    async def get(self, *, session: AsyncSession, **filters: dict) -> ModelType:
+        return await self._get_one_entry(session=session, **filters)
