@@ -1,14 +1,12 @@
-from contextlib import asynccontextmanager
-from datetime import datetime
-
+# import libs
 import pytest
-import pytest_asyncio
-import asyncio
 
+# import from libs
+from datetime import datetime
 from pydantic import ValidationError
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
-from database.models import Base, User
+# import from modules
+from database.models import User
 from database.schemas import UserCreateSchema
 from database.crud.managers.base import BaseCRUDManager
 

@@ -1,7 +1,10 @@
-from datetime import datetime, time
-
+# import libs
 import pytest
 
+# import from libs
+from datetime import datetime, time
+
+# import from modules
 from database import models as md
 
 
