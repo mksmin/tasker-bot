@@ -11,4 +11,8 @@ class UserManager(BaseCRUDManager[User]):
 
     async def create_user(self, user_data: dict):
         instance = UserCreateSchema(**user_data)
+        exist = await self.exist(field="user_tg", value=instance.user_tg)
+        if exist:
+            return await self.get(user_tg=instance.user_tg)
+
         return await super().create(data=instance)
