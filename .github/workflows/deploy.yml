@@ -27,6 +27,10 @@ jobs:
       - name: Build docker-compose services
         run: docker-compose build bot
 
+      # Создаю .env файл из шаблона для тестов
+      - name: Setup .env file
+        run: cp .env.template .env
+
       # Запускаю тесты внутри контейнера
       - name: Run tests in bot container
         run: docker-compose run --rm bot poetry run pytest -s
