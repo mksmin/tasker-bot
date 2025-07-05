@@ -1,3 +1,10 @@
+"""
+Модуль с тестами для обработчиков команд бота
+
+Проверяю логику работы обработчиков без обращения к БД, а только итоговое форматирование и ответы и логику работы
+функций с полученными от БД объектами
+"""
+
 # import libs
 import pytest
 
@@ -6,6 +13,7 @@ from aiogram.types import Message, User
 from aiogram.fsm.context import FSMContext
 from datetime import time
 from unittest.mock import AsyncMock, patch, MagicMock
+from typing import AsyncGenerator
 
 # import from modules
 import database.requests as rq
@@ -17,7 +25,10 @@ from database.requests import get_user_by_tgid
 
 
 @pytest.fixture
-async def mock_message():
+async def mock_message() -> AsyncGenerator[Message, None]:
+    """
+    Fixture that returns a mocked Message object with a fake user.
+    """
     message = MagicMock(spec=Message)
     message.from_user = User(
         id=123456,
@@ -31,12 +42,14 @@ async def mock_message():
 
 
 @pytest.mark.asyncio
-async def test_cmd_start(mock_message):
+async def test_cmd_start(mock_message: Message) -> None:
+    """
+    Test that the /start command registers the user and sends a welcome message
+    """
     mock_message.answer = AsyncMock()
 
     with patch('database.requests.get_user_by_tgid', new_callable=AsyncMock) as mock_get_user_by_tgid:
         await cmd_start(mock_message)
-
         mock_get_user_by_tgid.assert_awaited_once_with(
             123456,
             user_data={"first_name": "John",
@@ -49,7 +62,10 @@ async def test_cmd_start(mock_message):
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_no_tasks(mock_message):
+async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
+    """
+    Test that the /daily command sends a message when no tasks are available
+    """
     mock_message.answer = AsyncMock()
 
     mock_settings = UserSettings(
@@ -87,7 +103,10 @@ async def test_cmd_daily_tasks_no_tasks(mock_message):
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_with_tasks(mock_message):
+async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
+    """
+    Test that the /daily command sends a list of tasks when available
+    """
     test_tasks = [
         Task(text_task="Test task 1"),
         Task(text_task="Test task 2"),
@@ -124,6 +143,10 @@ async def test_cmd_daily_tasks_with_tasks(mock_message):
         ) as mock_get_list_of_random_tasks
     ):
         await cmd_daily_tasks(mock_message)
+        mock_get_list_of_random_tasks.assert_awaited_once_with(
+            user_tg=123456,
+            count=expected_task_count
+        )
         mock_message.answer.assert_awaited_once_with(
             text=expected_message,
             reply_markup=kb.finishing_task
