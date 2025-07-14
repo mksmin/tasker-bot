@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type
 
-
 # global
 ModelType = TypeVar("ModelType")
 P = ParamSpec("P")
@@ -33,7 +32,11 @@ class BaseCRUDManager(Generic[ModelType]):
             ],
     ) -> Callable[Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]]:
         @wraps(func)
-        async def wrapper(self: "BaseCRUDManager[ModelType]", *args: P.args, **kwargs: P.kwargs) -> R:
+        async def wrapper(
+                self: "BaseCRUDManager[ModelType]",
+                *args: P.args,
+                **kwargs: P.kwargs,
+        ) -> R:
             async with self.session_maker() as session:
                 try:
                     kwargs["session"] = session
@@ -70,14 +73,14 @@ class BaseCRUDManager(Generic[ModelType]):
         return result.scalar_one_or_none()
 
     @_auto_session
-    async def create(self, *, session: AsyncSession, data: CreateSchemaType) -> ModelType:
+    async def create(self, *, data: CreateSchemaType) -> ModelType:
         instance = self.model(**data.model_dump())
-        return await self._create_one_entry(session=session, instance=instance)
+        return await self._create_one_entry(instance=instance)
 
     @_auto_session
-    async def exist(self, *, session: AsyncSession, field: str, value: Any) -> bool:
-        return await self._exist_entry_by_field(session=session, field=field, value=value)
+    async def exist(self, *, field: str, value: Any) -> bool:
+        return await self._exist_entry_by_field(field=field, value=value)
 
     @_auto_session
-    async def get(self, *, session: AsyncSession, **filters: dict) -> ModelType:
-        return await self._get_one_entry(session=session, **filters)
+    async def get(self, **filters) -> ModelType:
+        return await self._get_one_entry(**filters)
