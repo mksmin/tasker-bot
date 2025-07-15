@@ -1,4 +1,5 @@
 # import from libs
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 # import from modules
@@ -28,3 +29,16 @@ class TaskManager(BaseCRUDManager[Task]):
         )
         created_model = await self.create(data=task_schema)
         return TaskReadSchema.model_validate(created_model)
+
+    async def get_random_tasks(self, user_tg: int, count: int = 5) -> list[TaskReadSchema]:
+        user = await self.user_manager.get_user(user_tg=user_tg)
+        async with self.get_session() as session:
+            stmt = (
+                select(Task)
+                .where(Task.user_id == user.id, Task.is_done.is_(False))
+                .order_by(func.random())
+                .limit(count)
+            )
+            result = await session.execute(stmt)
+            tasks = result.scalars().all()
+            return [TaskReadSchema.model_validate(task) for task in tasks]
