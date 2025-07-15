@@ -2,11 +2,12 @@
 import logging
 
 # import from libs
+from contextlib import asynccontextmanager
 from functools import wraps
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type
+from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type, AsyncGenerator
 
 # global
 ModelType = TypeVar("ModelType")
@@ -49,6 +50,17 @@ class BaseCRUDManager(Generic[ModelType]):
                     raise
 
         return wrapper
+
+    @asynccontextmanager
+    async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
+        async with self.session_maker() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception as e:
+                await session.rollback()
+                logger.exception("Error in session: %s", e)
+                raise
 
     async def _create_one_entry(
             self,
