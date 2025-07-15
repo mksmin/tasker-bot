@@ -23,12 +23,13 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     user_data = {
+        "user_tg": message.from_user.id,
         "first_name": message.from_user.first_name,
         "last_name": message.from_user.last_name,
         "username": message.from_user.username,
     }
 
-    await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
+    await crud_manager.user.create_user(user_data=user_data)
     await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
 
 

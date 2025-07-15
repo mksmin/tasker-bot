@@ -48,13 +48,15 @@ async def test_cmd_start(mock_message: Message) -> None:
     """
     mock_message.answer = AsyncMock()
 
-    with patch('database.requests.get_user_by_tgid', new_callable=AsyncMock) as mock_get_user_by_tgid:
+    with patch.object(crud_manager.user, 'create_user', new_callable=AsyncMock) as mock_create_user:
         await cmd_start(mock_message)
-        mock_get_user_by_tgid.assert_awaited_once_with(
-            123456,
-            user_data={"first_name": "John",
-                       "last_name": "Doe",
-                       "username": "johndoe"}
+        mock_create_user.assert_awaited_once_with(
+            user_data={
+                "user_tg": 123456,
+                "first_name": "John",
+                "last_name": "Doe",
+                "username": "johndoe"
+            }
         )
         mock_message.answer.assert_awaited_once_with(
             "Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! "
