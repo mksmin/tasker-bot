@@ -73,14 +73,18 @@ class BaseCRUDManager(Generic[ModelType]):
         return result.scalar_one_or_none()
 
     @_auto_session
-    async def create(self, *, data: CreateSchemaType) -> ModelType:
+    async def create(self, *, data: CreateSchemaType, **kwargs) -> ModelType:
+        session = kwargs["session"]
         instance = self.model(**data.model_dump())
-        return await self._create_one_entry(instance=instance)
+        return await self._create_one_entry(session=session, instance=instance)
 
     @_auto_session
-    async def exist(self, *, field: str, value: Any) -> bool:
-        return await self._exist_entry_by_field(field=field, value=value)
+    async def exist(self, *, field: str, value: Any, **kwargs) -> bool:
+        session = kwargs["session"]
+        return await self._exist_entry_by_field(session=session, field=field, value=value)
 
     @_auto_session
-    async def get(self, **filters) -> ModelType:
-        return await self._get_one_entry(**filters)
+    async def get(self, **kwargs) -> ModelType:
+        session = kwargs["session"]
+        filters = {k: v for k, v in kwargs.items() if k != "session"}
+        return await self._get_one_entry(session=session, **filters)
