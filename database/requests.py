@@ -64,24 +64,6 @@ async def get_user_by_tgid(session: AsyncSession, tgid: int, user_data: dict = N
 
 
 @connection
-async def add_task(session: AsyncSession, user_tg: int, user_text: str) -> bool:
-    user = await get_user_by_tgid(user_tg)
-
-    task = Task(
-        text_task=user_text,
-        user_id=user.id
-    )
-    try:
-        session.add(task)
-        await session.commit()
-        return True
-
-    except Exception as e:
-        logger.error("Error add task: ", e)
-        return False
-
-
-@connection
 async def get_list_of_random_tasks(session: AsyncSession, user_tg: int, count: int = 5) -> any:
     user = await get_user_by_tgid(tgid=user_tg)
     tasks = await session.scalars(

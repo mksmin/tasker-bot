@@ -51,7 +51,7 @@ async def cmd_daily_tasks(message: Message):
 
     settings = await rq.get_user_settings(user_tg=user_tgid)
 
-    tasks: list[Task] = await rq.get_list_of_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
+    tasks = await crud_manager.task.get_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
