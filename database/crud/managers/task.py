@@ -30,6 +30,10 @@ class TaskManager(BaseCRUDManager[Task]):
         created_model = await self.create(data=task_schema)
         return TaskReadSchema.model_validate(created_model)
 
+    async def get_task_by_id(self, task_id: int) -> TaskReadSchema:
+        result = await self.get(id=task_id)
+        return TaskReadSchema.model_validate(result)
+
     async def get_random_tasks(self, user_tg: int, count: int = 5) -> list[TaskReadSchema]:
         user = await self.user_manager.get_user(user_tg=user_tg)
         async with self.get_session() as session:
@@ -42,3 +46,23 @@ class TaskManager(BaseCRUDManager[Task]):
             result = await session.execute(stmt)
             tasks = result.scalars().all()
             return [TaskReadSchema.model_validate(task) for task in tasks]
+
+    async def mark_as_done(self,  task_id: int) -> bool:
+        async with self.get_session() as session:
+            stmt = (
+                select(Task)
+                .where(Task.id == task_id, Task.is_done.is_(False))
+            )
+            result = await session.scalar(stmt)
+
+            if not result:
+                return False
+
+            if not result.is_done:
+                result.is_done = True
+                await session.commit()
+                return True
+            return False
+
+
+
