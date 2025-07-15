@@ -21,7 +21,7 @@ import database.requests as rq
 from app.handlers import cmd_start, cmd_daily_tasks
 from app import keyboards as kb
 from database.models import UserSettings, Task
-from database.requests import get_user_by_tgid
+from database.crud import crud_manager
 
 
 @pytest.fixture
@@ -62,7 +62,7 @@ async def test_cmd_start(mock_message: Message) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
+async def test_cmd_daily_tasks_no_tasks(mock_message: Message, task_manager) -> None:
     """
     Test that the /daily command sends a message when no tasks are available
     """
@@ -83,7 +83,7 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
 
         ) as mock_get_user_settings,
         patch.object(
-            rq, 'get_list_of_random_tasks',
+            crud_manager.task, 'get_random_tasks',
             new_callable=AsyncMock,
             return_value=[]
         ) as mock_get_list_of_random_tasks
@@ -137,7 +137,7 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
 
         ) as mock_get_user_settings,
         patch.object(
-            rq, 'get_list_of_random_tasks',
+            crud_manager.task, 'get_random_tasks',
             new_callable=AsyncMock,
             return_value=test_tasks
         ) as mock_get_list_of_random_tasks

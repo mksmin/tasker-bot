@@ -56,3 +56,33 @@ async def test_task_read_schema_from_orm(created_user: User, task_manager: TaskM
     assert schema.user_id == task.user_id
     assert schema.created_at == task.created_at
 
+
+@pytest.mark.asyncio
+async def test_get_random_tasks_returns_correct_count(created_user: User, task_manager: TaskManager):
+    for i in range(5):
+        await task_manager.create_task(
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}"
+        )
+
+    tasks = await task_manager.get_random_tasks(user_tg=created_user.user_tg, count=5)
+
+    assert isinstance(tasks, list)
+    assert len(tasks) == 5
+    for task in tasks:
+        assert isinstance(task, TaskReadSchema)
+        assert task.user_id == created_user.id
+        assert task.is_done is False
+
+
+# TODO:
+# Реализовать метод mark as done для задач и написать тесты
+@pytest.mark.asyncio
+async def test_get_random_tasks_does_not_return_done(created_user: User, task_manager: TaskManager):
+    pass
+
+
+@pytest.mark.asyncio
+async def test_get_random_tasks_empty_result(created_user: User, task_manager: TaskManager):
+    tasks = await task_manager.get_random_tasks(user_tg=created_user.user_tg, count=3)
+    assert tasks == []
