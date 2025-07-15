@@ -15,6 +15,7 @@ from config import logger
 from database import Task, User, user_settings_ctx, SettingsRepo, db_helper
 from database import requests as rq
 from database.models import UserSettings
+from database.crud import crud_manager
 
 router = Router()
 
@@ -22,12 +23,13 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     user_data = {
+        "user_tg": message.from_user.id,
         "first_name": message.from_user.first_name,
         "last_name": message.from_user.last_name,
         "username": message.from_user.username,
     }
 
-    await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
+    await crud_manager.user.create_user(user_data=user_data)
     await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
 
 
@@ -50,7 +52,7 @@ async def cmd_daily_tasks(message: Message):
 
     settings = await rq.get_user_settings(user_tg=user_tgid)
 
-    tasks: list[Task] = await rq.get_list_of_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
+    tasks = await crud_manager.task.get_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
@@ -285,14 +287,14 @@ async def user_add_task(message: Message, state: FSMContext):
     }
     await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
 
-    task_added = await rq.add_task(
+    task_added = await crud_manager.task.create_task(
+        task_text=message.text,
         user_tg=message.from_user.id,
-        user_text=message.text
     )
 
     if task_added:
         await message.answer(f"Добавил аффирмацию: \n\n"
-                             f"{message.text}",
+                             f"{task_added.text_task}",
                              reply_markup=kb.list_of_tasks)
     else:
         await message.answer(f"Возникла ошибка")

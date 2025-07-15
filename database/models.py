@@ -1,5 +1,5 @@
 # import from lib
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, BigInteger, Time
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -10,7 +10,9 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 
 class TimeStampMixin:
-    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), nullable=True
+    )
 
 
 class User(TimeStampMixin, Base):
