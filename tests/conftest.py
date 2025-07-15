@@ -11,6 +11,7 @@ from database.schemas import UserCreateSchema
 
 # import external fixtures
 from tests.test_database.test_crud.test_managers.test_base_crud_manager import created_user, instance
+from tests.test_database.test_crud.test_managers.test_task_manager import user_manager, task_manager
 
 
 @pytest.fixture(scope="function")
