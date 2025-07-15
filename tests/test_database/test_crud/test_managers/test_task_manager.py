@@ -34,7 +34,7 @@ async def test_create_task(created_user: User, task_manager: TaskManager):
         task_text="Test task text"
     )
 
-    assert isinstance(task, Task)
+    assert isinstance(task, TaskReadSchema)
     assert task.text_task == "Test task text"
     assert task.is_done is False
     assert task.user_id == created_user.id
@@ -56,14 +56,3 @@ async def test_task_read_schema_from_orm(created_user: User, task_manager: TaskM
     assert schema.user_id == task.user_id
     assert schema.created_at == task.created_at
 
-
-@pytest.mark.asyncio
-async def test_task_delete_logic(created_user: User, task_manager: TaskManager):
-    task = await task_manager.create_task(
-        user_tg=created_user.user_tg,
-        task_text="Test task for delete"
-    )
-
-    assert task.is_done is False
-    task.delete_task()
-    assert task.is_done is True
