@@ -140,10 +140,11 @@ async def cmd_send_tasks(message: Message):
 
 
 @router.message(Command('settings'))
-async def cmd_settings(message: Message, session: AsyncSession, state: FSMContext):
+async def cmd_settings(message: Message, state: FSMContext):
     await state.clear()
     repo: SettingsRepo = user_settings_ctx.get()
-    user = await rq.get_user_by_tgid(message.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=message.from_user.id)
+
     n = await repo.get(user.id)
 
     if not n:
@@ -165,7 +166,7 @@ async def cmd_change_settings(callback: CallbackQuery):
 @router.callback_query(F.data == 'change_amount')
 async def cmd_change_amount(callback: CallbackQuery, state: FSMContext):
     await state.set_state(st.Settings.count_tasks)
-    user = await rq.get_user_by_tgid(callback.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
     async for session in db_helper.session_getter():
         query = select(UserSettings).where(UserSettings.user_id == user.id)
         executed = await session.execute(query)
@@ -180,7 +181,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
     if int(message.text) > 5 or int(message.text) < 1:
         await message.answer('Ты ошибся, число должно быть меньше или равно 5 и больше 0')
     else:
-        user = await rq.get_user_by_tgid(message.from_user.id)
+        user = await crud_manager.user.get_user(user_tg=message.from_user.id)
 
         await state.update_data(count_tasks=message.text)
         data = await state.get_data()
@@ -205,7 +206,8 @@ async def cmd_change_amount(message: Message, state: FSMContext):
 @router.callback_query(F.data == 'change_time')
 async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
     await state.set_state(st.Settings.time_hour)
-    user = await rq.get_user_by_tgid(callback.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
+
     async for session in db_helper.session_getter():
         query = select(UserSettings).where(UserSettings.user_id == user.id)
         executed = await session.execute(query)
@@ -242,8 +244,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
     data = await state.get_data()
     new_time = time(hour=int(data['time_hour']), minute=int(data['time_minute']))
 
-    user = await rq.get_user_by_tgid(message.from_user.id)
-    print(new_time)
+    user = await crud_manager.user.get_user(user_tg=message.from_user.id)
 
     try:
         async for session in db_helper.session_getter():
@@ -285,6 +286,8 @@ async def user_add_task(message: Message, state: FSMContext):
         "last_name": message.from_user.last_name,
         "username": message.from_user.username,
     }
+    # TODO: сделать метод для crud_manager на обновление данных пользователя
+    # TODO: и заменить метод get_user_by_tgid на него
     await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
 
     task_added = await crud_manager.task.create_task(

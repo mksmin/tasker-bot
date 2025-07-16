@@ -6,6 +6,7 @@ from datetime import time
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
+from database.crud import crud_manager
 from . import send_daily_tasks
 from database import connection, User, UserSettings
 from database import requests as rq
@@ -29,7 +30,12 @@ async def setup_scheduler(bot: Bot):
 
             job_id = f"daily_{setting.user_id}"
 
-            logger.info(f'scheduled get user: {user_tgid}, with time: {send_time} and id: {job_id}')
+            logger.debug(
+                f'scheduled get user: %d, with time: %s and id: %s',
+                user_tgid,
+                send_time.strftime('%H:%M'),
+                job_id,
+            )
 
             scheduler.add_job(
                 send_daily_tasks,
@@ -53,8 +59,7 @@ async def update_schedule(
         bot: Bot
 ):
     scheduler: AsyncIOScheduler = SCHEDULER.get("scheduler")
-
-    user = await rq.get_user_by_tgid(user_tg_id)
+    user = await crud_manager.user.get_user(user_tg=user_tg_id)
     job_id = f"daily_{user.id}"
 
     if scheduler.get_job(job_id):
@@ -71,4 +76,4 @@ async def update_schedule(
         coalesce=False
     )
 
-    logger.info(f"Added new job: {job_id} with time {new_time}")
+    logger.info(f"Added new job: %s with time %s", job_id, new_time)
