@@ -64,6 +64,81 @@ async def test_get_task_invalid_id(task_manager: TaskManager):
 
 
 @pytest.mark.asyncio
+async def test_get_paginated_tasks_with_pagination(created_user: User, task_manager: TaskManager):
+    for i in range(10):
+        await task_manager.create_task(
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}"
+        )
+
+    # Page 1: offset=0, limit=5
+    tasks_page_1 = await task_manager.get_paginated_tasks(
+        user_tg=created_user.user_tg,
+        offset=0,
+        limit=5,
+    )
+
+    assert len(tasks_page_1) == 5
+    tasks_ids_page_1 = [task.id for task in tasks_page_1]
+    assert tasks_ids_page_1 == sorted(tasks_ids_page_1, reverse=True)
+
+    # Page 2: offset=5, limit=5
+    tasks_page_2 = await task_manager.get_paginated_tasks(
+        user_tg=created_user.user_tg,
+        offset=5,
+        limit=5,
+    )
+
+    assert len(tasks_page_2) == 5
+    tasks_ids_page_2 = [task.id for task in tasks_page_2]
+    assert tasks_ids_page_2 == sorted(tasks_ids_page_2, reverse=True)
+
+
+@pytest.mark.asyncio
+async def test_get_paginated_tasks_with_limit_exceeding_available(created_user: User, task_manager: TaskManager):
+    for i in range(3):
+        await task_manager.create_task(
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}"
+        )
+
+    tasks = await task_manager.get_paginated_tasks(
+        user_tg=created_user.user_tg,
+        offset=0,
+        limit=5,
+    )
+    assert len(tasks) == 3
+    assert all(task.user_id == created_user.id for task in tasks)
+
+
+@pytest.mark.asyncio
+async def test_get_paginated_tasks_no_tasks(created_user: User, task_manager: TaskManager):
+    tasks = await task_manager.get_paginated_tasks(
+        user_tg=created_user.user_tg,
+        offset=0,
+        limit=5,
+    )
+    assert tasks == []
+    assert isinstance(tasks, list)
+
+
+@pytest.mark.asyncio
+async def test_get_paginated_tasks_ordering(created_user: User, task_manager: TaskManager):
+    for i in range(3):
+        await task_manager.create_task(
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}"
+        )
+
+    tasks = await task_manager.get_paginated_tasks(
+        user_tg=created_user.user_tg,
+        offset=0,
+        limit=5,
+    )
+    assert [task.id for task in tasks] == [3, 2, 1]
+
+
+@pytest.mark.asyncio
 async def test_task_mark_as_done(created_user: User, task_manager: TaskManager):
     task = await task_manager.create_task(
         user_tg=created_user.user_tg,
