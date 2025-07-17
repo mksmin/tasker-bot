@@ -33,19 +33,6 @@ async def cmd_start(message: Message):
     await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
 
 
-@rq.connection
-async def daily_send(session, message):
-    users = await session.scalars(
-        select(User.user_tg)
-    )
-
-    for user in users:
-        await send_daily_tasks(
-            user_tgid=user,
-            bot=message.bot
-        )
-
-
 @router.message(Command('daily'))
 async def cmd_daily_tasks(message: Message):
     user_tgid = message.from_user.id
@@ -53,19 +40,19 @@ async def cmd_daily_tasks(message: Message):
     settings = await rq.get_user_settings(user_tg=user_tgid)
 
     tasks = await crud_manager.task.get_random_tasks(user_tg=user_tgid, count=settings.count_tasks)
-    list_of_tasks = [task.text_task for task in tasks]
 
-    if len(list_of_tasks) <= 0:
-        logger.info(f'No daily tasks to send to user {user_tgid}')
+    if len(tasks) <= 0:
+        logger.info(f'No daily tasks to send to user %d', user_tgid)
         await message.answer("У тебя нет сохраненных текстов")
         return
 
-    stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
+    stroke_tasks = '\n'.join(f'{i}. {task.text_task}' for i, task in enumerate(tasks, 1))
+    logger.info(f"Daily tasks: \n%s", stroke_tasks)
     msg_to_send = (f'Доброе утро, вот твои аффирмации на сегодня:\n\n'
                    f'{stroke_tasks}')
 
     await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
-    logger.info(f'Daily tasks sent to user {user_tgid}')
+    logger.info(f'Daily tasks sent to user %d', user_tgid)
 
 
 @router.callback_query(F.data == 'my_tasks')
@@ -132,11 +119,6 @@ async def finished_task(message: Message, state: FSMContext):
     await message.answer(f"Удалил аффирмацию: \n\n"
                          f"{task.text_task}",
                          reply_markup=kb.list_of_tasks)
-
-
-@router.message(Command('send'))
-async def cmd_send_tasks(message: Message):
-    await daily_send(message=message)
 
 
 @router.message(Command('settings'))
