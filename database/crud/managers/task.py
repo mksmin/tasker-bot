@@ -45,7 +45,31 @@ class TaskManager(BaseCRUDManager[Task]):
             )
             result = await session.execute(stmt)
             tasks = result.scalars().all()
+
+            if not tasks:
+                return []
+
             return [TaskReadSchema.model_validate(task) for task in tasks]
+
+    async def get_paginated_tasks(
+            self,
+            user_tg: int,
+            offset: int,
+            limit: int
+    ) -> list[TaskReadSchema]:
+        user = await self.user_manager.get_user(user_tg=user_tg)
+
+        tasks = await self.get_all(
+            offset=offset,
+            limit=limit,
+            filters={"user_id": user.id},
+            order_by=Task.id.desc(),
+        )
+
+        if not tasks:
+            return []
+
+        return [TaskReadSchema.model_validate(task) for task in tasks]
 
     async def mark_as_done(self,  task_id: int) -> bool:
         async with self.get_session() as session:
