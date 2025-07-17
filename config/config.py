@@ -17,16 +17,6 @@ logger.setLevel(logging.INFO)
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 
-def get_token(name_of_token: str) -> str | None:
-    path_env = Path(__file__).parent.absolute() / '.env'
-
-    if path_env.exists():
-        load_dotenv(path_env)
-        return os.getenv(name_of_token)
-
-    return None
-
-
 class BotConfig(BaseModel):
     token: str
 

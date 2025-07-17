@@ -7,14 +7,12 @@ import aio_pika
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from dotenv import load_dotenv
-from pathlib import Path
 
 # import from modules
 from app.handlers import router
-from config.config import logger, get_token
+from config.config import logger
 from app.scheduler import setup_scheduler
-from database import db_helper, start_engine, DbSessionMiddleware, SettingsMiddleware
+from database import db_helper, DbSessionMiddleware, SettingsMiddleware
 from config import settings
 from app.rabbit_tasks import process_task
 

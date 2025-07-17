@@ -2,7 +2,7 @@ import os
 import pytest
 
 from dotenv import load_dotenv
-from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings, get_token
+from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
 from pathlib import Path
 from pydantic import PostgresDsn, ValidationError
 from unittest.mock import patch
@@ -45,12 +45,6 @@ def monkeypatch_env(monkeypatch, test_env_path):
     yield
 
 
-def test_get_token(monkeypatch_env, settings):
-    """Тест функции get_token"""
-    token = get_token('APP_CONFIG__BOT__TOKEN')
-    assert token == 'test_bot_token', 'Токен не найден или не соответствует ожидаемому'
-
-
 def test_bot_config(settings):
     """Тест класса BotConfig"""
     bot_config = settings.bot
@@ -78,7 +72,7 @@ def test_rabbitmq_config(settings):
     assert isinstance(rabbit_config, RabbitMQConfig), 'Не является экземпляром RabbitMQConfig'
     assert isinstance(rabbit_config.url, str), 'URL не является строкой'
     assert rabbit_config.url == 'amqps://username:password@host:1234/virtual_host_name', ('URL не соответствует '
-                                                                                         'ожидаемому')
+                                                                                          'ожидаемому')
 
 
 def test_validation_error():

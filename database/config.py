@@ -1,13 +1,11 @@
 from aiogram import BaseMiddleware
 from contextvars import ContextVar
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 
 # import from modules
-from config.config import get_token, logger, settings
+from config.config import settings
 from .models import UserSettings
-
-postgres_token = get_token('POSTGRES_URL')
 
 engine = create_async_engine(
     url=str(settings.db.url),
@@ -17,10 +15,6 @@ async_session = async_sessionmaker(
     bind=engine,
     expire_on_commit=True
 )
-
-
-async def start_engine():
-    pass
 
 
 class SettingsRepo:

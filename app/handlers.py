@@ -5,7 +5,6 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from datetime import time
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
 from app import statesuser as st, send_daily_tasks
@@ -17,6 +16,7 @@ from database import requests as rq
 from database.models import UserSettings
 from database.crud import crud_manager
 
+# globals
 router = Router()
 
 
