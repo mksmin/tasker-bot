@@ -7,11 +7,11 @@ from datetime import time
 from sqlalchemy import select
 
 # import from modules
-from app import statesuser as st, send_daily_tasks
+from app import statesuser as st
 from app import keyboards as kb
 from . import update_schedule
 from config import logger
-from database import Task, User, user_settings_ctx, SettingsRepo, db_helper
+from database import Task, user_settings_ctx, SettingsRepo, db_helper
 from database import requests as rq
 from database.models import UserSettings
 from database.crud import crud_manager
@@ -47,7 +47,6 @@ async def cmd_daily_tasks(message: Message):
         return
 
     stroke_tasks = '\n'.join(f'{i}. {task.text_task}' for i, task in enumerate(tasks, 1))
-    logger.info(f"Daily tasks: \n%s", stroke_tasks)
     msg_to_send = (f'Доброе утро, вот твои аффирмации на сегодня:\n\n'
                    f'{stroke_tasks}')
 
@@ -154,8 +153,8 @@ async def cmd_change_amount(callback: CallbackQuery, state: FSMContext):
         executed = await session.execute(query)
         settings = executed.scalar_one()
 
-    await callback.message.edit_text(f'Отправь число, которое должно быть меньше или равно 5 и больше 0'
-                                     f'\nСейчас у тебя {settings.count_tasks} аффирмаций')
+        await callback.message.edit_text(f'Отправь число, которое должно быть меньше или равно 5 и больше 0'
+                                         f'\nСейчас у тебя {settings.count_tasks} аффирмаций')
 
 
 @router.message(st.Settings.count_tasks, F.text.regexp(r"^\d+$"))
@@ -180,7 +179,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
             await state.clear()
 
         except Exception as e:
-            await message.answer('Ошибка при изменении настроек, {e}')
+            await message.answer(f'Ошибка при изменении настроек, {e}')
             await state.clear()
             return
 
@@ -195,7 +194,7 @@ async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
         executed = await session.execute(query)
         settings = executed.scalar_one()
 
-    await callback.message.edit_text(f'Отправь число от 0 до 23, это будет час отправки аффирмаций',
+        await callback.message.edit_text(f'Отправь число от 0 до 23, это будет час отправки аффирмаций',
                                      f'\nСейчас время отправки {settings.send_time} ')
 
 
@@ -211,7 +210,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
             await state.set_state(st.Settings.time_minute)
 
         except Exception as e:
-            await message.answer('Ошибка при изменении настроек, {e}')
+            await message.answer(f'Ошибка при изменении настроек, {e}')
             await state.clear()
             return
 
@@ -248,7 +247,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
         await state.set_state(st.Settings.time_minute)
 
     except Exception as e:
-        logger.error(f"Ошибка при изменении настроек: {e}", exc_info=True)
+        logger.error(f"Ошибка при изменении настроек: %s", e,  exc_info=True)
         await message.answer(f'Ошибка при изменении настроек, {e}')
         await state.clear()
         return
