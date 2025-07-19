@@ -11,7 +11,7 @@ from app import statesuser as st
 from app import keyboards as kb
 from . import update_schedule
 from config import logger
-from database import Task, user_settings_ctx, SettingsRepo, db_helper
+from database import user_settings_ctx, SettingsRepo, db_helper
 from database import requests as rq
 from database.models import UserSettings
 from database.crud import crud_manager
@@ -52,72 +52,6 @@ async def cmd_daily_tasks(message: Message):
 
     await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
     logger.info(f'Daily tasks sent to user %d', user_tgid)
-
-
-@router.callback_query(F.data == 'my_tasks')
-@router.message(Command('my'))
-async def cmd_my_tasks(message: Message | CallbackQuery):
-    user_tg_id = message.from_user.id
-
-    if isinstance(message, CallbackQuery):
-        await message.answer('Все тексты')
-        message = message.message
-
-    tasks: list[Task] = await rq.get_list_of_all_tasks(user_tg=user_tg_id)
-
-    list_of_tasks = [task.text_task for task in tasks]
-
-    if len(list_of_tasks) <= 0:
-        await message.answer("У тебя нет сохраненных текстов")
-        return
-
-    stroke_tasks = '\n'.join(f'{i}. {task}' for i, task in enumerate(list_of_tasks, 1))
-    msg_to_send = (f'Вот твои аффирмации:\n\n'
-                   f'{stroke_tasks}')
-
-    await message.answer(msg_to_send, reply_markup=kb.finishing_task)
-
-
-@router.callback_query(F.data == 'finish_task')
-async def cmd_finish_task(callback: CallbackQuery, state: FSMContext):
-    await callback.answer('Начинаю...')
-    await state.set_state(st.TaskFinish.task)
-
-    tasks: list[Task] = await rq.get_list_of_all_tasks(user_tg=callback.from_user.id)
-    list_of_tasks = [task for task in tasks]
-
-    if len(list_of_tasks) <= 0:
-        await callback.message.answer("У тебя нет сохраненных текстов")
-        await state.clear()
-        return
-
-    await state.update_data(task=list_of_tasks)
-
-    stroke_tasks = '\n'.join(f'{i}. {task.text_task}' for i, task in enumerate(list_of_tasks, 1))
-    msg_to_send = (f'Вот твои аффирмации:\n\n'
-                   f'{stroke_tasks}')
-
-    await callback.message.answer(msg_to_send)
-    await callback.message.answer('Пришли мне номер аффирмации, которую хочешь удалить')
-
-
-@router.message(F.text.regexp(r"^\d+$"),
-                st.TaskFinish.task)
-async def finished_task(message: Message, state: FSMContext):
-    await state.update_data(number_of_task=message.text)
-    data = await state.get_data()
-
-    if int(data['number_of_task']) > len(data['task']) or int(data['number_of_task']) < 1:
-        await message.answer('Ты ошибся номером, такой аффирмации нет. Пришли еще раз')
-        return
-
-    task: Task = data['task'][int(data['number_of_task']) - 1]
-
-    await rq.finish_task(task=task)
-    await state.clear()
-    await message.answer(f"Удалил аффирмацию: \n\n"
-                         f"{task.text_task}",
-                         reply_markup=kb.list_of_tasks)
 
 
 @router.message(Command('settings'))
@@ -195,7 +129,7 @@ async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
         settings = executed.scalar_one()
 
         await callback.message.edit_text(f'Отправь число от 0 до 23, это будет час отправки аффирмаций',
-                                     f'\nСейчас время отправки {settings.send_time} ')
+                                         f'\nСейчас время отправки {settings.send_time} ')
 
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
@@ -247,7 +181,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
         await state.set_state(st.Settings.time_minute)
 
     except Exception as e:
-        logger.error(f"Ошибка при изменении настроек: %s", e,  exc_info=True)
+        logger.error(f"Ошибка при изменении настроек: %s", e, exc_info=True)
         await message.answer(f'Ошибка при изменении настроек, {e}')
         await state.clear()
         return
