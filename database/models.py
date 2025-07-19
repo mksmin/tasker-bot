@@ -11,7 +11,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 class TimeStampMixin:
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(timezone.utc), nullable=True
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), nullable=True
     )
 
 

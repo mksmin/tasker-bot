@@ -100,3 +100,30 @@ class BaseCRUDManager(Generic[ModelType]):
         session = kwargs["session"]
         filters = {k: v for k, v in kwargs.items() if k != "session"}
         return await self._get_one_entry(session=session, **filters)
+
+    @_auto_session
+    async def get_all(
+            self,
+            *,
+            offset: int = 0,
+            limit: int = 5,
+            filters: dict[str, any] | None = None,
+            order_by: any = None,
+            **kwargs
+    ) -> list[ModelType]:
+        session = kwargs["session"]
+
+        if offset < 0 or limit <= 0:
+            raise ValueError("Offset must be >= 0 and limit > 0")
+
+        stmt = select(self.model)
+
+        if filters:
+            stmt = stmt.filter_by(**filters)
+
+        if order_by is not None:
+            stmt = stmt.order_by(order_by)
+
+        stmt = stmt.offset(offset).limit(limit)
+        result = await session.execute(stmt)
+        return result.scalars().all()
