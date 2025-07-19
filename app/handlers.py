@@ -204,11 +204,14 @@ async def user_add_task(message: Message, state: FSMContext):
     # TODO: сделать метод для crud_manager на обновление данных пользователя
     # TODO: и заменить метод get_user_by_tgid на него
     await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
-
-    task_added = await crud_manager.task.create_task(
-        task_text=message.text,
-        user_tg=message.from_user.id,
-    )
+    try:
+        task_added = await crud_manager.task.create_task(
+            task_text=message.text,
+            user_tg=message.from_user.id,
+        )
+    except:
+        await message.answer(f"Возникла ошибка при добавлении аффирмации. Операция отменена")
+        return
 
     if task_added:
         await message.answer(f"Добавил аффирмацию: \n\n"
