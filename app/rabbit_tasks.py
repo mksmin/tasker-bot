@@ -1,67 +1,87 @@
-import json
+# import libs
 import aio_pika
-import aiohttp
-import asyncio
+import json
 
-from config import settings
-from database import Task
-from database.requests import get_list_of_all_tasks, get_user_relationship
+# import from libs
+from functools import wraps
+from typing import Callable
+from faststream.rabbit import RabbitBroker, RabbitMessage
+
+# import from project
+from config import settings, logger
+from database.crud import crud_manager
+
+# globals
+broker = RabbitBroker(settings.rabbit.url)
 
 
-async def process_task(message: aio_pika.IncomingMessage):
-    async with message.process():
-        try:
-            # 1. Извлекаем данные из сообщения
-            task_data = json.loads(message.body.decode())
-            endpoint = task_data.get("endpoint")
-            data = task_data.get("data", {})
+class RabbitCommandRouter:
+    def __init__(self):
+        self._routes: dict[str, Callable] = {}
 
-            print(f"Получено сообщение от {message.routing_key} с данными: {data}")
-            user_data = {}
-            for key, value in data.items():
-                if key == "user_tg_id":
-                    continue
+    def register(self, command_name: str):
+        def decorator(func: Callable):
+            self._routes[command_name] = func
+            return func
 
-                user_data[key] = value
+        return decorator
 
-            # 2. Выполняем основную логику
-            user_id = int(data.get("user_tg_id"))
-            tasks = await get_list_of_all_tasks(user_tg=user_id, user_data=user_data)
-            user = await get_user_relationship(user_tg=user_id)
-            formatted_tasks = [
-                {"id": task.id, "number": idx, "text": task.text_task}
-                for idx, task in enumerate(tasks, 1)
-            ]
+    def get_handler(self, command_name: str) -> Callable:
+        handler = self._routes.get(command_name)
+        if not handler:
+            raise ValueError(
+                f"Не известная команда: {command_name}. Доступные команды: {list(self._routes.keys())}"
+            )
 
-            # 3. Формируем ответ
-            response_data = {
-                "status": "success",
-                "user_id": user_id,
-                "tasks": formatted_tasks,
-                "settings": {
-                    "send_time": str(user.settings.send_time),
-                    "count_tasks": user.settings.count_tasks
-                }
-            }
+        return handler
 
-            # --- ИСПРАВЛЕННЫЙ БЛОК ОТПРАВКИ ---
-            # Создаем новое подключение
-            connection = await aio_pika.connect_robust(settings.rabbit.url)
-            channel = await connection.channel()
+    async def handle(self, command_name: str, data: dict):
+        handler = self.get_handler(command_name)
+        return await handler(data)
 
-            try:
-                # Отправляем ответ через default exchange
-                await channel.default_exchange.publish(
-                    aio_pika.Message(
-                        body=json.dumps(response_data).encode(),
-                        correlation_id=message.correlation_id,
-                    ),
-                    routing_key=message.reply_to,
-                )
-            finally:
-                # Закрываем соединение вручную
-                await connection.close()
 
-        except Exception as e:
-            print(f"Ошибка обработки задачи: {e}")
-            raise
+router = RabbitCommandRouter()
+
+
+@router.register("create_task")
+async def create_task(data: dict):
+    return await crud_manager.task.create_task(**data)
+
+
+@router.register("get_task")
+async def get_task(data: dict):
+    return await crud_manager.task.get_task_by_id(**data)
+
+
+@router.register("get_random_tasks")
+async def get_random_tasks(data: dict):
+    return await crud_manager.task.get_random_tasks(**data)
+
+
+@router.register("get_paginated_tasks")
+async def get_paginated_tasks(data: dict):
+    return await crud_manager.task.get_paginated_tasks(**data)
+
+
+@router.register("mark_as_done")
+async def mark_as_done(data: dict):
+    return await crud_manager.task.mark_as_done(**data)
+
+
+@broker.subscriber("affirmations")
+async def process_task(msg: dict | bytes, message: RabbitMessage):
+    try:
+        if isinstance(msg, bytes):
+            msg = json.loads(msg.decode())
+
+        command = msg.get("command")
+        data = msg.get("payload", {})
+
+        logger.info("Получено сообщение от %s с командой %s.", message.message_id[:11], command)
+
+        result = await router.handle(command, data)
+        return result
+
+    except Exception as e:
+        logger.error("Ошибка обработки задачи: %s", e)
+        raise

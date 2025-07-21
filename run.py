@@ -1,7 +1,6 @@
 # import lib
 import asyncio
 import logging
-import aio_pika
 
 # import from lib
 from aiogram import Bot, Dispatcher
@@ -14,7 +13,7 @@ from config.config import logger
 from app.scheduler import setup_scheduler
 from database import db_helper, DbSessionMiddleware, SettingsMiddleware
 from config import settings
-from app.rabbit_tasks import process_task
+from app.rabbit_tasks import broker
 
 
 async def start_bot() -> Bot:
@@ -23,7 +22,7 @@ async def start_bot() -> Bot:
     return bot_class
 
 
-async def main() -> None:
+async def run_bot():
     bot = await start_bot()
 
     dp = Dispatcher()
@@ -36,16 +35,16 @@ async def main() -> None:
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_scheduler(bot)
     try:
-        connection = await aio_pika.connect_robust(
-            settings.rabbit.url
-        )
-        channel = await connection.channel()
-        queue = await channel.declare_queue("tasks")
-        await queue.consume(process_task)
-
         await dp.start_polling(bot)
     finally:
         await bot.session.close()
+
+
+async def main() -> None:
+    await asyncio.gather(
+        broker.start(),
+        run_bot(),
+    )
 
 
 async def on_startup() -> None:
