@@ -29,8 +29,13 @@ async def cmd_start(message: Message):
         "username": message.from_user.username,
     }
 
-    await crud_manager.user.create_user(user_data=user_data)
-    await message.answer("Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! ")
+    user = await crud_manager.user.create_user(user_data=user_data)
+    await rq.get_user_settings(user_tg=user.user_tg)
+    await message.answer(
+        "Привет! \n\n"
+        "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, а я буду каждый день присылать тебе 5 случайных! \n\n"
+        "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, чтобы изменить время отправки"
+    )
 
 
 @router.message(Command('daily'))
@@ -204,6 +209,7 @@ async def user_add_task(message: Message, state: FSMContext):
     # TODO: сделать метод для crud_manager на обновление данных пользователя
     # TODO: и заменить метод get_user_by_tgid на него
     await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
+    await rq.get_user_settings(user_tg=message.from_user.id)
     try:
         task_added = await crud_manager.task.create_task(
             task_text=message.text,
