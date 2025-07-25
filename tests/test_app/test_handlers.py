@@ -48,7 +48,14 @@ async def test_cmd_start(mock_message: Message) -> None:
     """
     mock_message.answer = AsyncMock()
 
-    with patch.object(crud_manager.user, 'create_user', new_callable=AsyncMock) as mock_create_user:
+    with (
+        patch.object(crud_manager.user, 'create_user', new_callable=AsyncMock) as mock_create_user,
+        patch.object(rq, 'get_user_settings', new_callable=AsyncMock) as mock_get_user_settings
+    ):
+        mock_user = AsyncMock()
+        mock_user.user_tg = 123456
+        mock_create_user.return_value = mock_user
+
         await cmd_start(mock_message)
         mock_create_user.assert_awaited_once_with(
             user_data={
@@ -59,7 +66,13 @@ async def test_cmd_start(mock_message: Message) -> None:
             }
         )
         mock_message.answer.assert_awaited_once_with(
-            "Привет! Добавляй афоризмы, а я буду каждый день присылать тебе 5 случайных! "
+            "Привет! \n\n"
+            "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, а я буду каждый день присылать тебе 5 случайных! \n\n"
+            "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, чтобы изменить время отправки"
+        )
+
+        mock_get_user_settings.assert_awaited_once_with(
+            user_tg=123456
         )
 
 
