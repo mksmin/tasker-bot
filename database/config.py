@@ -1,20 +1,12 @@
 from aiogram import BaseMiddleware
 from contextvars import ContextVar
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # import from modules
 from config.config import settings
-from .models import UserSettings
-
-engine = create_async_engine(
-    url=str(settings.db.url),
-    echo=False
-)
-async_session = async_sessionmaker(
-    bind=engine,
-    expire_on_commit=True
-)
+from database.models import UserSettings
+from database.db_helper import db_helper
 
 
 class SettingsRepo:
@@ -51,17 +43,17 @@ user_settings_ctx: ContextVar[SettingsRepo] = ContextVar('user_settings')
 # Middleware
 class DbSessionMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data: dict):
-        async with async_session() as session:
+        async with db_helper.session_factory() as session:
             data['session'] = session
             return await handler(event, data)
 
 
-class SettingsMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data: dict):
-        session: AsyncSession = data['session']
-        repo = SettingsRepo(session)
-        token = user_settings_ctx.set(repo)
-        try:
-            return await handler(event, data)
-        finally:
-            user_settings_ctx.reset(token)
+# class SettingsMiddleware(BaseMiddleware):
+#     async def __call__(self, handler, event, data: dict):
+#         session: AsyncSession = data['session']
+#         repo = SettingsRepo(session)
+#         token = user_settings_ctx.set(repo)
+#         try:
+#             return await handler(event, data)
+#         finally:
+#             user_settings_ctx.reset(token)
