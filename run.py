@@ -8,12 +8,12 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 # import from modules
+from app.bot.middlewares.user_init import UserMiddleware
 from app.handlers import router
-from config.config import logger
-from app.scheduler import setup_scheduler
-from database import db_helper, DbSessionMiddleware, SettingsMiddleware
-from config import settings
 from app.rabbit_tasks import broker
+from app.scheduler import setup_scheduler
+from config import settings, logger
+from database import db_helper, DbSessionMiddleware
 
 
 async def start_bot() -> Bot:
@@ -30,7 +30,7 @@ async def run_bot():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     dp.message.middleware.register(DbSessionMiddleware())
-    dp.message.middleware.register(SettingsMiddleware())
+    dp.message.middleware.register(UserMiddleware())
 
     await bot.delete_webhook(drop_pending_updates=True)
     await setup_scheduler(bot)
@@ -54,6 +54,8 @@ async def on_startup() -> None:
 async def on_shutdown() -> None:
     await db_helper.dispose()
     logger.info(f'Disposed database')
+    await broker.stop()
+    logger.info(f'Stopped broker')
 
 
 if __name__ == '__main__':
