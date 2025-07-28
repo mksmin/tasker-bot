@@ -23,21 +23,33 @@ class UserRepository(BaseRepository[User]):
 
     def __init__(
             self,
-            session_maker: async_sessionmaker[AsyncSession],
     ):
         super().__init__(
             model=User,
-            session_maker=session_maker,
         )
 
     async def create_user(
             self,
             *,
             session: AsyncSession,
-            instance: User,
+            data: dict,
     ) -> User:
+        instance: User = User(**data)
         log.info("Creating user with telegram id: %s", instance.user_tg)
-        return await self.create(session=session, instance=instance)
+        return await super().create(session=session, instance=instance)
+
+    async def is_exist(
+            self,
+            *,
+            session: AsyncSession,
+            field: str,
+            value: Any,
+    ):
+        if field not in self.ALLOWED_FIELDS:
+            raise ValueError(
+                f"Field {field} is not allowed for search. Allowed fields are {self.ALLOWED_FIELDS}"
+            )
+        return await super().is_exist(session=session, field=field, value=value)
 
     async def get_by_field(
             self,
@@ -51,4 +63,4 @@ class UserRepository(BaseRepository[User]):
                 f"Field {field} is not allowed for search. Allowed fields are {self.ALLOWED_FIELDS}"
             )
         filters = {field: value}
-        return await self.get_one_entry(session=session, **filters)
+        return await super().get_one_entry(session=session, **filters)

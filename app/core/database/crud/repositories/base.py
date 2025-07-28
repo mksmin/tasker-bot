@@ -21,37 +21,8 @@ class BaseRepository(Generic[ModelType]):
     def __init__(
             self,
             model: Type[ModelType],
-            session_maker: async_sessionmaker[AsyncSession]
     ):
         self.model = model
-        self.session_maker = session_maker
-
-    @staticmethod
-    def session_getter(
-            func: Callable[
-                Concatenate["BaseRepository[ModelType]", P], Coroutine[Any, Any, R]
-            ],
-    ) -> Callable[
-        Concatenate["BaseRepository[ModelType]", P], Coroutine[Any, Any, R]
-    ]:
-        @wraps(func)
-        async def wrapper(
-                self: "BaseRepository[ModelType]",
-                *args: P.args,
-                **kwargs: P.kwargs,
-        ) -> R:
-            async with self.session_maker() as session:
-                try:
-                    kwargs["session"] = session
-                    result = await func(self, *args, **kwargs)
-                    await session.commit()
-                    return result
-                except Exception as e:
-                    await session.rollback()
-                    logger.error("Error in session_getter", exc_info=True)
-                    raise e
-
-        return wrapper
 
     async def create(self, session: AsyncSession, instance: ModelType) -> ModelType:
         session.add(instance)
