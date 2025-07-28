@@ -6,5 +6,5 @@ __all__ = (
     "TaskReadSchema",
 )
 
-from .user import UserCreateSchema, UserReadSchema, UserUpdateSchema
-from .task import TaskCreateSchema, TaskReadSchema
+from app.core.database.schemas.user import UserCreateSchema, UserReadSchema, UserUpdateSchema
+from app.core.database.schemas.task import TaskCreateSchema, TaskReadSchema
