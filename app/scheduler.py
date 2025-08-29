@@ -30,8 +30,8 @@ async def setup_scheduler(bot: Bot):
 
             job_id = f"daily_{setting.user_id}"
 
-            logger.debug(
-                f'scheduled get user: %d, with time: %s and id: %s',
+            logger.info(
+                f'scheduler get user: %d, with time: %s and id: %s',
                 user_tgid,
                 send_time.strftime('%H:%M'),
                 job_id,
