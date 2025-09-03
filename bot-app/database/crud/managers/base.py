@@ -17,10 +17,13 @@ from typing import (
     Any,
     Type,
     AsyncGenerator,
+    Optional,
 )
 
+from database import Base
+
 # global
-ModelType = TypeVar("ModelType")
+ModelType = TypeVar("ModelType", bound=Base)
 P = ParamSpec("P")
 R = TypeVar("R")
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -89,7 +92,9 @@ class BaseCRUDManager(Generic[ModelType]):
         result = await session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
-    async def _get_one_entry(self, session: AsyncSession, **filters: dict) -> ModelType:
+    async def _get_one_entry(
+        self, session: AsyncSession, **filters: dict
+    ) -> ModelType | None:
         stmt = select(self.model).filter_by(**filters)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
@@ -108,7 +113,7 @@ class BaseCRUDManager(Generic[ModelType]):
         )
 
     @_auto_session
-    async def get(self, **kwargs) -> ModelType:
+    async def get(self, **kwargs) -> ModelType | None:
         session = kwargs["session"]
         filters = {k: v for k, v in kwargs.items() if k != "session"}
         return await self._get_one_entry(session=session, **filters)
@@ -119,8 +124,8 @@ class BaseCRUDManager(Generic[ModelType]):
         *,
         offset: int = 0,
         limit: int = 5,
-        filters: dict[str, any] | None = None,
-        order_by: any = None,
+        filters: Optional[dict[str, Any]] = None,
+        order_by: Any = None,
         **kwargs,
     ) -> list[ModelType]:
         session = kwargs["session"]

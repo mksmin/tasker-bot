@@ -1,11 +1,19 @@
 # import from lib
 from functools import wraps
-from sqlalchemy import select, func
+from typing import Optional, Any
+
+from sqlalchemy import select, func, false
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 # import from modules
-from database import User, Task, db_helper, UserSettings, SettingsRepo
+from database import (  # type: ignore
+    User,
+    Task,
+    UserSettings,
+    SettingsRepo,
+    db_helper,
+)
 from config import logger
 
 
@@ -40,7 +48,9 @@ def connection(function):
 
 @connection
 async def get_user_by_tgid(
-    session: AsyncSession, tgid: int, user_data: dict = None
+    session: AsyncSession,
+    tgid: int,
+    user_data: Optional[dict] = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.user_tg == tgid))
 
@@ -66,7 +76,7 @@ async def get_user_by_tgid(
 @connection
 async def get_list_of_random_tasks(
     session: AsyncSession, user_tg: int, count: int = 5
-) -> any:
+) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     tasks = await session.scalars(
         select(Task)
@@ -79,7 +89,7 @@ async def get_list_of_random_tasks(
 
 
 @connection
-async def get_user_settings(session: AsyncSession, user_tg: int) -> any:
+async def get_user_settings(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     settings = await session.scalar(
         select(UserSettings).where(UserSettings.user_id == user.id)
@@ -94,8 +104,10 @@ async def get_user_settings(session: AsyncSession, user_tg: int) -> any:
 
 @connection
 async def get_list_of_all_tasks(
-    session: AsyncSession, user_tg: int, user_data: dict = None
-) -> any:
+    session: AsyncSession,
+    user_tg: int,
+    user_data: Optional[dict[str, Any]] = None,
+) -> Any:
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
@@ -108,7 +120,7 @@ async def get_list_of_all_tasks(
 
 
 @connection
-async def get_user_relationship(session: AsyncSession, user_tg: int) -> any:
+async def get_user_relationship(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
     user = await session.get(User, user.id)
@@ -121,9 +133,12 @@ async def get_user_relationship(session: AsyncSession, user_tg: int) -> any:
 async def finish_task(session: AsyncSession, task: Task) -> bool:
     new_task = await session.scalar(select(Task).where(Task.id == task.id))
 
+    if not new_task:
+        return False
+
     new_task.delete_task()
 
-    if new_task.is_done:
-        session.add(new_task)
-        await session.commit()
-        return True
+    session.add(new_task)
+    await session.commit()
+
+    return True

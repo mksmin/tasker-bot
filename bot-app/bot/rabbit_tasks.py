@@ -4,7 +4,7 @@ import json
 
 # import from libs
 from functools import wraps
-from typing import Callable
+from typing import Callable, Any, cast
 from faststream.rabbit import RabbitBroker, RabbitMessage
 
 # import from project
@@ -16,7 +16,7 @@ broker = RabbitBroker(settings.rabbit.url)
 
 
 class RabbitCommandRouter:
-    def __init__(self):
+    def __init__(self) -> None:
         self._routes: dict[str, Callable] = {}
 
     def register(self, command_name: str):
@@ -69,13 +69,18 @@ async def mark_as_done(data: dict):
 
 
 @broker.subscriber("affirmations")
-async def process_task(msg: dict | bytes, message: RabbitMessage):
+async def process_task(
+    msg: dict[str, Any] | bytes,
+    message: RabbitMessage,
+):
     try:
         if isinstance(msg, bytes):
-            msg = json.loads(msg.decode())
+            msg_dict: dict[str, Any] = json.loads(msg.decode())
+        else:
+            msg_dict = msg
 
-        command = msg.get("command")
-        data = msg.get("payload", {})
+        command = cast(str, msg_dict.get("command"))
+        data = msg_dict.get("payload", {})
 
         logger.info(
             "Получено сообщение от %s с командой %s.", message.message_id[:11], command

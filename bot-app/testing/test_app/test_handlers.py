@@ -38,11 +38,11 @@ async def mock_message() -> AsyncGenerator[Message, None]:
         is_bot=False,
         language_code="ru",
     )
-    return message
+    yield message
 
 
 @pytest.mark.asyncio
-async def test_cmd_start(mock_message: Message) -> None:
+async def test_cmd_start(mock_message) -> None:
     """
     Test that the /start command registers the user and sends a welcome message
     """
@@ -79,7 +79,7 @@ async def test_cmd_start(mock_message: Message) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_no_tasks(mock_message: Message, task_manager) -> None:
+async def test_cmd_daily_tasks_no_tasks(mock_message) -> None:
     """
     Test that the /daily command sends a message when no tasks are available
     """
@@ -108,7 +108,7 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message, task_manager) -> 
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
+async def test_cmd_daily_tasks_with_tasks(mock_message) -> None:
     """
     Test that the /daily command sends a list of tasks when available
     """

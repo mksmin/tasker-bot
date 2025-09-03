@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 from aiogram import BaseMiddleware
 from contextvars import ContextVar
 from sqlalchemy import select
@@ -15,14 +17,19 @@ class SettingsRepo:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get(self, user_id: int) -> UserSettings:
+    async def get(self, user_id: int) -> UserSettings | None:
         query = await self.session.execute(
             select(UserSettings).where(UserSettings.user_id == user_id)
         )
         row = query.scalar_one_or_none()
         return row
 
-    async def set(self, user_id: int, key: str = None, value=None):
+    async def set(
+        self,
+        user_id: int,
+        key: Optional[str] = None,
+        value: Optional[Any] = None,
+    ):
         existing_settings = await self.get(user_id)
 
         if not existing_settings:

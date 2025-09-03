@@ -1,4 +1,6 @@
 # import from libs
+from typing import Optional
+
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -15,12 +17,13 @@ class TaskManager(BaseCRUDManager[Task]):
             model=Task,
             session_maker=session_maker,
         )
-        self.user_manager = None
+        self.user_manager: Optional["UserManager"] = None
 
     def set_user_manager(self, manager: "UserManager"):
         self.user_manager = manager
 
     async def create_task(self, user_tg: int, task_text: str) -> TaskReadSchema:
+        assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)
 
         task_schema = TaskCreateSchema(
@@ -37,6 +40,7 @@ class TaskManager(BaseCRUDManager[Task]):
     async def get_random_tasks(
         self, user_tg: int, count: int = 5
     ) -> list[TaskReadSchema]:
+        assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)
         async with self.get_session() as session:
             stmt = (
@@ -56,6 +60,7 @@ class TaskManager(BaseCRUDManager[Task]):
     async def get_paginated_tasks(
         self, user_tg: int, offset: int, limit: int
     ) -> list[TaskReadSchema]:
+        assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)
 
         tasks = await self.get_all(

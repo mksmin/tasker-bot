@@ -106,7 +106,7 @@ async def cmd_change_amount(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(st.Settings.count_tasks, F.text.regexp(r"^\d+$"))
-async def cmd_change_amount(message: Message, state: FSMContext):
+async def set_count_of_affirm(message: Message, state: FSMContext):
     if int(message.text) > 5 or int(message.text) < 1:
         await message.answer(
             "Ты ошибся, число должно быть меньше или равно 5 и больше 0"
@@ -151,7 +151,7 @@ async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
-async def cmd_change_amount(message: Message, state: FSMContext):
+async def cmd_set_hour(message: Message, state: FSMContext):
     if int(message.text) > 23 or int(message.text) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
     else:
@@ -170,7 +170,7 @@ async def cmd_change_amount(message: Message, state: FSMContext):
 
 
 @router.message(st.Settings.time_minute, F.text.regexp(r"^\d+$"))
-async def cmd_change_amount(message: Message, state: FSMContext):
+async def cmd_set_minutes(message: Message, state: FSMContext):
     if int(message.text) > 59 or int(message.text) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
         return

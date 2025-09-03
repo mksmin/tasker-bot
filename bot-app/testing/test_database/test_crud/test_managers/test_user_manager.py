@@ -1,4 +1,6 @@
 # import libs
+from collections.abc import AsyncGenerator
+
 import pytest
 
 # import from modules
@@ -9,7 +11,7 @@ from database.schemas import UserReadSchema
 
 
 @pytest.fixture
-async def user_manager(db_session_maker) -> UserManager:
+async def user_manager(db_session_maker) -> AsyncGenerator[UserManager]:
     crud_manager.user.session_maker = db_session_maker
     yield crud_manager.user
 
@@ -63,7 +65,7 @@ async def test_get_user_not_found(user_manager: UserManager):
             await user_manager.get_user(id=user_id)
 
     with pytest.raises(TypeError):
-        await user_manager.get_user(test="test")
+        await user_manager.get_user(test="test")  # type: ignore
 
     with pytest.raises(ValueError):
         await user_manager.get_user()

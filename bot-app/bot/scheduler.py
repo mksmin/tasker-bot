@@ -1,7 +1,7 @@
 import os
 
 from aiogram import Bot
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from datetime import time
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -15,12 +15,12 @@ from config import logger
 SCHEDULER = {}
 
 
-async def setup_scheduler(bot: Bot):
+async def setup_scheduler(bot: Bot) -> None:
     scheduler = AsyncIOScheduler()
     SCHEDULER["scheduler"] = scheduler
 
     @connection
-    async def schedule_all(session):
+    async def schedule_all(session) -> None:
         settings: list[UserSettings] = await session.scalars(
             select(UserSettings).options(joinedload(UserSettings.user))
         )
@@ -53,7 +53,11 @@ async def setup_scheduler(bot: Bot):
     await schedule_all()
 
 
-async def update_schedule(user_tg_id: int, new_time: time, bot: Bot):
+async def update_schedule(
+    user_tg_id: int,
+    new_time: time,
+    bot: Bot,
+) -> None:
     scheduler: AsyncIOScheduler = SCHEDULER.get("scheduler")
     user = await crud_manager.user.get_user(user_tg=user_tg_id)
     job_id = f"daily_{user.id}"

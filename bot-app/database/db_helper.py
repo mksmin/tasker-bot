@@ -1,4 +1,4 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Any
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
@@ -22,10 +22,14 @@ class DatabaseHelper:
         self._init_engine(echo, echo_pool, pool_size, max_overflow)
 
     def _init_engine(
-        self, echo: bool, echo_pool: bool, pool_size: int, max_overflow: int
+        self,
+        echo: bool,
+        echo_pool: bool,
+        pool_size: int,
+        max_overflow: int,
     ) -> None:
         url_obj = make_url(self.url)
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "echo": echo,
             "echo_pool": echo_pool,
         }

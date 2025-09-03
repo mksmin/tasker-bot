@@ -3,7 +3,7 @@ from database import db_helper
 
 
 class CRUDManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.user: UserManager = UserManager(session_maker=db_helper.session_factory)
         self.task: TaskManager = TaskManager(session_maker=db_helper.session_factory)
 
