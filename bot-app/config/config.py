@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
-print(f"{PROJECT_DIR=}")
-
 
 class BotConfig(BaseModel):
     token: str
@@ -67,7 +65,7 @@ class RabbitMQConfig(BaseModel):
         domain = quote(self.host.encode("idna").decode())
 
         return (
-            f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+            f"amqp://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
         )
 
 
