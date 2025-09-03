@@ -10,8 +10,14 @@ from database.models import Base
 from database.schemas import UserCreateSchema
 
 # import external fixtures
-from tests.test_database.test_crud.test_managers.test_base_crud_manager import created_user, instance
-from tests.test_database.test_crud.test_managers.test_task_manager import user_manager, task_manager
+from testing.test_database.test_crud.test_managers.test_base_crud_manager import (
+    created_user,
+    instance,
+)
+from testing.test_database.test_crud.test_managers.test_task_manager import (
+    user_manager,
+    task_manager,
+)
 
 
 @pytest.fixture(scope="function")
@@ -45,13 +51,11 @@ def user_data():
         "user_tg": 999,
         "first_name": "Max",
         "last_name": "Test",
-        "username": "test_user"
+        "username": "test_user",
     }
 
 
 @pytest.fixture
 def user_schema(user_data):
-    user = UserCreateSchema(
-        **user_data
-    )
+    user = UserCreateSchema(**user_data)
     return user
