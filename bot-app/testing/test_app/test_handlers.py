@@ -18,8 +18,8 @@ from typing import AsyncGenerator
 # import from modules
 import database.requests as rq
 
-from app.handlers import cmd_start, cmd_daily_tasks
-from app import keyboards as kb
+from bot.handlers import cmd_start, cmd_daily_tasks
+from bot import keyboards as kb
 from database.models import UserSettings, Task
 from database.crud import crud_manager
 
@@ -36,7 +36,7 @@ async def mock_message() -> AsyncGenerator[Message, None]:
         last_name="Doe",
         username="johndoe",
         is_bot=False,
-        language_code='ru'
+        language_code="ru",
     )
     return message
 
@@ -49,8 +49,12 @@ async def test_cmd_start(mock_message: Message) -> None:
     mock_message.answer = AsyncMock()
 
     with (
-        patch.object(crud_manager.user, 'create_user', new_callable=AsyncMock) as mock_create_user,
-        patch.object(rq, 'get_user_settings', new_callable=AsyncMock) as mock_get_user_settings
+        patch.object(
+            crud_manager.user, "create_user", new_callable=AsyncMock
+        ) as mock_create_user,
+        patch.object(
+            rq, "get_user_settings", new_callable=AsyncMock
+        ) as mock_get_user_settings,
     ):
         mock_user = AsyncMock()
         mock_user.user_tg = 123456
@@ -62,7 +66,7 @@ async def test_cmd_start(mock_message: Message) -> None:
                 "user_tg": 123456,
                 "first_name": "John",
                 "last_name": "Doe",
-                "username": "johndoe"
+                "username": "johndoe",
             }
         )
         mock_message.answer.assert_awaited_once_with(
@@ -71,9 +75,7 @@ async def test_cmd_start(mock_message: Message) -> None:
             "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, чтобы изменить время отправки"
         )
 
-        mock_get_user_settings.assert_awaited_once_with(
-            user_tg=123456
-        )
+        mock_get_user_settings.assert_awaited_once_with(user_tg=123456)
 
 
 @pytest.mark.asyncio
@@ -84,37 +86,25 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message, task_manager) -> 
     mock_message.answer = AsyncMock()
 
     mock_settings = UserSettings(
-        id=1,
-        user_id=mock_message.from_user.id,
-        count_tasks=5,
-        send_time=time(9, 0)
+        id=1, user_id=mock_message.from_user.id, count_tasks=5, send_time=time(9, 0)
     )
 
     with (
         patch.object(
-            rq, 'get_user_settings',
-            new_callable=AsyncMock,
-            return_value=mock_settings
-
+            rq, "get_user_settings", new_callable=AsyncMock, return_value=mock_settings
         ) as mock_get_user_settings,
         patch.object(
-            crud_manager.task, 'get_random_tasks',
+            crud_manager.task,
+            "get_random_tasks",
             new_callable=AsyncMock,
-            return_value=[]
-        ) as mock_get_list_of_random_tasks
+            return_value=[],
+        ) as mock_get_list_of_random_tasks,
     ):
         await cmd_daily_tasks(mock_message)
 
-        mock_get_user_settings.assert_awaited_once_with(
-            user_tg=123456
-        )
-        mock_get_list_of_random_tasks.assert_awaited_once_with(
-            user_tg=123456,
-            count=5
-        )
-        mock_message.answer.assert_awaited_once_with(
-            "У тебя нет сохраненных текстов"
-        )
+        mock_get_user_settings.assert_awaited_once_with(user_tg=123456)
+        mock_get_list_of_random_tasks.assert_awaited_once_with(user_tg=123456, count=5)
+        mock_message.answer.assert_awaited_once_with("У тебя нет сохраненных текстов")
 
 
 @pytest.mark.asyncio
@@ -125,7 +115,7 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
     test_tasks = [
         Task(text_task="Test task 1"),
         Task(text_task="Test task 2"),
-        Task(text_task="Task 3")
+        Task(text_task="Task 3"),
     ]
 
     expected_task_count = 3
@@ -141,28 +131,24 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
         id=1,
         user_id=mock_message.from_user.id,
         count_tasks=expected_task_count,
-        send_time=time(10, 0)
+        send_time=time(10, 0),
     )
 
     with (
         patch.object(
-            rq, 'get_user_settings',
-            new_callable=AsyncMock,
-            return_value=mock_settings
-
+            rq, "get_user_settings", new_callable=AsyncMock, return_value=mock_settings
         ) as mock_get_user_settings,
         patch.object(
-            crud_manager.task, 'get_random_tasks',
+            crud_manager.task,
+            "get_random_tasks",
             new_callable=AsyncMock,
-            return_value=test_tasks
-        ) as mock_get_list_of_random_tasks
+            return_value=test_tasks,
+        ) as mock_get_list_of_random_tasks,
     ):
         await cmd_daily_tasks(mock_message)
         mock_get_list_of_random_tasks.assert_awaited_once_with(
-            user_tg=123456,
-            count=expected_task_count
+            user_tg=123456, count=expected_task_count
         )
         mock_message.answer.assert_awaited_once_with(
-            text=expected_message,
-            reply_markup=kb.finishing_task
+            text=expected_message, reply_markup=kb.finishing_task
         )

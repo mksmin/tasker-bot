@@ -8,17 +8,19 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 # import from modules
-from app.handlers import router
+from bot.handlers import router
 from config.config import logger
-from app.scheduler import setup_scheduler
+from bot.scheduler import setup_scheduler
 from database import db_helper, DbSessionMiddleware, SettingsMiddleware
 from config import settings
-from app.rabbit_tasks import broker
+from bot.rabbit_tasks import broker
 
 
 async def start_bot() -> Bot:
-    bot_class = Bot(token=settings.bot.token,
-                    default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot_class = Bot(
+        token=settings.bot.token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
     return bot_class
 
 
@@ -53,16 +55,14 @@ async def on_startup() -> None:
 
 async def on_shutdown() -> None:
     await db_helper.dispose()
-    logger.info(f'Disposed database')
+    logger.info(f"Disposed database")
 
 
-if __name__ == '__main__':
-    FORMAT = '[%(asctime)s]  %(levelname)s: —— %(message)s'
-    logging.basicConfig(level=logging.INFO,
-                        datefmt="%Y-%m-%d %H:%M:%S",
-                        format=FORMAT)
+if __name__ == "__main__":
+    FORMAT = "[%(asctime)s]  %(levelname)s: —— %(message)s"
+    logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=FORMAT)
 
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.warning('KeyboardInterrupt')
+        logger.warning("KeyboardInterrupt")

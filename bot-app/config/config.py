@@ -6,15 +6,14 @@ from urllib.parse import quote
 from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
-from pydantic_settings import (
-    BaseSettings,
-    SettingsConfigDict
-)
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_core import MultiHostUrl
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+
+print(f"{PROJECT_DIR=}")
 
 
 class BotConfig(BaseModel):
@@ -39,7 +38,7 @@ class DatabaseConfig(BaseModel):
     def url(self) -> PostgresDsn:
         try:
             url_path = MultiHostUrl.build(
-                scheme=f'{self.scheme}+{self.engine}',
+                scheme=f"{self.scheme}+{self.engine}",
                 username=self.username,
                 password=self.password,
                 host=self.host,
@@ -67,7 +66,9 @@ class RabbitMQConfig(BaseModel):
         safe_vhost = quote(self.vhostname, safe="")
         domain = quote(self.host.encode("idna").decode())
 
-        return f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+        return (
+            f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+        )
 
 
 class Settings(BaseSettings):
@@ -75,7 +76,7 @@ class Settings(BaseSettings):
         env_file=(PROJECT_DIR / ".env.template", PROJECT_DIR / ".env"),
         case_sensitive=False,
         env_nested_delimiter="__",
-        env_prefix="APP_CONFIG__"
+        env_prefix="APP_CONFIG__",
     )
     bot: BotConfig
     db: DatabaseConfig
