@@ -13,10 +13,7 @@ from database.crud.managers.base import BaseCRUDManager
 
 @pytest.fixture
 async def instance(db_session_maker) -> BaseCRUDManager:
-    user_crud = BaseCRUDManager[User](
-        model=User,
-        session_maker=db_session_maker
-    )
+    user_crud = BaseCRUDManager[User](model=User, session_maker=db_session_maker)
     return user_crud
 
 
@@ -46,18 +43,16 @@ def test_create_user_missing_fields(instance):
 @pytest.mark.asyncio
 async def test_exists_user(created_user: User, instance: BaseCRUDManager[User]) -> None:
     user = created_user
-    exists = await instance.exist(
-        field="id", value=user.id
-    )
+    exists = await instance.exist(field="id", value=user.id)
 
     assert exists is not None
 
 
 @pytest.mark.asyncio
-async def test_get_one_user(created_user: User, instance: BaseCRUDManager[User]) -> None:
-    get_user = await instance.get(
-        user_tg=created_user.user_tg
-    )
+async def test_get_one_user(
+    created_user: User, instance: BaseCRUDManager[User]
+) -> None:
+    get_user = await instance.get(user_tg=created_user.user_tg)
     assert get_user is not None
     assert get_user.id == created_user.id
 

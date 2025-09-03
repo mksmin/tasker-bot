@@ -7,14 +7,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, Asyn
 from config.config import settings
 from .models import UserSettings
 
-engine = create_async_engine(
-    url=str(settings.db.url),
-    echo=False
-)
-async_session = async_sessionmaker(
-    bind=engine,
-    expire_on_commit=True
-)
+engine = create_async_engine(url=str(settings.db.url), echo=False)
+async_session = async_sessionmaker(bind=engine, expire_on_commit=True)
 
 
 class SettingsRepo:
@@ -23,8 +17,7 @@ class SettingsRepo:
 
     async def get(self, user_id: int) -> UserSettings:
         query = await self.session.execute(
-            select(UserSettings)
-            .where(UserSettings.user_id == user_id)
+            select(UserSettings).where(UserSettings.user_id == user_id)
         )
         row = query.scalar_one_or_none()
         return row
@@ -45,20 +38,20 @@ class SettingsRepo:
 
 
 # ContextVar
-user_settings_ctx: ContextVar[SettingsRepo] = ContextVar('user_settings')
+user_settings_ctx: ContextVar[SettingsRepo] = ContextVar("user_settings")
 
 
 # Middleware
 class DbSessionMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data: dict):
         async with async_session() as session:
-            data['session'] = session
+            data["session"] = session
             return await handler(event, data)
 
 
 class SettingsMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data: dict):
-        session: AsyncSession = data['session']
+        session: AsyncSession = data["session"]
         repo = SettingsRepo(session)
         token = user_settings_ctx.set(repo)
         try:

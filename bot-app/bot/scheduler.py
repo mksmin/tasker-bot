@@ -31,21 +31,21 @@ async def setup_scheduler(bot: Bot):
             job_id = f"daily_{setting.user_id}"
 
             logger.info(
-                f'scheduler get user: %d, with time: %s and id: %s',
+                f"scheduler get user: %d, with time: %s and id: %s",
                 user_tgid,
-                send_time.strftime('%H:%M'),
+                send_time.strftime("%H:%M"),
                 job_id,
             )
 
             scheduler.add_job(
                 send_daily_tasks,
-                trigger='cron',
+                trigger="cron",
                 hour=send_time.hour,
                 minute=send_time.minute,
                 args=[user_tgid, bot],
                 id=job_id,
                 misfire_grace_time=300,
-                coalesce=False
+                coalesce=False,
             )
 
         scheduler.start()
@@ -53,11 +53,7 @@ async def setup_scheduler(bot: Bot):
     await schedule_all()
 
 
-async def update_schedule(
-        user_tg_id: int,
-        new_time: time,
-        bot: Bot
-):
+async def update_schedule(user_tg_id: int, new_time: time, bot: Bot):
     scheduler: AsyncIOScheduler = SCHEDULER.get("scheduler")
     user = await crud_manager.user.get_user(user_tg=user_tg_id)
     job_id = f"daily_{user.id}"
@@ -67,13 +63,13 @@ async def update_schedule(
 
     scheduler.add_job(
         send_daily_tasks,
-        trigger='cron',
+        trigger="cron",
         hour=new_time.hour,
         minute=new_time.minute,
         args=[user_tg_id, bot],
         id=job_id,
         misfire_grace_time=300,
-        coalesce=False
+        coalesce=False,
     )
 
     logger.info(f"Added new job: %s with time %s", job_id, new_time)

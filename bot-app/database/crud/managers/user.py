@@ -27,26 +27,26 @@ class UserManager(BaseCRUDManager[User]):
         return UserReadSchema.model_validate(created_model)
 
     async def get_user(
-            self,
-            *,
-            id: int | None = None,
-            user_tg: int | None = None,
+        self,
+        *,
+        id: int | None = None,
+        user_tg: int | None = None,
     ) -> UserReadSchema:
         """
         Получить пользователя по id или Telegram ID (user_tg). Один из параметров обязательно должен быть передан
         
         raises: 
             ValueError: если параметры не переданы или пользователь не найден
-        """""
+        """ ""
 
         if id is None and user_tg is None:
             raise ValueError("Either 'id' or 'user_tg' must be provided")
 
         filters = {}
         if id is not None:
-            filters['id'] = id
+            filters["id"] = id
         if user_tg is not None:
-            filters['user_tg'] = user_tg
+            filters["user_tg"] = user_tg
 
         user_model = await self.get(**filters)
 

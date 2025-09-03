@@ -9,10 +9,7 @@ from database import Base
 @pytest_asyncio.fixture()
 async def db_helper():
     """Сырой engine для работы с сессиями БД, без создания таблиц"""
-    helper = DatabaseHelper(
-        url="sqlite+aiosqlite:///:memory:",
-        echo=False
-    )
+    helper = DatabaseHelper(url="sqlite+aiosqlite:///:memory:", echo=False)
     yield helper
     await helper.dispose()
 

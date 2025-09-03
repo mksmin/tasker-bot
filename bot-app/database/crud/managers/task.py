@@ -34,7 +34,9 @@ class TaskManager(BaseCRUDManager[Task]):
         result = await self.get(id=task_id)
         return TaskReadSchema.model_validate(result)
 
-    async def get_random_tasks(self, user_tg: int, count: int = 5) -> list[TaskReadSchema]:
+    async def get_random_tasks(
+        self, user_tg: int, count: int = 5
+    ) -> list[TaskReadSchema]:
         user = await self.user_manager.get_user(user_tg=user_tg)
         async with self.get_session() as session:
             stmt = (
@@ -52,10 +54,7 @@ class TaskManager(BaseCRUDManager[Task]):
             return [TaskReadSchema.model_validate(task) for task in tasks]
 
     async def get_paginated_tasks(
-            self,
-            user_tg: int,
-            offset: int,
-            limit: int
+        self, user_tg: int, offset: int, limit: int
     ) -> list[TaskReadSchema]:
         user = await self.user_manager.get_user(user_tg=user_tg)
 
@@ -71,12 +70,9 @@ class TaskManager(BaseCRUDManager[Task]):
 
         return [TaskReadSchema.model_validate(task) for task in tasks]
 
-    async def mark_as_done(self,  task_id: int) -> bool:
+    async def mark_as_done(self, task_id: int) -> bool:
         async with self.get_session() as session:
-            stmt = (
-                select(Task)
-                .where(Task.id == task_id, Task.is_done.is_(False))
-            )
+            stmt = select(Task).where(Task.id == task_id, Task.is_done.is_(False))
             result = await session.scalar(stmt)
 
             if not result:
@@ -87,6 +83,3 @@ class TaskManager(BaseCRUDManager[Task]):
                 await session.commit()
                 return True
             return False
-
-
-

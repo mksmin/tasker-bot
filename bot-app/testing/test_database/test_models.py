@@ -11,10 +11,7 @@ from database import models as md
 @pytest.fixture
 async def user(db_session):
     user = md.User(
-        user_tg=999,
-        first_name="Max",
-        last_name="Testovich",
-        username="test_user"
+        user_tg=999, first_name="Max", last_name="Testovich", username="test_user"
     )
     db_session.add(user)
     await db_session.flush()
@@ -35,10 +32,7 @@ async def test_user_model_create(user, db_session):
 
 @pytest.mark.asyncio
 async def test_task_model_create(user, db_session):
-    new_task = md.Task(
-        text_task="Do the test",
-        user_id=user.id
-    )
+    new_task = md.Task(text_task="Do the test", user_id=user.id)
     db_session.add(new_task)
     await db_session.commit()
 
@@ -76,11 +70,7 @@ async def test_task_delete_logic(user, db_session):
 
 @pytest.mark.asyncio
 async def test_user_settings_create(user, db_session):
-    settings = md.UserSettings(
-        user_id=user.id,
-        count_tasks=10,
-        send_time=time(9, 0)
-    )
+    settings = md.UserSettings(user_id=user.id, count_tasks=10, send_time=time(9, 0))
     db_session.add(settings)
     await db_session.commit()
     await db_session.refresh(settings)
@@ -93,11 +83,7 @@ async def test_user_settings_create(user, db_session):
 
 @pytest.mark.asyncio
 async def test_user_settings_relationship(user, db_session):
-    settings = md.UserSettings(
-        user_id=user.id,
-        count_tasks=10,
-        send_time=time(9, 0)
-    )
+    settings = md.UserSettings(user_id=user.id, count_tasks=10, send_time=time(9, 0))
     db_session.add(settings)
     await db_session.commit()
 

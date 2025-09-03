@@ -77,7 +77,9 @@ async def process_task(msg: dict | bytes, message: RabbitMessage):
         command = msg.get("command")
         data = msg.get("payload", {})
 
-        logger.info("Получено сообщение от %s с командой %s.", message.message_id[:11], command)
+        logger.info(
+            "Получено сообщение от %s с командой %s.", message.message_id[:11], command
+        )
 
         result = await router.handle(command, data)
         return result

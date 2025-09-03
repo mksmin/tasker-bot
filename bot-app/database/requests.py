@@ -39,10 +39,10 @@ def connection(function):
 
 
 @connection
-async def get_user_by_tgid(session: AsyncSession, tgid: int, user_data: dict = None) -> User:
-    user = await session.scalar(
-        select(User).where(User.user_tg == tgid)
-    )
+async def get_user_by_tgid(
+    session: AsyncSession, tgid: int, user_data: dict = None
+) -> User:
+    user = await session.scalar(select(User).where(User.user_tg == tgid))
 
     if user_data and user:
         for key, value in user_data.items():
@@ -64,13 +64,15 @@ async def get_user_by_tgid(session: AsyncSession, tgid: int, user_data: dict = N
 
 
 @connection
-async def get_list_of_random_tasks(session: AsyncSession, user_tg: int, count: int = 5) -> any:
+async def get_list_of_random_tasks(
+    session: AsyncSession, user_tg: int, count: int = 5
+) -> any:
     user = await get_user_by_tgid(tgid=user_tg)
     tasks = await session.scalars(
-        select(Task).where(
-            Task.user_id == user.id,
-            Task.is_done == False
-        ).order_by(func.random()).limit(count)
+        select(Task)
+        .where(Task.user_id == user.id, Task.is_done == False)
+        .order_by(func.random())
+        .limit(count)
     )
 
     return tasks
@@ -91,12 +93,13 @@ async def get_user_settings(session: AsyncSession, user_tg: int) -> any:
 
 
 @connection
-async def get_list_of_all_tasks(session: AsyncSession, user_tg: int, user_data: dict = None) -> any:
+async def get_list_of_all_tasks(
+    session: AsyncSession, user_tg: int, user_data: dict = None
+) -> any:
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
-            select(Task).where(Task.user_id == user.id,
-                               Task.is_done == False)
+            select(Task).where(Task.user_id == user.id, Task.is_done == False)
         )
     except Exception as e:
         logger.error("Error get list of tasks: ", e)
@@ -109,16 +112,14 @@ async def get_user_relationship(session: AsyncSession, user_tg: int) -> any:
     user = await get_user_by_tgid(tgid=user_tg)
     # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
     user = await session.get(User, user.id)
-    await session.refresh(user, attribute_names=['settings'])
+    await session.refresh(user, attribute_names=["settings"])
 
     return user
 
 
 @connection
 async def finish_task(session: AsyncSession, task: Task) -> bool:
-    new_task = await session.scalar(
-        select(Task).where(Task.id == task.id)
-    )
+    new_task = await session.scalar(select(Task).where(Task.id == task.id))
 
     new_task.delete_task()
 

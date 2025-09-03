@@ -1,15 +1,15 @@
 __all__ = (
-    'async_session',
-    'Base',
-    'User',
-    'Task',
-    'connection',
-    'db_helper',
-    'DbSessionMiddleware',
-    'SettingsMiddleware',
-    'user_settings_ctx',
-    'SettingsRepo',
-    'UserSettings',
+    "async_session",
+    "Base",
+    "User",
+    "Task",
+    "connection",
+    "db_helper",
+    "DbSessionMiddleware",
+    "SettingsMiddleware",
+    "user_settings_ctx",
+    "SettingsRepo",
+    "UserSettings",
 )
 
 from database.config import (

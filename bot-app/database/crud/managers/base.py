@@ -7,7 +7,17 @@ from functools import wraps
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from typing import TypeVar, ParamSpec, Generic, Callable, Concatenate, Coroutine, Any, Type, AsyncGenerator
+from typing import (
+    TypeVar,
+    ParamSpec,
+    Generic,
+    Callable,
+    Concatenate,
+    Coroutine,
+    Any,
+    Type,
+    AsyncGenerator,
+)
 
 # global
 ModelType = TypeVar("ModelType")
@@ -19,24 +29,24 @@ logger = logging.getLogger(__name__)
 
 class BaseCRUDManager(Generic[ModelType]):
     def __init__(
-            self,
-            model: Type[ModelType],
-            session_maker: async_sessionmaker[AsyncSession],
+        self,
+        model: Type[ModelType],
+        session_maker: async_sessionmaker[AsyncSession],
     ):
         self.model = model
         self.session_maker = session_maker
 
     @staticmethod
     def _auto_session(
-            func: Callable[
-                Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]
-            ],
+        func: Callable[
+            Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]
+        ],
     ) -> Callable[Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]]:
         @wraps(func)
         async def wrapper(
-                self: "BaseCRUDManager[ModelType]",
-                *args: P.args,
-                **kwargs: P.kwargs,
+            self: "BaseCRUDManager[ModelType]",
+            *args: P.args,
+            **kwargs: P.kwargs,
         ) -> R:
             async with self.session_maker() as session:
                 try:
@@ -63,9 +73,7 @@ class BaseCRUDManager(Generic[ModelType]):
                 raise
 
     async def _create_one_entry(
-            self,
-            session: AsyncSession,
-            instance: ModelType
+        self, session: AsyncSession, instance: ModelType
     ) -> ModelType:
         session.add(instance)
         await session.flush()
@@ -73,7 +81,9 @@ class BaseCRUDManager(Generic[ModelType]):
         logger.info(f"Created {self.model.__name__} with id={instance.id}")
         return instance
 
-    async def _exist_entry_by_field(self, session: AsyncSession, field: str, value: Any) -> bool:
+    async def _exist_entry_by_field(
+        self, session: AsyncSession, field: str, value: Any
+    ) -> bool:
         logger.info(f"Checking if {self.model.__name__} with {field}={value} exists")
         stmt = select(self.model).where(getattr(self.model, field) == value)
         result = await session.execute(stmt)
@@ -93,7 +103,9 @@ class BaseCRUDManager(Generic[ModelType]):
     @_auto_session
     async def exist(self, *, field: str, value: Any, **kwargs) -> bool:
         session = kwargs["session"]
-        return await self._exist_entry_by_field(session=session, field=field, value=value)
+        return await self._exist_entry_by_field(
+            session=session, field=field, value=value
+        )
 
     @_auto_session
     async def get(self, **kwargs) -> ModelType:
@@ -103,13 +115,13 @@ class BaseCRUDManager(Generic[ModelType]):
 
     @_auto_session
     async def get_all(
-            self,
-            *,
-            offset: int = 0,
-            limit: int = 5,
-            filters: dict[str, any] | None = None,
-            order_by: any = None,
-            **kwargs
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 5,
+        filters: dict[str, any] | None = None,
+        order_by: any = None,
+        **kwargs,
     ) -> list[ModelType]:
         session = kwargs["session"]
 
