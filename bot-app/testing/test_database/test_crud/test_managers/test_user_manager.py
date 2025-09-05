@@ -1,7 +1,9 @@
 # import libs
 from collections.abc import AsyncGenerator
+from typing import Any
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 # import from modules
 from database.models import User
@@ -11,13 +13,18 @@ from database.schemas import UserReadSchema
 
 
 @pytest.fixture
-async def user_manager(db_session_maker) -> AsyncGenerator[UserManager]:
+async def user_manager(
+    db_session_maker: async_sessionmaker[AsyncSession],
+) -> AsyncGenerator[UserManager]:
     crud_manager.user.session_maker = db_session_maker
     yield crud_manager.user
 
 
 @pytest.mark.asyncio
-async def test_create_user_new(user_data, user_manager: UserManager):
+async def test_create_user_new(
+    user_data: dict[str, Any],
+    user_manager: UserManager,
+) -> None:
     user = await user_manager.create_user(user_data)
 
     assert user is not None
@@ -28,7 +35,11 @@ async def test_create_user_new(user_data, user_manager: UserManager):
 
 
 @pytest.mark.asyncio
-async def test_create_user_existing(user_data, user_manager: UserManager, created_user):
+async def test_create_user_existing(
+    user_data: dict[str, Any],
+    user_manager: UserManager,
+    created_user: User,
+) -> None:
     user_data.update(
         {
             "first_name": "John",
@@ -46,7 +57,11 @@ async def test_create_user_existing(user_data, user_manager: UserManager, create
 
 
 @pytest.mark.asyncio
-async def test_get_user(user_data, user_manager: UserManager, created_user):
+async def test_get_user(
+    user_data: dict[str, Any],
+    user_manager: UserManager,
+    created_user: User,
+) -> None:
     user1 = await user_manager.get_user(id=created_user.id)
     user2 = await user_manager.get_user(user_tg=user_data["user_tg"])
 
@@ -59,7 +74,7 @@ async def test_get_user(user_data, user_manager: UserManager, created_user):
 
 
 @pytest.mark.asyncio
-async def test_get_user_not_found(user_manager: UserManager):
+async def test_get_user_not_found(user_manager: UserManager) -> None:
     for user_id in [1, 2, 3]:
         with pytest.raises(ValueError):
             await user_manager.get_user(id=user_id)

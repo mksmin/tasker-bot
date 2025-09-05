@@ -13,7 +13,7 @@ from aiogram.types import Message, User
 from aiogram.fsm.context import FSMContext
 from datetime import time
 from unittest.mock import AsyncMock, patch, MagicMock
-from typing import AsyncGenerator
+from typing import AsyncGenerator, cast
 
 # import from modules
 import database.requests as rq
@@ -42,11 +42,11 @@ async def mock_message() -> AsyncGenerator[Message, None]:
 
 
 @pytest.mark.asyncio
-async def test_cmd_start(mock_message) -> None:
+async def test_cmd_start(mock_message: Message) -> None:
     """
     Test that the /start command registers the user and sends a welcome message
     """
-    mock_message.answer = AsyncMock()
+    mock_message.answer = AsyncMock()  # type: ignore
 
     with (
         patch.object(
@@ -82,14 +82,18 @@ async def test_cmd_start(mock_message) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_no_tasks(mock_message) -> None:
+async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
     """
     Test that the /daily command sends a message when no tasks are available
     """
-    mock_message.answer = AsyncMock()
+    from_user = cast(User, mock_message.from_user)
+    mock_message.answer = AsyncMock()  # type: ignore
 
     mock_settings = UserSettings(
-        id=1, user_id=mock_message.from_user.id, count_tasks=5, send_time=time(9, 0)
+        id=1,
+        user_id=from_user.id,
+        count_tasks=5,
+        send_time=time(9, 0),
     )
 
     with (
@@ -114,10 +118,11 @@ async def test_cmd_daily_tasks_no_tasks(mock_message) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cmd_daily_tasks_with_tasks(mock_message) -> None:
+async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
     """
     Test that the /daily command sends a list of tasks when available
     """
+    from_user = cast(User, mock_message.from_user)
     test_tasks = [
         Task(text_task="Test task 1"),
         Task(text_task="Test task 2"),
@@ -132,10 +137,10 @@ async def test_cmd_daily_tasks_with_tasks(mock_message) -> None:
         "3. Task 3"
     )
 
-    mock_message.answer = AsyncMock()
+    mock_message.answer = AsyncMock()  # type: ignore
     mock_settings = UserSettings(
         id=1,
-        user_id=mock_message.from_user.id,
+        user_id=from_user.id,
         count_tasks=expected_task_count,
         send_time=time(10, 0),
     )

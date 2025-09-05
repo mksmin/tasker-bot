@@ -34,15 +34,13 @@ router = Router()
 async def cmd_start(
     message: Message,
     from_user: User,
-):
+) -> None:
     user_data = {
         "user_tg": from_user.id,
         "first_name": from_user.first_name,
         "last_name": from_user.last_name,
         "username": from_user.username,
     }
-
-    print(f"User: {user_data=}\n")
 
     user = await crud_manager.user.create_user(user_data=user_data)
     await rq.get_user_settings(user_tg=user.user_tg)
@@ -60,7 +58,7 @@ async def cmd_start(
 async def cmd_daily_tasks(
     message: Message,
     from_user: User,
-):
+) -> None:
     user_tgid = from_user.id
 
     settings = await rq.get_user_settings(user_tg=user_tgid)
@@ -91,7 +89,7 @@ async def cmd_settings(
     message: Message,
     state: FSMContext,
     from_user: User,
-):
+) -> None:
     await state.clear()
     repo: SettingsRepo = user_settings_ctx.get()
     user = await crud_manager.user.get_user(user_tg=from_user.id)
@@ -121,7 +119,7 @@ async def cmd_settings(
 async def cmd_change_settings(
     callback: CallbackQuery,
     callback_message: Message,
-):
+) -> None:
     await callback_message.edit_text(
         "Выбери, что хочешь изменить",
         reply_markup=kb.settings_change,
@@ -138,7 +136,7 @@ async def cmd_change_amount(
     state: FSMContext,
     from_user: User,
     callback_message: Message,
-):
+) -> None:
     await state.set_state(st.Settings.count_tasks)
     user = await crud_manager.user.get_user(user_tg=from_user.id)
     async for session in db_helper.session_getter():
@@ -161,7 +159,7 @@ async def set_count_of_affirm(
     message: Message,
     state: FSMContext,
     from_user: User,
-):
+) -> None:
     if int(cast(str, message.text)) > 5 or int(cast(str, message.text)) < 1:
         await message.answer(
             "Ты ошибся, число должно быть меньше или равно 5 и больше 0"
@@ -197,7 +195,7 @@ async def cmd_change_time(
     callback: CallbackQuery,
     state: FSMContext,
     callback_message: Message,
-):
+) -> None:
     await state.set_state(st.Settings.time_hour)
     user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
 
@@ -213,7 +211,7 @@ async def cmd_change_time(
 
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
-async def cmd_set_hour(message: Message, state: FSMContext):
+async def cmd_set_hour(message: Message, state: FSMContext) -> None:
     if int(cast(str, message.text)) > 23 or int(cast(str, message.text)) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
     else:
@@ -240,7 +238,7 @@ async def cmd_set_minutes(
     message: Message,
     state: FSMContext,
     from_user: User,
-):
+) -> None:
     if int(cast(str, message.text)) > 59 or int(cast(str, message.text)) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
         return
@@ -288,7 +286,7 @@ async def cmd_set_minutes(
 async def cmd_back_to_settings(
     callback: CallbackQuery,
     callback_message: Message,
-):
+) -> None:
     await callback_message.edit_text(
         "Ничего менять не будем. Вызови команду /settings, чтобы вернуться к настройкам"
     )
@@ -302,7 +300,7 @@ async def user_add_task(
     message: Message,
     state: FSMContext,
     from_user: User,
-):
+) -> None:
     await state.clear()
 
     user_data = {

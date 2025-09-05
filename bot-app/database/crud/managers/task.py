@@ -19,10 +19,14 @@ class TaskManager(BaseCRUDManager[Task]):
         )
         self.user_manager: Optional["UserManager"] = None
 
-    def set_user_manager(self, manager: "UserManager"):
+    def set_user_manager(self, manager: "UserManager") -> None:
         self.user_manager = manager
 
-    async def create_task(self, user_tg: int, task_text: str) -> TaskReadSchema:
+    async def create_task(
+        self,
+        user_tg: int,
+        task_text: str,
+    ) -> TaskReadSchema:
         assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)
 
@@ -38,7 +42,9 @@ class TaskManager(BaseCRUDManager[Task]):
         return TaskReadSchema.model_validate(result)
 
     async def get_random_tasks(
-        self, user_tg: int, count: int = 5
+        self,
+        user_tg: int,
+        count: int = 5,
     ) -> list[TaskReadSchema]:
         assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)

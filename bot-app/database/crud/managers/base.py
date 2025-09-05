@@ -18,6 +18,8 @@ from typing import (
     Type,
     AsyncGenerator,
     Optional,
+    cast,
+    Sequence,
 )
 
 from database import Base
@@ -30,6 +32,41 @@ CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 logger = logging.getLogger(__name__)
 
 
+def _auto_session(
+    func: Callable[
+        ...,
+        Coroutine[Any, Any, R],
+    ],
+) -> Callable[
+    ...,
+    Coroutine[Any, Any, R],
+]:
+    @wraps(func)
+    async def wrapper(
+        self: "BaseCRUDManager[ModelType]",
+        *args: Any,
+        **kwargs: Any,
+    ) -> R:
+        async with self.session_maker() as session:
+            try:
+                kwargs["session"] = session
+                result = await func(self, *args, **kwargs)
+                await session.commit()
+                return result
+            except Exception as e:
+                await session.rollback()
+                logger.exception("Error in session: %s", e)
+                raise
+
+    return cast(
+        Callable[
+            Concatenate["BaseCRUDManager[ModelType]", P],
+            Coroutine[Any, Any, R],
+        ],
+        wrapper,
+    )
+
+
 class BaseCRUDManager(Generic[ModelType]):
     def __init__(
         self,
@@ -38,31 +75,6 @@ class BaseCRUDManager(Generic[ModelType]):
     ):
         self.model = model
         self.session_maker = session_maker
-
-    @staticmethod
-    def _auto_session(
-        func: Callable[
-            Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]
-        ],
-    ) -> Callable[Concatenate["BaseCRUDManager[ModelType]", P], Coroutine[Any, Any, R]]:
-        @wraps(func)
-        async def wrapper(
-            self: "BaseCRUDManager[ModelType]",
-            *args: P.args,
-            **kwargs: P.kwargs,
-        ) -> R:
-            async with self.session_maker() as session:
-                try:
-                    kwargs["session"] = session
-                    result = await func(self, *args, **kwargs)
-                    await session.commit()
-                    return result
-                except Exception as e:
-                    await session.rollback()
-                    logger.exception("Error in session: %s", e)
-                    raise
-
-        return wrapper
 
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
@@ -93,27 +105,43 @@ class BaseCRUDManager(Generic[ModelType]):
         return result.scalar_one_or_none() is not None
 
     async def _get_one_entry(
-        self, session: AsyncSession, **filters: dict
+        self,
+        session: AsyncSession,
+        **filters: dict[str, Any],
     ) -> ModelType | None:
         stmt = select(self.model).filter_by(**filters)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @_auto_session
-    async def create(self, *, data: CreateSchemaType, **kwargs) -> ModelType:
+    async def create(
+        self,
+        *,
+        data: CreateSchemaType,
+        **kwargs: Any,
+    ) -> ModelType:
         session = kwargs["session"]
         instance = self.model(**data.model_dump())
         return await self._create_one_entry(session=session, instance=instance)
 
     @_auto_session
-    async def exist(self, *, field: str, value: Any, **kwargs) -> bool:
-        session = kwargs["session"]
+    async def exist(
+        self,
+        *,
+        field: str,
+        value: Any,
+        **kwargs: Any,
+    ) -> bool:
+        session: AsyncSession = kwargs["session"]
         return await self._exist_entry_by_field(
             session=session, field=field, value=value
         )
 
     @_auto_session
-    async def get(self, **kwargs) -> ModelType | None:
+    async def get(
+        self,
+        **kwargs: Any,
+    ) -> ModelType | None:
         session = kwargs["session"]
         filters = {k: v for k, v in kwargs.items() if k != "session"}
         return await self._get_one_entry(session=session, **filters)
@@ -126,9 +154,9 @@ class BaseCRUDManager(Generic[ModelType]):
         limit: int = 5,
         filters: Optional[dict[str, Any]] = None,
         order_by: Any = None,
-        **kwargs,
-    ) -> list[ModelType]:
-        session = kwargs["session"]
+        **kwargs: Any,
+    ) -> Sequence[ModelType]:
+        session: AsyncSession = kwargs["session"]
 
         if offset < 0 or limit <= 0:
             raise ValueError("Offset must be >= 0 and limit > 0")

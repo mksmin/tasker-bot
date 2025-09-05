@@ -1,9 +1,12 @@
 # import libs
+from typing import Any
+
 import pytest
 
 # import from libs
 from datetime import datetime
 from pydantic import ValidationError
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 # import from modules
 from database.models import User
@@ -12,13 +15,18 @@ from database.crud.managers.base import BaseCRUDManager
 
 
 @pytest.fixture
-async def instance(db_session_maker) -> BaseCRUDManager:
+async def instance(
+    db_session_maker: async_sessionmaker[AsyncSession],
+) -> BaseCRUDManager[User]:
     user_crud = BaseCRUDManager[User](model=User, session_maker=db_session_maker)
     return user_crud
 
 
 @pytest.fixture
-async def created_user(user_schema, instance) -> User:
+async def created_user(
+    user_schema: UserCreateSchema,
+    instance: BaseCRUDManager[User],
+) -> User:
     return await instance.create(data=user_schema)
 
 
@@ -35,13 +43,16 @@ async def test_create_user(created_user: User) -> None:
     assert created.username == "test_user"
 
 
-def test_create_user_missing_fields(instance):
+def test_create_user_missing_fields(instance: BaseCRUDManager[User]) -> None:
     with pytest.raises(ValidationError):
         UserCreateSchema(**{})
 
 
 @pytest.mark.asyncio
-async def test_exists_user(created_user: User, instance: BaseCRUDManager[User]) -> None:
+async def test_exists_user(
+    created_user: User,
+    instance: BaseCRUDManager[User],
+) -> None:
     user = created_user
     exists = await instance.exist(field="id", value=user.id)
 
@@ -58,7 +69,10 @@ async def test_get_one_user(
 
 
 @pytest.fixture
-async def multiple_users(instance, db_session_maker):
+async def multiple_users(
+    instance: BaseCRUDManager[User],
+    db_session_maker: async_sessionmaker[AsyncSession],
+) -> list[dict[str, Any]]:
     users_data = [
         {"user_tg": 1001, "first_name": "Alice", "last_name": "Smith"},
         {"user_tg": 1002, "first_name": "Bob", "last_name": "Johnson"},
@@ -77,13 +91,19 @@ async def multiple_users(instance, db_session_maker):
 
 
 @pytest.mark.asyncio
-async def test_get_all_default_params(multiple_users, instance):
+async def test_get_all_default_params(
+    multiple_users: list[dict[str, Any]],
+    instance: BaseCRUDManager[User],
+) -> None:
     users = await instance.get_all()
     assert len(users) == 5
 
 
 @pytest.mark.asyncio
-async def test_get_all_pagination(multiple_users, instance):
+async def test_get_all_pagination(
+    multiple_users: list[dict[str, Any]],
+    instance: BaseCRUDManager[User],
+) -> None:
     # Page 1
     first_page = await instance.get_all(offset=0, limit=2)
     assert len(first_page) == 2
@@ -98,7 +118,10 @@ async def test_get_all_pagination(multiple_users, instance):
 
 
 @pytest.mark.asyncio
-async def test_get_all_filters(multiple_users, instance):
+async def test_get_all_filters(
+    multiple_users: list[dict[str, Any]],
+    instance: BaseCRUDManager[User],
+) -> None:
     # Filter by first letter of last name
     filtered = await instance.get_all(filters={"last_name": "Smith"})
     assert len(filtered) == 1
@@ -106,7 +129,10 @@ async def test_get_all_filters(multiple_users, instance):
 
 
 @pytest.mark.asyncio
-async def test_get_all_ordering(instance, multiple_users):
+async def test_get_all_ordering(
+    multiple_users: list[dict[str, Any]],
+    instance: BaseCRUDManager[User],
+) -> None:
     # Order by last name ascending
     ordered_asc = await instance.get_all(order_by=User.last_name.asc())
     assert ordered_asc[0].last_name == "Brown"
@@ -117,7 +143,7 @@ async def test_get_all_ordering(instance, multiple_users):
 
 
 @pytest.mark.asyncio
-async def test_get_all_invalid_params(instance):
+async def test_get_all_invalid_params(instance: BaseCRUDManager[User]) -> None:
     with pytest.raises(ValueError):
         await instance.get_all(offset=-1, limit=5)
 

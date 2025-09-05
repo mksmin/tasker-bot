@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 import pytest
 import pytest_asyncio
 
@@ -7,7 +9,7 @@ from database import Base
 
 
 @pytest_asyncio.fixture()
-async def db_helper():
+async def db_helper() -> AsyncGenerator[DatabaseHelper, None]:
     """Сырой engine для работы с сессиями БД, без создания таблиц"""
     helper = DatabaseHelper(url="sqlite+aiosqlite:///:memory:", echo=False)
     yield helper
@@ -15,7 +17,9 @@ async def db_helper():
 
 
 @pytest_asyncio.fixture()
-async def db_helper_with_tables(db_helper):
+async def db_helper_with_tables(
+    db_helper: DatabaseHelper,
+) -> AsyncGenerator[DatabaseHelper, None]:
     """Сначала создаем таблицы, потом удаляем"""
     async with db_helper.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -27,13 +31,13 @@ async def db_helper_with_tables(db_helper):
 
 
 @pytest.mark.asyncio
-async def test_engine_created(db_helper):
+async def test_engine_created(db_helper: DatabaseHelper) -> None:
     assert db_helper.engine is not None
     assert db_helper.session_factory is not None
 
 
 @pytest.mark.asyncio
-async def test_session_can_execute_query(db_helper):
+async def test_session_can_execute_query(db_helper: DatabaseHelper) -> None:
     async for session in db_helper.session_getter():
         result = await session.execute(text("SELECT 1"))
         value = result.scalar()
@@ -41,7 +45,7 @@ async def test_session_can_execute_query(db_helper):
 
 
 @pytest.mark.asyncio
-async def test_dispose_engine(db_helper):
+async def test_dispose_engine(db_helper: DatabaseHelper) -> None:
     # Проверяем статус пула до dispose()
     print("До dispose():", db_helper.engine._proxied.pool.status())
 

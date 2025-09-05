@@ -1,4 +1,6 @@
 # import from libs
+from typing import Any
+
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 # import from modules
@@ -15,7 +17,10 @@ class UserManager(BaseCRUDManager[User]):
             session_maker=session_maker,
         )
 
-    async def create_user(self, user_data: dict) -> UserReadSchema:
+    async def create_user(
+        self,
+        user_data: dict[str, Any],
+    ) -> UserReadSchema:
         instance = UserCreateSchema(**user_data)
         exist = await self.exist(field="user_tg", value=instance.user_tg)
         if exist:

@@ -3,7 +3,8 @@ import os
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
 from datetime import time
-from sqlalchemy import select
+from sqlalchemy import select, ScalarResult
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from database.crud import crud_manager
@@ -20,8 +21,8 @@ async def setup_scheduler(bot: Bot) -> None:
     SCHEDULER["scheduler"] = scheduler
 
     @connection
-    async def schedule_all(session) -> None:
-        settings: list[UserSettings] = await session.scalars(
+    async def schedule_all(session: AsyncSession) -> None:
+        settings: ScalarResult[UserSettings] = await session.scalars(
             select(UserSettings).options(joinedload(UserSettings.user))
         )
         for setting in settings:
