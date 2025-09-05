@@ -12,3 +12,6 @@ jobs:
     steps:
       - name: Checkout workflow
         run: echo "Head branch — ${{ github.event.workflow_run.head_branch }}"
+
+      - name: Say hello
+        run: echo "Hello World!"
