@@ -37,7 +37,7 @@ jobs:
         run: poetry sync --no-root --no-interaction --no-ansi
 
       - name: Run mypy
-        run: poetry run mypy bot-app
+        run: poetry run mypy ./
 
       # Устанавливаю Docker Compose
       - name: Set up Docker Compose
