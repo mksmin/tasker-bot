@@ -16,36 +16,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-latest   # Где будет выполняться (виртуальная Ubuntu)
     steps:
-      # Клонирую репозиторий
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: ".python-version"
-
-      # Устанавливаю Docker Compose
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v1
-
-      # Собираю контейнеры
-      - name: Build docker compose services
-        run: docker compose build bot
-
-      # Создаю .env файл из шаблона для тестов
-      - name: Setup .env file
-        run: cp bot-app/.env.template bot-app/.env
-
-      - name: Run Black check
-        run: docker compose run --rm bot poetry run black --check --diff ./
-
-      - name: Run mypy
-        run: docker compose run --rm bot poetry run mypy ./
-
-      # Запускаю тесты внутри контейнера
-      - name: Run tests in bot container
-        run: docker compose run --rm bot poetry run pytest -s
-
       # Деплой через SSH если тесты прошли
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1  # Используем готовый экшен для SSH подключения
@@ -54,7 +24,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |                                # Набор команд для выполнения на сервере
-            /home/github_deployer/deploy.sh        # Запуск скрипта
+            /home/${{ secrets.SERVER_USER }}/deploy.sh
 
       # Уведомление в тг, если предыдущие шаги не сработали
       - name: Send Telegram notification on deploy failure
