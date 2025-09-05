@@ -1,6 +1,6 @@
 # import from lib
 from functools import wraps
-from typing import Optional, Any
+from typing import Optional, Any, TypeVar, Callable, Awaitable, Coroutine
 
 from sqlalchemy import select, func, false
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +17,12 @@ from database import (  # type: ignore
 from config import logger
 
 
-def connection(function):
+T = TypeVar("T")
+
+
+def connection(
+    function: Callable[..., Awaitable[T]],
+) -> Callable[..., Awaitable[T]]:
     """
     Decorator function that wraps the provided function with a database session.
 
@@ -29,7 +34,7 @@ def connection(function):
     """
 
     @wraps(function)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: Any, **kwargs: Any) -> T:
         """
         Asynchronous wrapper function that creates a database session and passes it to the wrapped function.
 
@@ -40,8 +45,10 @@ def connection(function):
         Returns:
             The result of the wrapped function.
         """
-        async for session in db_helper.session_getter():
+        async for session in db_helper.session_getter():  # type: ignore
             return await function(session, *args, **kwargs)
+
+        raise RuntimeError("No database session available")  # for fix mypy error
 
     return wrapper
 
@@ -50,7 +57,7 @@ def connection(function):
 async def get_user_by_tgid(
     session: AsyncSession,
     tgid: int,
-    user_data: Optional[dict] = None,
+    user_data: Optional[dict[str, Any]] = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.user_tg == tgid))
 
@@ -123,7 +130,7 @@ async def get_list_of_all_tasks(
 async def get_user_relationship(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
-    user = await session.get(User, user.id)
+    user = await session.get(User, user.id)  # type: ignore
     await session.refresh(user, attribute_names=["settings"])
 
     return user

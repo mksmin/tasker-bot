@@ -24,7 +24,7 @@ async def start_bot() -> Bot:
     return bot_class
 
 
-async def run_bot():
+async def run_bot() -> None:
     bot = await start_bot()
 
     dp = Dispatcher()

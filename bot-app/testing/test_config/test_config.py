@@ -1,4 +1,6 @@
 import os
+from typing import Generator, Any
+
 import pytest
 
 from dotenv import load_dotenv
@@ -9,13 +11,16 @@ from unittest.mock import patch
 
 
 @pytest.fixture
-def test_env_path():
+def test_env_path() -> Path:
     path = Path(__file__).parent.parent.parent / ".env.template"
     return path
 
 
 @pytest.fixture
-def settings(monkeypatch, test_env_path):
+def settings(
+    monkeypatch: pytest.MonkeyPatch,
+    test_env_path: Path,
+) -> Settings:
     # 1. Очищаем все переменные окружения
     for key in list(os.environ):
         if key.startswith("APP_CONFIG__"):
@@ -29,9 +34,12 @@ def settings(monkeypatch, test_env_path):
 
 
 @pytest.fixture
-def monkeypatch_env(monkeypatch, test_env_path):
+def monkeypatch_env(
+    monkeypatch: pytest.MonkeyPatch,
+    test_env_path: Path,
+) -> Generator[None, None, None]:
     # Подменяем путь, который используется внутри get_token, на путь к .env.test
-    def mock_get_token_path(*args):
+    def mock_get_token_path(*args: tuple[Any, ...]) -> Path:
         # Печатаем подмененный путь для отладки
         return test_env_path
 
@@ -40,7 +48,7 @@ def monkeypatch_env(monkeypatch, test_env_path):
     yield
 
 
-def test_bot_config(settings):
+def test_bot_config(settings: Settings) -> None:
     """Тест класса BotConfig"""
     bot_config = settings.bot
 
@@ -52,7 +60,7 @@ def test_bot_config(settings):
     ), f"Ожидается test_bot_token, получено {bot_config.token}"
 
 
-def test_database_config(settings):
+def test_database_config(settings: Settings) -> None:
     db_config = settings.db
 
     assert isinstance(
@@ -67,7 +75,7 @@ def test_database_config(settings):
     ), "echo не False (true используется только в разработке)"
 
 
-def test_rabbitmq_config(settings):
+def test_rabbitmq_config(settings: Settings) -> None:
     rabbit_config = settings.rabbit
     assert isinstance(
         rabbit_config, RabbitMQConfig
@@ -78,9 +86,9 @@ def test_rabbitmq_config(settings):
     ), ("URL не соответствует " "ожидаемому")
 
 
-def test_validation_error():
+def test_validation_error() -> None:
     """Проверяет обработку ошибок валидации"""
     with pytest.raises(ValidationError):
         BotConfig(token=None)
-        DatabaseConfig(url="invalid-url")
+        DatabaseConfig(url="invalid-url")  # type: ignore
         RabbitMQConfig(url="invalid-url")

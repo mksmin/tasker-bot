@@ -45,7 +45,7 @@ class Task(TimeStampMixin, Base):
 
     user = relationship("User", back_populates="tasks")
 
-    def delete_task(self):
+    def delete_task(self) -> None:
         self.is_done = True
 
 

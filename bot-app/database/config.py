@@ -1,7 +1,9 @@
-from typing import Any, Optional
+from typing import Any, Optional, Coroutine, Callable, Awaitable
 
 from aiogram import BaseMiddleware
 from contextvars import ContextVar
+
+from aiogram.types import TelegramObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 
@@ -29,7 +31,7 @@ class SettingsRepo:
         user_id: int,
         key: Optional[str] = None,
         value: Optional[Any] = None,
-    ):
+    ) -> None:
         existing_settings = await self.get(user_id)
 
         if not existing_settings:
@@ -50,14 +52,24 @@ user_settings_ctx: ContextVar[SettingsRepo] = ContextVar("user_settings")
 
 # Middleware
 class DbSessionMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data: dict):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
         async with async_session() as session:
             data["session"] = session
             return await handler(event, data)
 
 
 class SettingsMiddleware(BaseMiddleware):
-    async def __call__(self, handler, event, data: dict):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
         session: AsyncSession = data["session"]
         repo = SettingsRepo(session)
         token = user_settings_ctx.set(repo)

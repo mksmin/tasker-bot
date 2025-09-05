@@ -56,7 +56,7 @@ class RabbitMQConfig(BaseModel):
     password: str = "password"
     vhostname: str = "virtual_host_name"
 
-    @computed_field  # type: ignore[misc]
+    @computed_field  # type: ignore
     @property
     def url(self) -> str:
         safe_username = quote(self.username, safe="")
