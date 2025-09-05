@@ -3,12 +3,17 @@ name: Deploy to Server
 
 # Основной триггер
 on:
-  push: # При пуше в репозиторий
+  workflow_run:
+    workflows:
+      - "Python checks 🐍"
     branches:
-      - master             # Только если пуш в ветку "master"
+      - master
+    types:
+      - completed
 
 jobs:
   deploy: # Название работы
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-latest   # Где будет выполняться (виртуальная Ubuntu)
     steps:
       # Клонирую репозиторий
@@ -43,7 +48,7 @@ jobs:
 
       # Деплой через SSH если тесты прошли
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.6  # Используем готовый экшен для SSH подключения
+        uses: appleboy/ssh-action@v1  # Используем готовый экшен для SSH подключения
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
