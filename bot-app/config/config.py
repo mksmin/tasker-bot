@@ -1,9 +1,7 @@
 # import lib
 import logging
-import os
 from urllib.parse import quote
 
-from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -65,7 +63,7 @@ class RabbitMQConfig(BaseModel):
         domain = quote(self.host.encode("idna").decode())
 
         return (
-            f"amqp://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+            f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
         )
 
 
