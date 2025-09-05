@@ -40,8 +40,22 @@ build-backend = "poetry.core.masonry.api"
 
 
 
+[tool.pytest.ini_options]
+pythonpath = "bot-app"
+testpaths = "bot-app/testing"
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+# Чтобы видеть подробный вывод тестов
+addopts = "-v"
+
+
 [tool.mypy]
 strict = true
 plugins = [
     "pydantic.mypy",
 ]
+

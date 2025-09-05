@@ -1,6 +1,6 @@
 tasker-bot.iml
-.env.*
-!.env.template
+bot-app/.env.*
+!bot-app/.env.template
 gigaide.properties
 
 # Byte-compiled / optimized / DLL files
@@ -133,14 +133,14 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+bot-app/.env
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
-config/.env
+bot-app/config/.env
 
 # Spyder project settings
 .spyderproject

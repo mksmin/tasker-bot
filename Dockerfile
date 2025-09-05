@@ -6,8 +6,8 @@ ENV POETRY_VERSION=2.1.1
 RUN pip install "poetry==$POETRY_VERSION"
 
 WORKDIR /taskerbot
-# Установка зависимостей
 
+# Установка зависимостей
 COPY pyproject.toml poetry.lock ./
 RUN poetry config  virtualenvs.create false \
     && poetry install --no-root --no-interaction --no-ansi --with main,tests
@@ -16,4 +16,4 @@ RUN poetry config  virtualenvs.create false \
 COPY . .
 
 # Команда для запуска приложения
-CMD ["python", "-u", "run.py"]
+CMD ["python", "-u", "bot-app/run.py"]

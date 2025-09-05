@@ -10,9 +10,12 @@ htmlcov
 
 .git
 .gitignore
+.gigaide
+.mypy_cache
+.pytest_cache
 
-.env
-.env.*
-!.env.template
+bot-app/.env
+bot-app/.env.*
+!bot-app/.env.template
 
 tasker-bot.iml

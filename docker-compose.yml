@@ -5,22 +5,9 @@ services:
     tty: true
     stdin_open: true
     env_file:
-      - .env
+      - bot-app/.env
     environment:
       - TZ=Europe/Moscow
-      - APP_CONFIG__BOT__TOKEN=${APP_CONFIG__BOT__TOKEN}
-
-      - APP_CONFIG__DB__URL=${APP_CONFIG__DB__URL}
-      - APP_CONFIG__DB__ECHO=${APP_CONFIG__DB__ECHO}
-      - APP_CONFIG__DB__ECHO_POOL=${APP_CONFIG__DB__ECHO_POOL}
-      - APP_CONFIG__DB__POOL_SIZE=${APP_CONFIG__DB__POOL_SIZE}
-      - APP_CONFIG__DB__MAX_OVERFLOW=${APP_CONFIG__DB__MAX_OVERFLOW}
-
-      - APP_CONFIG__RABBIT__HOST=${APP_CONFIG__RABBIT__HOST}
-      - APP_CONFIG__RABBIT__PORT=${APP_CONFIG__RABBIT__PORT}
-      - APP_CONFIG__RABBIT__USERNAME=${APP_CONFIG__RABBIT__USERNAME}
-      - APP_CONFIG__RABBIT__PASSWORD=${APP_CONFIG__RABBIT__PASSWORD}
-      - APP_CONFIG__RABBIT__VHOSTNAME=${APP_CONFIG__RABBIT__VHOSTNAME}
 
     extra_hosts:
       - "host.docker.internal:host-gateway"
