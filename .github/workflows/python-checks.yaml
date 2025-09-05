@@ -1,0 +1,46 @@
+name: Python checks 🐍
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ".github/workflows/**"
+      - "bot-app/**"
+
+jobs:
+  python-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install black
+        run: |
+          python -m pip install --upgrade pip
+          pip install "black==25.1.0"
+
+      - name: Black
+        run: black --check --diff ./
+
+      # Устанавливаю Docker Compose
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      # Собираю контейнеры
+      - name: Build docker-compose services
+        run: docker compose build bot
+
+      # Создаю .env файл из шаблона для тестов
+      - name: Setup .env file
+        run: cp .env.template .env
+
+      # Запускаю тесты внутри контейнера
+      - name: Run tests in bot container
+        run: docker compose run --rm bot poetry run pytest -s
