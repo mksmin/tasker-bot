@@ -1,7 +1,9 @@
 # import from lib
-from aiogram import Router, F
+from typing import cast
+
+from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, User
 from aiogram.fsm.context import FSMContext
 from datetime import time
 from sqlalchemy import select
@@ -15,19 +17,32 @@ from database import user_settings_ctx, SettingsRepo, db_helper
 from database import requests as rq
 from database.models import UserSettings
 from database.crud import crud_manager
+from .handler_filtres import (
+    HasUserFilter,
+    HasCallbackMessageFilter,
+    HasCallbackUserFilter,
+)
 
 # globals
 router = Router()
 
 
-@router.message(CommandStart())
-async def cmd_start(message: Message):
+@router.message(
+    CommandStart(),
+    HasUserFilter(),
+)
+async def cmd_start(
+    message: Message,
+    from_user: User,
+):
     user_data = {
-        "user_tg": message.from_user.id,
-        "first_name": message.from_user.first_name,
-        "last_name": message.from_user.last_name,
-        "username": message.from_user.username,
+        "user_tg": from_user.id,
+        "first_name": from_user.first_name,
+        "last_name": from_user.last_name,
+        "username": from_user.username,
     }
+
+    print(f"User: {user_data=}\n")
 
     user = await crud_manager.user.create_user(user_data=user_data)
     await rq.get_user_settings(user_tg=user.user_tg)
@@ -38,9 +53,15 @@ async def cmd_start(message: Message):
     )
 
 
-@router.message(Command("daily"))
-async def cmd_daily_tasks(message: Message):
-    user_tgid = message.from_user.id
+@router.message(
+    Command("daily"),
+    HasUserFilter(),
+)
+async def cmd_daily_tasks(
+    message: Message,
+    from_user: User,
+):
+    user_tgid = from_user.id
 
     settings = await rq.get_user_settings(user_tg=user_tgid)
 
@@ -62,18 +83,28 @@ async def cmd_daily_tasks(message: Message):
     logger.info(f"Daily tasks sent to user %d", user_tgid)
 
 
-@router.message(Command("settings"))
-async def cmd_settings(message: Message, state: FSMContext):
+@router.message(
+    Command("settings"),
+    HasUserFilter(),
+)
+async def cmd_settings(
+    message: Message,
+    state: FSMContext,
+    from_user: User,
+):
     await state.clear()
     repo: SettingsRepo = user_settings_ctx.get()
-    user = await crud_manager.user.get_user(user_tg=message.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=from_user.id)
 
     n = await repo.get(user.id)
 
     if not n:
         logger.debug("User has no settings. Creating new one...")
         await repo.set(user_id=user.id)
-        n = await repo.get(user.id)
+        n = cast(
+            UserSettings,
+            await repo.get(user.id),
+        )
 
     await message.answer(
         f"<b>Текущие настройки</b>\n\n"
@@ -83,36 +114,60 @@ async def cmd_settings(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == "change_settings")
-async def cmd_change_settings(callback: CallbackQuery):
-    await callback.message.edit_text(
-        "Выбери, что хочешь изменить", reply_markup=kb.settings_change
+@router.callback_query(
+    F.data == "change_settings",
+    HasCallbackMessageFilter(),
+)
+async def cmd_change_settings(
+    callback: CallbackQuery,
+    callback_message: Message,
+):
+    await callback_message.edit_text(
+        "Выбери, что хочешь изменить",
+        reply_markup=kb.settings_change,
     )
 
 
-@router.callback_query(F.data == "change_amount")
-async def cmd_change_amount(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(
+    F.data == "change_amount",
+    HasCallbackUserFilter(),
+    HasCallbackMessageFilter(),
+)
+async def cmd_change_amount(
+    callback: CallbackQuery,
+    state: FSMContext,
+    from_user: User,
+    callback_message: Message,
+):
     await state.set_state(st.Settings.count_tasks)
-    user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=from_user.id)
     async for session in db_helper.session_getter():
         query = select(UserSettings).where(UserSettings.user_id == user.id)
         executed = await session.execute(query)
         settings = executed.scalar_one()
 
-        await callback.message.edit_text(
+        await callback_message.edit_text(
             f"Отправь число, которое должно быть меньше или равно 5 и больше 0"
             f"\nСейчас у тебя {settings.count_tasks} аффирмаций"
         )
 
 
-@router.message(st.Settings.count_tasks, F.text.regexp(r"^\d+$"))
-async def set_count_of_affirm(message: Message, state: FSMContext):
-    if int(message.text) > 5 or int(message.text) < 1:
+@router.message(
+    st.Settings.count_tasks,
+    F.text.regexp(r"^\d+$"),
+    HasUserFilter(),
+)
+async def set_count_of_affirm(
+    message: Message,
+    state: FSMContext,
+    from_user: User,
+):
+    if int(cast(str, message.text)) > 5 or int(cast(str, message.text)) < 1:
         await message.answer(
             "Ты ошибся, число должно быть меньше или равно 5 и больше 0"
         )
     else:
-        user = await crud_manager.user.get_user(user_tg=message.from_user.id)
+        user = await crud_manager.user.get_user(user_tg=from_user.id)
 
         await state.update_data(count_tasks=message.text)
         data = await state.get_data()
@@ -134,8 +189,15 @@ async def set_count_of_affirm(message: Message, state: FSMContext):
             return
 
 
-@router.callback_query(F.data == "change_time")
-async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(
+    F.data == "change_time",
+    HasCallbackMessageFilter(),
+)
+async def cmd_change_time(
+    callback: CallbackQuery,
+    state: FSMContext,
+    callback_message: Message,
+):
     await state.set_state(st.Settings.time_hour)
     user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
 
@@ -144,7 +206,7 @@ async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
         executed = await session.execute(query)
         settings = executed.scalar_one()
 
-        await callback.message.edit_text(
+        await callback_message.edit_text(
             f"Отправь число от 0 до 23, это будет час отправки аффирмаций",
             f"\nСейчас время отправки {settings.send_time} ",
         )
@@ -152,7 +214,7 @@ async def cmd_change_time(callback: CallbackQuery, state: FSMContext):
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
 async def cmd_set_hour(message: Message, state: FSMContext):
-    if int(message.text) > 23 or int(message.text) < 0:
+    if int(cast(str, message.text)) > 23 or int(cast(str, message.text)) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
     else:
         await state.update_data(time_hour=message.text)
@@ -169,9 +231,17 @@ async def cmd_set_hour(message: Message, state: FSMContext):
             return
 
 
-@router.message(st.Settings.time_minute, F.text.regexp(r"^\d+$"))
-async def cmd_set_minutes(message: Message, state: FSMContext):
-    if int(message.text) > 59 or int(message.text) < 0:
+@router.message(
+    st.Settings.time_minute,
+    F.text.regexp(r"^\d+$"),
+    HasUserFilter(),
+)
+async def cmd_set_minutes(
+    message: Message,
+    state: FSMContext,
+    from_user: User,
+):
+    if int(cast(str, message.text)) > 59 or int(cast(str, message.text)) < 0:
         await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
         return
 
@@ -179,7 +249,7 @@ async def cmd_set_minutes(message: Message, state: FSMContext):
     data = await state.get_data()
     new_time = time(hour=int(data["time_hour"]), minute=int(data["time_minute"]))
 
-    user = await crud_manager.user.get_user(user_tg=message.from_user.id)
+    user = await crud_manager.user.get_user(user_tg=from_user.id)
 
     try:
         async for session in db_helper.session_getter():
@@ -191,9 +261,12 @@ async def cmd_set_minutes(message: Message, state: FSMContext):
             await session.commit()
 
         await update_schedule(
-            user_tg_id=message.from_user.id,
+            user_tg_id=from_user.id,
             new_time=new_time,
-            bot=message.bot,
+            bot=cast(
+                Bot,
+                message.bot,
+            ),
         )
 
         await message.answer(
@@ -208,30 +281,48 @@ async def cmd_set_minutes(message: Message, state: FSMContext):
         return
 
 
-@router.callback_query(F.data == "back_to_settings")
-async def cmd_back_to_settings(callback: CallbackQuery):
-    await callback.message.edit_text(
+@router.callback_query(
+    F.data == "back_to_settings",
+    HasCallbackMessageFilter(),
+)
+async def cmd_back_to_settings(
+    callback: CallbackQuery,
+    callback_message: Message,
+):
+    await callback_message.edit_text(
         "Ничего менять не будем. Вызови команду /settings, чтобы вернуться к настройкам"
     )
 
 
-@router.message(F.text)
-async def user_add_task(message: Message, state: FSMContext):
+@router.message(
+    F.text,
+    HasUserFilter(),
+)
+async def user_add_task(
+    message: Message,
+    state: FSMContext,
+    from_user: User,
+):
     await state.clear()
 
     user_data = {
-        "first_name": message.from_user.first_name,
-        "last_name": message.from_user.last_name,
-        "username": message.from_user.username,
+        "first_name": from_user.first_name,
+        "last_name": from_user.last_name,
+        "username": from_user.username,
     }
     # TODO: сделать метод для crud_manager на обновление данных пользователя
     # TODO: и заменить метод get_user_by_tgid на него
-    await rq.get_user_by_tgid(message.from_user.id, user_data=user_data)
-    await rq.get_user_settings(user_tg=message.from_user.id)
+    await rq.get_user_by_tgid(from_user.id, user_data=user_data)
+    await rq.get_user_settings(user_tg=from_user.id)
+
+    if not message.text:
+        await message.answer("Возникла ошибка при добавлении аффирмации")
+        return
+
     try:
         task_added = await crud_manager.task.create_task(
             task_text=message.text,
-            user_tg=message.from_user.id,
+            user_tg=from_user.id,
         )
     except:
         await message.answer(

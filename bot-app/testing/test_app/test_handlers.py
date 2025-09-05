@@ -60,7 +60,10 @@ async def test_cmd_start(mock_message) -> None:
         mock_user.user_tg = 123456
         mock_create_user.return_value = mock_user
 
-        await cmd_start(mock_message)
+        await cmd_start(
+            mock_message,
+            from_user=mock_message.from_user,
+        )
         mock_create_user.assert_awaited_once_with(
             user_data={
                 "user_tg": 123456,
@@ -100,7 +103,10 @@ async def test_cmd_daily_tasks_no_tasks(mock_message) -> None:
             return_value=[],
         ) as mock_get_list_of_random_tasks,
     ):
-        await cmd_daily_tasks(mock_message)
+        await cmd_daily_tasks(
+            mock_message,
+            from_user=mock_message.from_user,
+        )
 
         mock_get_user_settings.assert_awaited_once_with(user_tg=123456)
         mock_get_list_of_random_tasks.assert_awaited_once_with(user_tg=123456, count=5)
@@ -145,7 +151,10 @@ async def test_cmd_daily_tasks_with_tasks(mock_message) -> None:
             return_value=test_tasks,
         ) as mock_get_list_of_random_tasks,
     ):
-        await cmd_daily_tasks(mock_message)
+        await cmd_daily_tasks(
+            mock_message,
+            from_user=mock_message.from_user,
+        )
         mock_get_list_of_random_tasks.assert_awaited_once_with(
             user_tg=123456, count=expected_task_count
         )
