@@ -39,18 +39,10 @@ jobs:
       - name: Run mypy
         run: poetry run mypy ./
 
-      # Устанавливаю Docker Compose
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v1
-
-      # Собираю контейнеры
-      - name: Build docker-compose services
-        run: docker compose build bot
-
       # Создаю .env файл из шаблона для тестов
       - name: Setup .env file
-        run: cp .env.template .env
+        run: cp bot-app/.env.template bot-app/.env
 
-      # Запускаю тесты внутри контейнера
-      - name: Run tests in bot container
-        run: docker compose run --rm bot poetry run pytest -s
+      # Запускаю тесты
+      - name: Run tests
+        run: poetry run pytest -s
