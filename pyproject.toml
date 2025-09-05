@@ -54,7 +54,7 @@ addopts = "-v"
 
 
 [tool.mypy]
-strict = false
+strict = true
 plugins = [
     "pydantic.mypy",
 ]
