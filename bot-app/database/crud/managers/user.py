@@ -44,7 +44,8 @@ class UserManager(BaseCRUDManager[User]):
         """
 
         if id is None and user_tg is None:
-            raise ValueError("Either 'id' or 'user_tg' must be provided")
+            msg_error = "Either 'id' or 'user_tg' must be provided"
+            raise ValueError(msg_error)
 
         filters = {}
         if id is not None:
@@ -55,6 +56,7 @@ class UserManager(BaseCRUDManager[User]):
         user_model = await self.get(**filters)
 
         if user_model is None:
-            raise ValueError(f"User not found")
+            msg_error = "User not found"
+            raise ValueError(msg_error)
 
         return UserReadSchema.model_validate(user_model)

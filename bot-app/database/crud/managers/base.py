@@ -95,7 +95,11 @@ class BaseCRUDManager(Generic[ModelType]):
         session.add(instance)
         await session.flush()
         await session.refresh(instance)
-        logger.info(f"Created {self.model.__name__} with id={instance.id}")
+        logger.info(
+            "Created %s with id=%d",
+            self.model.__name__,
+            instance.id,
+        )
         return instance
 
     async def _exist_entry_by_field(
@@ -104,7 +108,12 @@ class BaseCRUDManager(Generic[ModelType]):
         field: str,
         value: Any,
     ) -> bool:
-        logger.info(f"Checking if {self.model.__name__} with {field}={value} exists")
+        logger.info(
+            "Checking if %s with %s=%s exists",
+            self.model.__name__,
+            field,
+            value,
+        )
         stmt = select(self.model).where(getattr(self.model, field) == value)
         result = await session.execute(stmt)
         return result.scalar_one_or_none() is not None
@@ -166,7 +175,8 @@ class BaseCRUDManager(Generic[ModelType]):
         session: AsyncSession = kwargs["session"]
 
         if offset < 0 or limit <= 0:
-            raise ValueError("Offset must be >= 0 and limit > 0")
+            msg_error = "Offset must be >= 0 and limit > 0"
+            raise ValueError(msg_error)
 
         stmt = select(self.model)
 

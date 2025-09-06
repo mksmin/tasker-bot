@@ -12,8 +12,7 @@ from unittest.mock import patch
 
 @pytest.fixture
 def test_env_path() -> Path:
-    path = Path(__file__).parent.parent.parent / ".env.template"
-    return path
+    return Path(__file__).parent.parent.parent / ".env.template"
 
 
 @pytest.fixture

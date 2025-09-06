@@ -48,7 +48,8 @@ def connection(
         async for session in db_helper.session_getter():  # type: ignore
             return await function(session, *args, **kwargs)
 
-        raise RuntimeError("No database session available")  # for fix mypy error
+        msg_error = "No database session available"
+        raise RuntimeError(msg_error)  # for fix mypy error
 
     return wrapper
 
@@ -69,10 +70,7 @@ async def get_user_by_tgid(
         await session.refresh(user)
 
     if not user:
-        if user_data:
-            user = User(user_tg=tgid, **user_data)
-        else:
-            user = User(user_tg=tgid)
+        user = User(user_tg=tgid, **user_data) if user_data else User(user_tg=tgid)
         session.add(user)
         await session.commit()
         await session.refresh(user)
@@ -87,14 +85,12 @@ async def get_list_of_random_tasks(
     count: int = 5,
 ) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
-    tasks = await session.scalars(
+    return await session.scalars(
         select(Task)
         .where(Task.user_id == user.id, Task.is_done == False)
         .order_by(func.random())
         .limit(count),
     )
-
-    return tasks
 
 
 @connection

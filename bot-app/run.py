@@ -17,11 +17,10 @@ from bot.rabbit_tasks import broker
 
 
 async def start_bot() -> Bot:
-    bot_class = Bot(
+    return Bot(
         token=settings.bot.token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
-    return bot_class
 
 
 async def run_bot() -> None:

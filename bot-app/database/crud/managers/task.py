@@ -1,14 +1,16 @@
 # import from libs
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 # import from modules
 from .base import BaseCRUDManager
-from .user import UserManager
 from database.models import Task
 from database.schemas import TaskCreateSchema, TaskReadSchema, UserReadSchema
+
+if TYPE_CHECKING:
+    from .user import UserManager
 
 
 class TaskManager(BaseCRUDManager[Task]):

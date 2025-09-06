@@ -18,8 +18,7 @@ from database.crud.managers.base import BaseCRUDManager
 async def instance(
     db_session_maker: async_sessionmaker[AsyncSession],
 ) -> BaseCRUDManager[User]:
-    user_crud = BaseCRUDManager[User](model=User, session_maker=db_session_maker)
-    return user_crud
+    return BaseCRUDManager[User](model=User, session_maker=db_session_maker)
 
 
 @pytest.fixture

@@ -42,7 +42,10 @@ class DatabaseConfig(BaseModel):
                 path=self.path,
             )
         except ValidationError as err:
-            logger.error(f"Invalid connection string: {err}")
+            logger.exception(
+                "Invalid connection string: %s",
+                err,
+            )
             raise err
         return PostgresDsn(url_path)
 

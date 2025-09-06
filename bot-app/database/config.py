@@ -23,8 +23,7 @@ class SettingsRepo:
         query = await self.session.execute(
             select(UserSettings).where(UserSettings.user_id == user_id),
         )
-        row = query.scalar_one_or_none()
-        return row
+        return query.scalar_one_or_none()
 
     async def set(
         self,

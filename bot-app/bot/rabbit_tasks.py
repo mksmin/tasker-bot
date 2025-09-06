@@ -40,9 +40,8 @@ class RabbitCommandRouter:
     ) -> Handler:
         handler = self._routes.get(command_name)
         if not handler:
-            raise ValueError(
-                f"Неизвестная команда: {command_name}. Доступные команды: {list(self._routes.keys())}",
-            )
+            msg_error = f"Неизвестная команда: {command_name}. Доступные команды: {list(self._routes.keys())}"
+            raise ValueError(msg_error)
 
         return handler
 
@@ -109,8 +108,7 @@ async def process_task(
             command,
         )
 
-        result = await router.handle(command, data)
-        return result
+        return await router.handle(command, data)
 
     except Exception as e:
         logger.error("Ошибка обработки задачи: %s", e)

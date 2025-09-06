@@ -63,5 +63,4 @@ def user_data() -> dict[str, Any]:
 
 @pytest.fixture
 def user_schema(user_data: dict[str, Any]) -> UserCreateSchema:
-    user = UserCreateSchema(**user_data)
-    return user
+    return UserCreateSchema(**user_data)

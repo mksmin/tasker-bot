@@ -4,6 +4,8 @@ import pytest
 import pytest_asyncio
 
 from sqlalchemy import text
+
+from database.crud.managers.base import logger
 from database.db_helper import DatabaseHelper
 from database import Base
 
@@ -47,13 +49,19 @@ async def test_session_can_execute_query(db_helper: DatabaseHelper) -> None:
 @pytest.mark.asyncio
 async def test_dispose_engine(db_helper: DatabaseHelper) -> None:
     # Проверяем статус пула до dispose()
-    print("До dispose():", db_helper.engine._proxied.pool.status())
+    logger.info(
+        "До dispose(): %s",
+        db_helper.engine._proxied.pool.status(),
+    )
 
     # Закрываем пул
     await db_helper.dispose()
 
     # Проверяем статус пула после dispose()
-    print("После dispose():", db_helper.engine._proxied.pool.status())
+    logger.info(
+        "После dispose(): %s",
+        db_helper.engine._proxied.pool.status(),
+    )
 
     # # Проверяем, что пул закрыт
     # assert db_helper.engine._proxied.pool.is_closed(), "Пул не закрыт!"

@@ -17,7 +17,7 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
 
     if len(list_of_tasks) <= 0:
         logger.info(f"No daily tasks to send to user %s", user_tgid)
-        return None
+        return
 
     stroke_tasks = "\n".join(f"{i}. {task}" for i, task in enumerate(list_of_tasks, 1))
     msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
