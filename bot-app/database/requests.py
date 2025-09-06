@@ -121,8 +121,8 @@ async def get_list_of_all_tasks(
             select(Task).where(Task.user_id == user.id, Task.is_done == False)
         )
     except Exception as e:
-        logger.error("Error get list of tasks: ", e)
-        raise Exception(f"Error get list of tasks: {e}")
+        logger.error("Error get list of tasks: ", e, exc_info=True)
+        raise e
     return tasks
 
 

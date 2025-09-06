@@ -50,9 +50,9 @@ class DatabaseConfig(BaseModel):
 class RabbitMQConfig(BaseModel):
     host: str = "host"
     port: int = 1234
-    username: str = "username"
-    password: str = "password"
-    vhostname: str = "virtual_host_name"
+    username: str
+    password: str
+    vhostname: str
 
     @computed_field  # type: ignore
     @property
@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     )
     bot: BotConfig
     db: DatabaseConfig
-    rabbit: RabbitMQConfig = RabbitMQConfig()
+    rabbit: RabbitMQConfig
 
 
 settings = Settings()

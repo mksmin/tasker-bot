@@ -115,13 +115,13 @@ target-version = "py310"
 # McCabe complexity (`C901`) by default.
 
 select = [
-#    "YTT", # flake8-2020 (YTT)
-#    "ANN", # flake8-annotations (ANN)
-#    "ASYNC", # flake8-async (ASYNC)
-#    "S", # flake8-bandit (S)
+    "YTT", # flake8-2020 (YTT)
+    "ANN", # flake8-annotations (ANN)
+    "ASYNC", # flake8-async (ASYNC)
+    "S", # flake8-bandit (S)
 #    "BLE", # flake8-blind-except (BLE)
-#    "FBT", # flake8-boolean-trap (FBT)
-#    "B", # flake8-bugbear (B)
+    "FBT", # flake8-boolean-trap (FBT)
+    "B", # flake8-bugbear (B)
 #    "COM", # flake8-commas (COM)
 #    "C4", # flake8-comprehensions (C4)
 #    "DTZ", # flake8-datetimez (DTZ)

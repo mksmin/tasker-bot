@@ -72,7 +72,7 @@ class BaseCRUDManager(Generic[ModelType]):
         self,
         model: Type[ModelType],
         session_maker: async_sessionmaker[AsyncSession],
-    ):
+    ) -> None:
         self.model = model
         self.session_maker = session_maker
 

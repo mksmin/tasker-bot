@@ -12,7 +12,7 @@ from database.schemas import TaskCreateSchema, TaskReadSchema, UserReadSchema
 
 
 class TaskManager(BaseCRUDManager[Task]):
-    def __init__(self, session_maker: async_sessionmaker[AsyncSession]):
+    def __init__(self, session_maker: async_sessionmaker[AsyncSession]) -> None:
         super().__init__(
             model=Task,
             session_maker=session_maker,

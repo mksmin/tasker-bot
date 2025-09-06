@@ -56,7 +56,7 @@ def test_bot_config(settings: Settings) -> None:
     assert isinstance(bot_config.token, str), f"Токен не является строкой"
     assert len(bot_config.token) > 0, "Токен не должен быть пустым"
     assert (
-        bot_config.token == "test_bot_token"
+        bot_config.token == "test_bot_token"  # noqa: S105
     ), f"Ожидается test_bot_token, получено {bot_config.token}"
 
 

@@ -16,7 +16,7 @@ async_session = async_sessionmaker(bind=engine, expire_on_commit=True)
 
 
 class SettingsRepo:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def get(self, user_id: int) -> UserSettings | None:

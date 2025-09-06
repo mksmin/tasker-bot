@@ -11,7 +11,7 @@ from database.schemas import UserCreateSchema, UserReadSchema
 
 class UserManager(BaseCRUDManager[User]):
 
-    def __init__(self, session_maker: async_sessionmaker[AsyncSession]):
+    def __init__(self, session_maker: async_sessionmaker[AsyncSession]) -> None:
         super().__init__(
             model=User,
             session_maker=session_maker,

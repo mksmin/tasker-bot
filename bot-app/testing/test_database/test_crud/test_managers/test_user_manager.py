@@ -45,7 +45,7 @@ async def test_create_user_existing(
             "first_name": "John",
             "last_name": "Doe",
             "username": "johndoe",
-        }
+        },
     )
 
     user = await user_manager.create_user(user_data)
