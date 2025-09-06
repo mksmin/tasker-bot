@@ -158,7 +158,9 @@ async def cmd_change_amount(
     HasUserFilter(),
 )
 async def set_count_of_affirm(
-    message: Message, state: FSMContext, from_user: User
+    message: Message,
+    state: FSMContext,
+    from_user: User,
 ) -> None:
     min_len_text = 1
     max_len_text = 5
