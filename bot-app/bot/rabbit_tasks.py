@@ -37,7 +37,10 @@ class RabbitCommandRouter:
     ) -> Handler:
         handler = self._routes.get(command_name)
         if not handler:
-            msg_error = f"Неизвестная команда: {command_name}. Доступные команды: {list(self._routes.keys())}"
+            msg_error = (
+                f"Неизвестная команда: {command_name}. "
+                f"Доступные команды: {list(self._routes.keys())}"
+            )
             raise ValueError(msg_error)
 
         return handler

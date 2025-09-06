@@ -36,7 +36,8 @@ def connection(
     @wraps(function)
     async def wrapper(*args: Any, **kwargs: Any) -> T:
         """
-        Asynchronous wrapper function that creates a database session and passes it to the wrapped function.
+        Asynchronous wrapper function that creates a database session
+        and passes it to the wrapped function.
 
         Args:
             *args: Variable length argument list.
@@ -87,7 +88,7 @@ async def get_list_of_random_tasks(
     user = await get_user_by_tgid(tgid=user_tg)
     return await session.scalars(
         select(Task)
-        .where(Task.user_id == user.id, Task.is_done == False)
+        .where(Task.user_id == user.id, Task.is_done == False)  # noqa: E712
         .order_by(func.random())
         .limit(count),
     )
@@ -116,7 +117,9 @@ async def get_list_of_all_tasks(
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
-            select(Task).where(Task.user_id == user.id, Task.is_done == False),
+            select(Task).where(
+                Task.user_id == user.id, Task.is_done == False,  # noqa: E712
+            ),
         )
     except Exception as e:
         logger.error("Error get list of tasks: ", e, exc_info=True)

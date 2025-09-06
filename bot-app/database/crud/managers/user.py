@@ -37,7 +37,8 @@ class UserManager(BaseCRUDManager[User]):
         user_tg: int | None = None,
     ) -> UserReadSchema:
         """
-        Получить пользователя по id или Telegram ID (user_tg). Один из параметров обязательно должен быть передан
+        Получить пользователя по id или Telegram ID (user_tg).
+        Один из параметров обязательно должен быть передан
 
         raises:
             ValueError: если параметры не переданы или пользователь не найден

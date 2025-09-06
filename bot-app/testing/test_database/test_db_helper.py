@@ -70,4 +70,5 @@ async def test_dispose_engine(db_helper: DatabaseHelper) -> None:
     #     async with db_helper.engine.connect() as conn:
     #         await conn.execute(text("SELECT 1"))
     #
-    # assert "This Connection is closed" in str(exc_info.value), "Ожидалась ошибка закрытого соединения!"
+    # assert "This Connection is closed" in str(exc_info.value),
+    # "Ожидалась ошибка закрытого соединения!"
