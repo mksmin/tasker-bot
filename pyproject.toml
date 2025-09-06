@@ -26,6 +26,7 @@ faststream = {extras = ["rabbit"], version = "^0.5.47"}
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
 mypy = "^1.15.0"
+ruff = "^0.12.12"
 
 
 [tool.poetry.group.tests.dependencies]
