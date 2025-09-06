@@ -118,7 +118,6 @@ async def cmd_settings(
     HasCallbackMessageFilter(),
 )
 async def cmd_change_settings(
-    callback: CallbackQuery,
     callback_message: Message,
 ) -> None:
     await callback_message.edit_text(
@@ -133,7 +132,6 @@ async def cmd_change_settings(
     HasCallbackMessageFilter(),
 )
 async def cmd_change_amount(
-    callback: CallbackQuery,
     state: FSMContext,
     from_user: User,
     callback_message: Message,
@@ -285,7 +283,6 @@ async def cmd_set_minutes(
     HasCallbackMessageFilter(),
 )
 async def cmd_back_to_settings(
-    callback: CallbackQuery,
     callback_message: Message,
 ) -> None:
     await callback_message.edit_text(

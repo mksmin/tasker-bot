@@ -25,7 +25,7 @@ def settings(
         if key.startswith("APP_CONFIG__"):
             monkeypatch.delenv(key)
 
-    monkeypatch.setattr("config.config.Path", lambda *args: test_env_path)
+    monkeypatch.setattr("config.config.Path", test_env_path)
     try:
         return Settings(_env_file=test_env_path)
     except ValueError as e:
@@ -38,7 +38,7 @@ def monkeypatch_env(
     test_env_path: Path,
 ) -> Generator[None, None, None]:
     # Подменяем путь, который используется внутри get_token, на путь к .env.test
-    def mock_get_token_path(*args: tuple[Any, ...]) -> Path:
+    def mock_get_token_path() -> Path:
         # Печатаем подмененный путь для отладки
         return test_env_path
 
