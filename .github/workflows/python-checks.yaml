@@ -31,6 +31,12 @@ jobs:
       - name: Run Black check
         run: poetry run black --check --diff ./
 
+      - name: Run ruff check --diff
+        run: poetry run ruff check --diff ./
+
+      - name: Run ruff check
+        run: poetry run ruff check ./
+
       - name: Run mypy
         run: poetry run mypy ./
 
