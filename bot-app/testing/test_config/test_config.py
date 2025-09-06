@@ -1,10 +1,8 @@
 import os
 from pathlib import Path
-from typing import Any, Generator
-from unittest.mock import patch
+from typing import Generator
 
 import pytest
-from dotenv import load_dotenv
 from pydantic import PostgresDsn, ValidationError
 
 from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
@@ -52,7 +50,7 @@ def test_bot_config(settings: Settings) -> None:
     bot_config = settings.bot
 
     assert isinstance(bot_config, BotConfig), "Не является экземпляром BotConfig"
-    assert isinstance(bot_config.token, str), f"Токен не является строкой"
+    assert isinstance(bot_config.token, str), "Токен не является строкой"
     assert len(bot_config.token) > 0, "Токен не должен быть пустым"
     assert (
         bot_config.token == "test_bot_token"  # noqa: S105
@@ -91,5 +89,5 @@ def test_validation_error() -> None:
     """Проверяет обработку ошибок валидации"""
     with pytest.raises(ValidationError):
         BotConfig(token=None)
-        DatabaseConfig(url="invalid-url")  # type: ignore
-        RabbitMQConfig(url="invalid-url")
+        DatabaseConfig(url="invalid-url")  # type: ignore[call-arg]
+        RabbitMQConfig(url="invalid-url")  # type: ignore[call-arg]

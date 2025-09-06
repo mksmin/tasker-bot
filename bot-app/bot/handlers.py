@@ -72,7 +72,7 @@ async def cmd_daily_tasks(
     )
 
     if len(tasks) <= 0:
-        logger.info(f"No daily tasks to send to user %d", user_tgid)
+        logger.info("No daily tasks to send to user %d", user_tgid)
         await message.answer("У тебя нет сохраненных текстов")
         return
 
@@ -82,7 +82,7 @@ async def cmd_daily_tasks(
     msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
 
     await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
-    logger.info(f"Daily tasks sent to user %d", user_tgid)
+    logger.info("Daily tasks sent to user %d", user_tgid)
 
 
 @router.message(
@@ -162,7 +162,12 @@ async def set_count_of_affirm(
     state: FSMContext,
     from_user: User,
 ) -> None:
-    if int(cast(str, message.text)) > 5 or int(cast(str, message.text)) < 1:
+    min_len_text = 1
+    max_len_text = 5
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer(
             "Ты ошибся, число должно быть меньше или равно 5 и больше 0",
         )
@@ -207,14 +212,19 @@ async def cmd_change_time(
         settings = executed.scalar_one()
 
         await callback_message.edit_text(
-            f"Отправь число от 0 до 23, это будет час отправки аффирмаций",
+            "Отправь число от 0 до 23, это будет час отправки аффирмаций",
             f"\nСейчас время отправки {settings.send_time} ",
         )
 
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
 async def cmd_set_hour(message: Message, state: FSMContext) -> None:
-    if int(cast(str, message.text)) > 23 or int(cast(str, message.text)) < 0:
+    min_len_text = 0
+    max_len_text = 23
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
     else:
         await state.update_data(time_hour=message.text)
@@ -242,7 +252,12 @@ async def cmd_set_minutes(
     state: FSMContext,
     from_user: User,
 ) -> None:
-    if int(cast(str, message.text)) > 59 or int(cast(str, message.text)) < 0:
+    min_len_text = 0
+    max_len_text = 59
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
         return
 
@@ -277,7 +292,7 @@ async def cmd_set_minutes(
         await state.set_state(st.Settings.time_minute)
 
     except Exception as e:
-        logger.error(f"Ошибка при изменении настроек: %s", e, exc_info=True)
+        logger.error("Ошибка при изменении настроек: %s", e, exc_info=True)
         await message.answer(f"Ошибка при изменении настроек, {e}")
         await state.clear()
         return
@@ -326,9 +341,9 @@ async def user_add_task(
             task_text=message.text,
             user_tg=from_user.id,
         )
-    except Exception as e:
+    except Exception:
         await message.answer(
-            f"Возникла ошибка при добавлении аффирмации. Операция отменена",
+            "Возникла ошибка при добавлении аффирмации. Операция отменена",
         )
         return
 
@@ -338,4 +353,4 @@ async def user_add_task(
             reply_markup=kb.list_of_tasks,
         )
     else:
-        await message.answer(f"Возникла ошибка")
+        await message.answer("Возникла ошибка")

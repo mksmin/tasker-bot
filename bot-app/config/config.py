@@ -41,12 +41,9 @@ class DatabaseConfig(BaseModel):
                 port=self.port,
                 path=self.path,
             )
-        except ValidationError as err:
-            logger.exception(
-                "Invalid connection string: %s",
-                err,
-            )
-            raise err
+        except ValidationError:
+            logger.exception("Invalid connection string")
+            raise
         return PostgresDsn(url_path)
 
 
@@ -57,7 +54,7 @@ class RabbitMQConfig(BaseModel):
     password: str
     vhostname: str
 
-    @computed_field  # type: ignore
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def url(self) -> str:
         safe_username = quote(self.username, safe="")

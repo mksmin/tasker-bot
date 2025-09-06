@@ -53,11 +53,12 @@ def _auto_session(
                 kwargs["session"] = session
                 result = await func(self, *args, **kwargs)
                 await session.commit()
-                return result
-            except Exception as e:
+            except Exception:
                 await session.rollback()
-                logger.exception("Error in session: %s", e)
+                logger.exception("Error in session")
                 raise
+            else:
+                return result
 
     return cast(
         Callable[
@@ -83,9 +84,9 @@ class BaseCRUDManager(Generic[ModelType]):
             try:
                 yield session
                 await session.commit()
-            except Exception as e:
+            except Exception:
                 await session.rollback()
-                logger.exception("Error in session: %s", e)
+                logger.exception("Error in session: %s")
                 raise
 
     async def _create_one_entry(

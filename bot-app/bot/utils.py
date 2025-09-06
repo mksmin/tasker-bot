@@ -16,7 +16,7 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
     list_of_tasks = [task.text_task for task in tasks]
 
     if len(list_of_tasks) <= 0:
-        logger.info(f"No daily tasks to send to user %s", user_tgid)
+        logger.info("No daily tasks to send to user %s", user_tgid)
         return
 
     stroke_tasks = "\n".join(f"{i}. {task}" for i, task in enumerate(list_of_tasks, 1))
@@ -27,7 +27,7 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
             text=msg_to_send,
             reply_markup=kb.finishing_task,
         )
-        logger.info(f"Daily tasks sent to user %s", user_tgid)
+        logger.info("Daily tasks sent to user %s", user_tgid)
     except Exception as e:
-        logger.error(f"Error while sending daily tasks to user %s: $s", user_tgid, e)
-        raise e
+        logger.error("Error while sending daily tasks to user %s: $s", user_tgid, e)
+        raise

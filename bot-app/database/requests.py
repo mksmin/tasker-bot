@@ -1,15 +1,14 @@
 # import from lib
 from functools import wraps
-from typing import Any, Awaitable, Callable, Coroutine, Optional, TypeVar
+from typing import Any, Awaitable, Callable, Optional, TypeVar
 
-from sqlalchemy import false, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from config import logger
 
 # import from modules
-from database import (  # type: ignore
+from database import (  # type: ignore[no-redef]
     SettingsRepo,
     Task,
     User,
@@ -46,7 +45,7 @@ def connection(
         Returns:
             The result of the wrapped function.
         """
-        async for session in db_helper.session_getter():  # type: ignore
+        async for session in db_helper.session_getter():  # type: ignore[attr-defined]
             return await function(session, *args, **kwargs)
 
         msg_error = "No database session available"
@@ -118,12 +117,17 @@ async def get_list_of_all_tasks(
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
             select(Task).where(
-                Task.user_id == user.id, Task.is_done == False,  # noqa: E712
+                Task.user_id == user.id,
+                Task.is_done == False,  # noqa: E712
             ),
         )
     except Exception as e:
-        logger.error("Error get list of tasks: ", e, exc_info=True)
-        raise e
+        logger.error(
+            "Error get list of tasks: ",
+            e,
+            exc_info=True,
+        )
+        raise
     return tasks
 
 
@@ -131,7 +135,7 @@ async def get_list_of_all_tasks(
 async def get_user_relationship(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
-    user = await session.get(User, user.id)  # type: ignore
+    user = await session.get(User, user.id)  # type: ignore[assignment]
     await session.refresh(user, attribute_names=["settings"])
 
     return user

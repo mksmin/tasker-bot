@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from database.crud.managers import TaskManager, UserManager
-from database.models import Task, User
+from database.models import User
 from database.schemas import TaskReadSchema, UserReadSchema
 
 
@@ -55,7 +55,7 @@ async def test_create_task(
 async def test_get_task(created_user: User, task_manager: TaskManager) -> None:
     task = await task_manager.create_task(
         user_tg=created_user.user_tg,
-        task_text=f"Test get task by id",
+        task_text="Test get task by id",
     )
 
     result = await task_manager.get_task_by_id(task_id=task.id)
@@ -167,7 +167,7 @@ async def test_task_mark_as_done(
 ) -> None:
     task = await task_manager.create_task(
         user_tg=created_user.user_tg,
-        task_text=f"Test task to mark as done",
+        task_text="Test task to mark as done",
     )
 
     assert task.is_done is False
@@ -194,7 +194,7 @@ async def test_mark_as_done_already_done(
 ) -> None:
     task = await task_manager.create_task(
         user_tg=created_user.user_tg,
-        task_text=f"Already done task",
+        task_text="Already done task",
     )
 
     await task_manager.mark_as_done(task_id=task.id)

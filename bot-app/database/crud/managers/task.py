@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from database.models import Task
-from database.schemas import TaskCreateSchema, TaskReadSchema, UserReadSchema
+from database.schemas import TaskCreateSchema, TaskReadSchema
 
 # import from modules
 from .base import BaseCRUDManager

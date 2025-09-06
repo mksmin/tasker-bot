@@ -1,9 +1,7 @@
 import json
 from collections.abc import Awaitable
-from functools import wraps
 from typing import Any, Callable, cast
 
-import aio_pika
 from faststream.rabbit import RabbitBroker, RabbitMessage
 from pydantic import BaseModel
 

@@ -11,7 +11,6 @@ from typing import AsyncGenerator, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, User
 
 # import from modules
@@ -44,7 +43,7 @@ async def test_cmd_start(mock_message: Message) -> None:
     """
     Test that the /start command registers the user and sends a welcome message
     """
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
 
     with (
         patch.object(
@@ -91,7 +90,7 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
     Test that the /daily command sends a message when no tasks are available
     """
     from_user = cast(User, mock_message.from_user)
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
 
     mock_settings = UserSettings(
         id=1,
@@ -144,7 +143,7 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
         "3. Task 3"
     )
 
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
     mock_settings = UserSettings(
         id=1,
         user_id=from_user.id,
@@ -158,7 +157,7 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
             "get_user_settings",
             new_callable=AsyncMock,
             return_value=mock_settings,
-        ) as mock_get_user_settings,
+        ) as mock_get_user_settings,  # noqa: F841
         patch.object(
             crud_manager.task,
             "get_random_tasks",

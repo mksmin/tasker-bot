@@ -51,7 +51,7 @@ async def on_startup() -> None:
 
 async def on_shutdown() -> None:
     await db_helper.dispose()
-    logger.info(f"Disposed database")
+    logger.info("Disposed database")
 
 
 if __name__ == "__main__":

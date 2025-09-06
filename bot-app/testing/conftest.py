@@ -13,7 +13,7 @@ from database.models import Base
 from database.schemas import UserCreateSchema
 
 # import external fixtures
-from testing.test_database.test_crud.test_managers.test_base_crud_manager import (
+from testing.test_database.test_crud.test_managers.test_base_crud_manager import (  # noqa: F401
     created_user,
     instance,
 )

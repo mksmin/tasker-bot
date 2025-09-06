@@ -78,7 +78,7 @@ async def test_get_user_not_found(user_manager: UserManager) -> None:
             await user_manager.get_user(id=user_id)
 
     with pytest.raises(TypeError):
-        await user_manager.get_user(test="test")  # type: ignore
+        await user_manager.get_user(test="test")  # type: ignore[call-arg]
 
     with pytest.raises(ValueError):
         await user_manager.get_user()

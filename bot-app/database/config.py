@@ -1,5 +1,5 @@
 from contextvars import ContextVar
-from typing import Any, Awaitable, Callable, Coroutine, Optional
+from typing import Any, Awaitable, Callable, Optional
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
