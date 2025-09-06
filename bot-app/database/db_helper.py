@@ -39,7 +39,10 @@ class DatabaseHelper:
 
         self.engine: AsyncEngine = create_async_engine(self.url, **kwargs)
         self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
-            bind=self.engine, autocommit=False, autoflush=False, expire_on_commit=False
+            bind=self.engine,
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
         )
 
     async def dispose(self) -> None:

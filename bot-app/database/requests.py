@@ -82,14 +82,16 @@ async def get_user_by_tgid(
 
 @connection
 async def get_list_of_random_tasks(
-    session: AsyncSession, user_tg: int, count: int = 5
+    session: AsyncSession,
+    user_tg: int,
+    count: int = 5,
 ) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     tasks = await session.scalars(
         select(Task)
         .where(Task.user_id == user.id, Task.is_done == False)
         .order_by(func.random())
-        .limit(count)
+        .limit(count),
     )
 
     return tasks
@@ -99,7 +101,7 @@ async def get_list_of_random_tasks(
 async def get_user_settings(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     settings = await session.scalar(
-        select(UserSettings).where(UserSettings.user_id == user.id)
+        select(UserSettings).where(UserSettings.user_id == user.id),
     )
     if not settings:
         new_settings = SettingsRepo(session)
@@ -118,7 +120,7 @@ async def get_list_of_all_tasks(
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
-            select(Task).where(Task.user_id == user.id, Task.is_done == False)
+            select(Task).where(Task.user_id == user.id, Task.is_done == False),
         )
     except Exception as e:
         logger.error("Error get list of tasks: ", e, exc_info=True)

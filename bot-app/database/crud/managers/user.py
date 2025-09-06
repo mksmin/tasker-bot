@@ -10,7 +10,6 @@ from database.schemas import UserCreateSchema, UserReadSchema
 
 
 class UserManager(BaseCRUDManager[User]):
-
     def __init__(self, session_maker: async_sessionmaker[AsyncSession]) -> None:
         super().__init__(
             model=User,
@@ -39,10 +38,10 @@ class UserManager(BaseCRUDManager[User]):
     ) -> UserReadSchema:
         """
         Получить пользователя по id или Telegram ID (user_tg). Один из параметров обязательно должен быть передан
-        
-        raises: 
+
+        raises:
             ValueError: если параметры не переданы или пользователь не найден
-        """ ""
+        """
 
         if id is None and user_tg is None:
             raise ValueError("Either 'id' or 'user_tg' must be provided")

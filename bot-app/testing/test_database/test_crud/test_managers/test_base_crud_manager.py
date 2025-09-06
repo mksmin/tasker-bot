@@ -61,7 +61,8 @@ async def test_exists_user(
 
 @pytest.mark.asyncio
 async def test_get_one_user(
-    created_user: User, instance: BaseCRUDManager[User]
+    created_user: User,
+    instance: BaseCRUDManager[User],
 ) -> None:
     get_user = await instance.get(user_tg=created_user.user_tg)
     assert get_user is not None

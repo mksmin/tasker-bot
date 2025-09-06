@@ -21,7 +21,7 @@ class SettingsRepo:
 
     async def get(self, user_id: int) -> UserSettings | None:
         query = await self.session.execute(
-            select(UserSettings).where(UserSettings.user_id == user_id)
+            select(UserSettings).where(UserSettings.user_id == user_id),
         )
         row = query.scalar_one_or_none()
         return row

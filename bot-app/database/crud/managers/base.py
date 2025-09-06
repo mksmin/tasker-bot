@@ -88,7 +88,9 @@ class BaseCRUDManager(Generic[ModelType]):
                 raise
 
     async def _create_one_entry(
-        self, session: AsyncSession, instance: ModelType
+        self,
+        session: AsyncSession,
+        instance: ModelType,
     ) -> ModelType:
         session.add(instance)
         await session.flush()
@@ -97,7 +99,10 @@ class BaseCRUDManager(Generic[ModelType]):
         return instance
 
     async def _exist_entry_by_field(
-        self, session: AsyncSession, field: str, value: Any
+        self,
+        session: AsyncSession,
+        field: str,
+        value: Any,
     ) -> bool:
         logger.info(f"Checking if {self.model.__name__} with {field}={value} exists")
         stmt = select(self.model).where(getattr(self.model, field) == value)
@@ -134,7 +139,9 @@ class BaseCRUDManager(Generic[ModelType]):
     ) -> bool:
         session: AsyncSession = kwargs["session"]
         return await self._exist_entry_by_field(
-            session=session, field=field, value=value
+            session=session,
+            field=field,
+            value=value,
         )
 
     @_auto_session

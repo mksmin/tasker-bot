@@ -23,7 +23,7 @@ async def setup_scheduler(bot: Bot) -> None:
     @connection
     async def schedule_all(session: AsyncSession) -> None:
         settings: ScalarResult[UserSettings] = await session.scalars(
-            select(UserSettings).options(joinedload(UserSettings.user))
+            select(UserSettings).options(joinedload(UserSettings.user)),
         )
         for setting in settings:
             user_tgid = setting.user.user_tg

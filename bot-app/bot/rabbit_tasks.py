@@ -41,7 +41,7 @@ class RabbitCommandRouter:
         handler = self._routes.get(command_name)
         if not handler:
             raise ValueError(
-                f"Не известная команда: {command_name}. Доступные команды: {list(self._routes.keys())}"
+                f"Неизвестная команда: {command_name}. Доступные команды: {list(self._routes.keys())}",
             )
 
         return handler
@@ -104,7 +104,9 @@ async def process_task(
         data = msg_dict.get("payload", {})
 
         logger.info(
-            "Получено сообщение от %s с командой %s.", message.message_id[:11], command
+            "Получено сообщение от %s с командой %s.",
+            message.message_id[:11],
+            command,
         )
 
         result = await router.handle(command, data)

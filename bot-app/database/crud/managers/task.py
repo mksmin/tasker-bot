@@ -64,7 +64,10 @@ class TaskManager(BaseCRUDManager[Task]):
             return [TaskReadSchema.model_validate(task) for task in tasks]
 
     async def get_paginated_tasks(
-        self, user_tg: int, offset: int, limit: int
+        self,
+        user_tg: int,
+        offset: int,
+        limit: int,
     ) -> list[TaskReadSchema]:
         assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)

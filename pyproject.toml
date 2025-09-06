@@ -122,7 +122,7 @@ select = [
 #    "BLE", # flake8-blind-except (BLE)
     "FBT", # flake8-boolean-trap (FBT)
     "B", # flake8-bugbear (B)
-#    "COM", # flake8-commas (COM)
+    "COM", # flake8-commas (COM)
 #    "C4", # flake8-comprehensions (C4)
 #    "DTZ", # flake8-datetimez (DTZ)
 #    "T10", # flake8-debugger (T10)

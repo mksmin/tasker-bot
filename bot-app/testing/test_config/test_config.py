@@ -64,7 +64,8 @@ def test_database_config(settings: Settings) -> None:
     db_config = settings.db
 
     assert isinstance(
-        db_config, DatabaseConfig
+        db_config,
+        DatabaseConfig,
     ), "Не является экземпляром DatabaseConfig"
     assert isinstance(db_config.url, PostgresDsn), "URL не является строкой"
     assert (
@@ -78,12 +79,13 @@ def test_database_config(settings: Settings) -> None:
 def test_rabbitmq_config(settings: Settings) -> None:
     rabbit_config = settings.rabbit
     assert isinstance(
-        rabbit_config, RabbitMQConfig
+        rabbit_config,
+        RabbitMQConfig,
     ), "Не является экземпляром RabbitMQConfig"
     assert isinstance(rabbit_config.url, str), "URL не является строкой"
     assert (
         rabbit_config.url == "amqps://username:password@host:1234/virtual_host_name"
-    ), ("URL не соответствует " "ожидаемому")
+    ), "URL не соответствует ожидаемому"
 
 
 def test_validation_error() -> None:
