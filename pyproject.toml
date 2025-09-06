@@ -41,6 +41,12 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.pytest.ini_options]
+minversion = "8.3"
+addopts = "-ra --strict-markers"
+log_cli = false
+log_cli_level = "INFO"
+console_output_style = "progress"
+xfail_strict = true
 pythonpath = "bot-app"
 testpaths = "bot-app/testing"
 python_files = "test_*.py"
@@ -49,8 +55,7 @@ python_functions = "test_*"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
-# Чтобы видеть подробный вывод тестов
-addopts = "-v"
+markers = []
 
 
 [tool.mypy]
