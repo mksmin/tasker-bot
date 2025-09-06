@@ -1,6 +1,6 @@
 import json
-from collections.abc import Awaitable
-from typing import Any, Callable, cast
+from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
 from faststream.rabbit import RabbitBroker, RabbitMessage
 from pydantic import BaseModel

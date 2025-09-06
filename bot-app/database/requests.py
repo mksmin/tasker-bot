@@ -1,6 +1,7 @@
 # import from lib
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Awaitable, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,7 +59,7 @@ def connection(
 async def get_user_by_tgid(
     session: AsyncSession,
     tgid: int,
-    user_data: Optional[dict[str, Any]] = None,
+    user_data: dict[str, Any] | None = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.user_tg == tgid))
 
@@ -111,7 +112,7 @@ async def get_user_settings(session: AsyncSession, user_tg: int) -> Any:
 async def get_list_of_all_tasks(
     session: AsyncSession,
     user_tg: int,
-    user_data: Optional[dict[str, Any]] = None,
+    user_data: dict[str, Any] | None = None,
 ) -> Any:
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)

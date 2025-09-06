@@ -1,5 +1,5 @@
 # import from libs
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -20,7 +20,7 @@ class TaskManager(BaseCRUDManager[Task]):
             model=Task,
             session_maker=session_maker,
         )
-        self.user_manager: Optional["UserManager"] = None
+        self.user_manager: UserManager | None = None
 
     def set_user_manager(self, manager: "UserManager") -> None:
         self.user_manager = manager

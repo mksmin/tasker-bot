@@ -6,8 +6,9 @@
 функций с полученными от БД объектами
 """
 
+from collections.abc import AsyncGenerator
 from datetime import time
-from typing import AsyncGenerator, cast
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

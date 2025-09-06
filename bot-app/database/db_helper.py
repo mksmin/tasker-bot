@@ -1,4 +1,5 @@
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (

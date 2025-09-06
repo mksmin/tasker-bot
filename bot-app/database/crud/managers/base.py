@@ -1,20 +1,15 @@
 # import libs
 import logging
+from collections.abc import AsyncGenerator, Callable, Coroutine, Sequence
 
 # import from libs
 from contextlib import asynccontextmanager
 from functools import wraps
 from typing import (
     Any,
-    AsyncGenerator,
-    Callable,
     Concatenate,
-    Coroutine,
     Generic,
-    Optional,
     ParamSpec,
-    Sequence,
-    Type,
     TypeVar,
     cast,
 )
@@ -72,7 +67,7 @@ def _auto_session(
 class BaseCRUDManager(Generic[ModelType]):
     def __init__(
         self,
-        model: Type[ModelType],
+        model: type[ModelType],
         session_maker: async_sessionmaker[AsyncSession],
     ) -> None:
         self.model = model
@@ -170,7 +165,7 @@ class BaseCRUDManager(Generic[ModelType]):
         *,
         offset: int = 0,
         limit: int = 5,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         order_by: Any = None,
         **kwargs: Any,
     ) -> Sequence[ModelType]:

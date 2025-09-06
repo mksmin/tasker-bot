@@ -1,5 +1,6 @@
+from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
@@ -28,8 +29,8 @@ class SettingsRepo:
     async def set(
         self,
         user_id: int,
-        key: Optional[str] = None,
-        value: Optional[Any] = None,
+        key: str | None = None,
+        value: Any | None = None,
     ) -> None:
         existing_settings = await self.get(user_id)
 

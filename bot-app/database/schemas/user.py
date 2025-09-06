@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -7,8 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 class UserCreateSchema(BaseModel):
     user_tg: int = Field(..., description="User Telegram ID")
     first_name: str = Field(..., description="User first name")
-    last_name: Optional[str] = Field(None, description="User last name")
-    username: Optional[str] = Field(None, description="User username")
+    last_name: str | None = Field(None, description="User last name")
+    username: str | None = Field(None, description="User username")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -21,8 +20,8 @@ class UserReadSchema(UserCreateSchema):
 
 
 class UserUpdateSchema(BaseModel):
-    first_name: Optional[str] = Field(None, description="User first name")
-    last_name: Optional[str] = Field(None, description="User last name")
-    username: Optional[str] = Field(None, description="User username")
+    first_name: str | None = Field(None, description="User first name")
+    last_name: str | None = Field(None, description="User last name")
+    username: str | None = Field(None, description="User username")
 
     model_config = ConfigDict(from_attributes=True)
