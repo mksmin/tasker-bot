@@ -159,7 +159,7 @@ select = [
     "PLW", # Pylint Warning (PLW)
     "UP", # pyupgrade (UP)
     "FURB", # refurb (FURB)
-#    "RUF", # Ruff-specific rules (RUF)
+    "RUF", # Ruff-specific rules (RUF)
     "TRY", # tryceratops (TRY)
 ]
 

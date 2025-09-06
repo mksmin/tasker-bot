@@ -1,9 +1,9 @@
 __all__ = (
+    "TaskCreateSchema",
+    "TaskReadSchema",
     "UserCreateSchema",
     "UserReadSchema",
     "UserUpdateSchema",
-    "TaskCreateSchema",
-    "TaskReadSchema",
 )
 
 from .task import TaskCreateSchema, TaskReadSchema

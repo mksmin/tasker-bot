@@ -1,6 +1,6 @@
 __all__ = (
-    "UserManager",
     "TaskManager",
+    "UserManager",
 )
 
 from .task import TaskManager

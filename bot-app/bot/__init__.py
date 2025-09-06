@@ -1,6 +1,6 @@
 __all__ = (
-    "update_schedule",
     "send_daily_tasks",
+    "update_schedule",
 )
 
 from .scheduler import update_schedule

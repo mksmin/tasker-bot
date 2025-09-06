@@ -1,8 +1,8 @@
 from datetime import time
 
 from aiogram import Bot
-from apscheduler.schedulers.asyncio import (
-    AsyncIOScheduler,  # type: ignore[import-untyped]
+from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
+    AsyncIOScheduler,
 )
 from sqlalchemy import ScalarResult, select
 from sqlalchemy.ext.asyncio import AsyncSession
