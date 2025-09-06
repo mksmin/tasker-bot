@@ -1,17 +1,12 @@
-# import libs
-from collections.abc import Awaitable
-
-import aio_pika
 import json
+from collections.abc import Awaitable, Callable
+from typing import Any, cast
 
-# import from libs
-from functools import wraps
-from typing import Callable, Any, cast
 from faststream.rabbit import RabbitBroker, RabbitMessage
 from pydantic import BaseModel
 
 # import from project
-from config import settings, logger
+from config import logger, settings
 from database.crud import crud_manager
 from database.schemas import TaskReadSchema
 
@@ -40,9 +35,11 @@ class RabbitCommandRouter:
     ) -> Handler:
         handler = self._routes.get(command_name)
         if not handler:
-            raise ValueError(
-                f"Не известная команда: {command_name}. Доступные команды: {list(self._routes.keys())}"
+            msg_error = (
+                f"Неизвестная команда: {command_name}. "
+                f"Доступные команды: {list(self._routes.keys())}"
             )
+            raise ValueError(msg_error)
 
         return handler
 
@@ -104,11 +101,12 @@ async def process_task(
         data = msg_dict.get("payload", {})
 
         logger.info(
-            "Получено сообщение от %s с командой %s.", message.message_id[:11], command
+            "Получено сообщение от %s с командой %s.",
+            message.message_id[:11],
+            command,
         )
 
-        result = await router.handle(command, data)
-        return result
+        return await router.handle(command, data)
 
     except Exception as e:
         logger.error("Ошибка обработки задачи: %s", e)

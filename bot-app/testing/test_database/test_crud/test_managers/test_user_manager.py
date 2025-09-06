@@ -1,14 +1,12 @@
-# import libs
 from collections.abc import AsyncGenerator
 from typing import Any
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
-from database.models import User
 from database.crud import crud_manager
 from database.crud.managers import UserManager
+from database.models import User
 from database.schemas import UserReadSchema
 
 
@@ -45,7 +43,7 @@ async def test_create_user_existing(
             "first_name": "John",
             "last_name": "Doe",
             "username": "johndoe",
-        }
+        },
     )
 
     user = await user_manager.create_user(user_data)
@@ -80,7 +78,7 @@ async def test_get_user_not_found(user_manager: UserManager) -> None:
             await user_manager.get_user(id=user_id)
 
     with pytest.raises(TypeError):
-        await user_manager.get_user(test="test")  # type: ignore
+        await user_manager.get_user(test="test")  # type: ignore[call-arg]
 
     with pytest.raises(ValueError):
         await user_manager.get_user()

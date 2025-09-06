@@ -13,7 +13,6 @@ from database.models import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-print(f"config: {config.config_file_name}")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -61,7 +60,9 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
-        connection=connection, target_metadata=target_metadata, include_schemas=False
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=False,
     )
 
     with context.begin_transaction():

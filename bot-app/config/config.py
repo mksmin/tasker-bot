@@ -1,11 +1,11 @@
 # import lib
 import logging
+from pathlib import Path
 from urllib.parse import quote
 
-from pathlib import Path
 from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -41,20 +41,20 @@ class DatabaseConfig(BaseModel):
                 port=self.port,
                 path=self.path,
             )
-        except ValidationError as err:
-            logger.error(f"Invalid connection string: {err}")
-            raise err
+        except ValidationError:
+            logger.exception("Invalid connection string")
+            raise
         return PostgresDsn(url_path)
 
 
 class RabbitMQConfig(BaseModel):
     host: str = "host"
     port: int = 1234
-    username: str = "username"
-    password: str = "password"
-    vhostname: str = "virtual_host_name"
+    username: str
+    password: str
+    vhostname: str
 
-    @computed_field  # type: ignore
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def url(self) -> str:
         safe_username = quote(self.username, safe="")
@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     )
     bot: BotConfig
     db: DatabaseConfig
-    rabbit: RabbitMQConfig = RabbitMQConfig()
+    rabbit: RabbitMQConfig
 
 
 settings = Settings()

@@ -1,17 +1,16 @@
 # import from lib
 from datetime import datetime, time, timezone
+
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Boolean,
-    DateTime,
-    ForeignKey,
     BigInteger,
+    Boolean,
+    ForeignKey,
+    Integer,
+    String,
     Time,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -20,7 +19,8 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 class TimeStampMixin:
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), nullable=True
+        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
+        nullable=True,
     )
 
 
@@ -52,11 +52,15 @@ class Task(TimeStampMixin, Base):
 class UserSettings(TimeStampMixin, Base):
     __tablename__ = "user_settings"
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, index=True
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
     )
     count_tasks: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     send_time: Mapped[time] = mapped_column(
-        Time, nullable=False, default=lambda: time(9, 0)
+        Time,
+        nullable=False,
+        default=lambda: time(9, 0),
     )
 
     user = relationship("User", back_populates="settings", uselist=False)

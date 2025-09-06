@@ -1,16 +1,11 @@
-# import libs
+from datetime import datetime
 from typing import Any
 
 import pytest
-
-# import from libs
-from datetime import datetime
-
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
-from database.models import User, Task
 from database.crud.managers import TaskManager, UserManager
+from database.models import User
 from database.schemas import TaskReadSchema, UserReadSchema
 
 
@@ -33,7 +28,8 @@ async def task_manager(
 
 @pytest.fixture
 async def created_user(
-    user_manager: UserManager, user_data: dict[str, Any]
+    user_manager: UserManager,
+    user_data: dict[str, Any],
 ) -> UserReadSchema:
     return await user_manager.create_user(user_data=user_data)
 
@@ -44,7 +40,8 @@ async def test_create_task(
     task_manager: TaskManager,
 ) -> None:
     task = await task_manager.create_task(
-        user_tg=created_user.user_tg, task_text="Test task text"
+        user_tg=created_user.user_tg,
+        task_text="Test task text",
     )
 
     assert isinstance(task, TaskReadSchema)
@@ -57,7 +54,8 @@ async def test_create_task(
 @pytest.mark.asyncio
 async def test_get_task(created_user: User, task_manager: TaskManager) -> None:
     task = await task_manager.create_task(
-        user_tg=created_user.user_tg, task_text=f"Test get task by id"
+        user_tg=created_user.user_tg,
+        task_text="Test get task by id",
     )
 
     result = await task_manager.get_task_by_id(task_id=task.id)
@@ -82,7 +80,8 @@ async def test_get_paginated_tasks_with_pagination(
 ) -> None:
     for i in range(10):
         await task_manager.create_task(
-            user_tg=created_user.user_tg, task_text=f"Test task #{i}"
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}",
         )
 
     # Page 1: offset=0, limit=5
@@ -115,7 +114,8 @@ async def test_get_paginated_tasks_with_limit_exceeding_available(
 ) -> None:
     for i in range(3):
         await task_manager.create_task(
-            user_tg=created_user.user_tg, task_text=f"Test task #{i}"
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}",
         )
 
     tasks = await task_manager.get_paginated_tasks(
@@ -148,7 +148,8 @@ async def test_get_paginated_tasks_ordering(
 ) -> None:
     for i in range(3):
         await task_manager.create_task(
-            user_tg=created_user.user_tg, task_text=f"Test task #{i}"
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}",
         )
 
     tasks = await task_manager.get_paginated_tasks(
@@ -165,7 +166,8 @@ async def test_task_mark_as_done(
     task_manager: TaskManager,
 ) -> None:
     task = await task_manager.create_task(
-        user_tg=created_user.user_tg, task_text=f"Test task to mark as done"
+        user_tg=created_user.user_tg,
+        task_text="Test task to mark as done",
     )
 
     assert task.is_done is False
@@ -191,7 +193,8 @@ async def test_mark_as_done_already_done(
     task_manager: TaskManager,
 ) -> None:
     task = await task_manager.create_task(
-        user_tg=created_user.user_tg, task_text=f"Already done task"
+        user_tg=created_user.user_tg,
+        task_text="Already done task",
     )
 
     await task_manager.mark_as_done(task_id=task.id)
@@ -206,7 +209,8 @@ async def test_task_read_schema_from_orm(
     task_manager: TaskManager,
 ) -> None:
     task = await task_manager.create_task(
-        user_tg=created_user.user_tg, task_text="Test task for schema"
+        user_tg=created_user.user_tg,
+        task_text="Test task for schema",
     )
 
     schema = TaskReadSchema.model_validate(task)
@@ -225,7 +229,8 @@ async def test_get_random_tasks_returns_correct_count(
 ) -> None:
     for i in range(5):
         await task_manager.create_task(
-            user_tg=created_user.user_tg, task_text=f"Test task #{i}"
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}",
         )
 
     tasks = await task_manager.get_random_tasks(user_tg=created_user.user_tg, count=5)
@@ -245,7 +250,8 @@ async def test_get_random_tasks_does_not_return_done(
 ) -> None:
     for i in range(5):
         await task_manager.create_task(
-            user_tg=created_user.user_tg, task_text=f"Test task #{i}"
+            user_tg=created_user.user_tg,
+            task_text=f"Test task #{i}",
         )
 
     tasks = await task_manager.get_random_tasks(user_tg=created_user.user_tg, count=5)

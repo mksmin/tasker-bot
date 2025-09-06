@@ -1,21 +1,21 @@
 # import from lib
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Optional, Any, TypeVar, Callable, Awaitable, Coroutine
+from typing import Any, TypeVar
 
-from sqlalchemy import select, func, false
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-# import from modules
-from database import (  # type: ignore
-    User,
-    Task,
-    UserSettings,
-    SettingsRepo,
-    db_helper,
-)
 from config import logger
 
+# import from modules
+from database import (  # type: ignore[no-redef]
+    SettingsRepo,
+    Task,
+    User,
+    UserSettings,
+    db_helper,
+)
 
 T = TypeVar("T")
 
@@ -36,7 +36,8 @@ def connection(
     @wraps(function)
     async def wrapper(*args: Any, **kwargs: Any) -> T:
         """
-        Asynchronous wrapper function that creates a database session and passes it to the wrapped function.
+        Asynchronous wrapper function that creates a database session
+        and passes it to the wrapped function.
 
         Args:
             *args: Variable length argument list.
@@ -45,10 +46,11 @@ def connection(
         Returns:
             The result of the wrapped function.
         """
-        async for session in db_helper.session_getter():  # type: ignore
+        async for session in db_helper.session_getter():  # type: ignore[attr-defined]
             return await function(session, *args, **kwargs)
 
-        raise RuntimeError("No database session available")  # for fix mypy error
+        msg_error = "No database session available"
+        raise RuntimeError(msg_error)  # for fix mypy error
 
     return wrapper
 
@@ -57,7 +59,7 @@ def connection(
 async def get_user_by_tgid(
     session: AsyncSession,
     tgid: int,
-    user_data: Optional[dict[str, Any]] = None,
+    user_data: dict[str, Any] | None = None,
 ) -> User:
     user = await session.scalar(select(User).where(User.user_tg == tgid))
 
@@ -69,10 +71,7 @@ async def get_user_by_tgid(
         await session.refresh(user)
 
     if not user:
-        if user_data:
-            user = User(user_tg=tgid, **user_data)
-        else:
-            user = User(user_tg=tgid)
+        user = User(user_tg=tgid, **user_data) if user_data else User(user_tg=tgid)
         session.add(user)
         await session.commit()
         await session.refresh(user)
@@ -82,24 +81,24 @@ async def get_user_by_tgid(
 
 @connection
 async def get_list_of_random_tasks(
-    session: AsyncSession, user_tg: int, count: int = 5
+    session: AsyncSession,
+    user_tg: int,
+    count: int = 5,
 ) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
-    tasks = await session.scalars(
+    return await session.scalars(
         select(Task)
-        .where(Task.user_id == user.id, Task.is_done == False)
+        .where(Task.user_id == user.id, Task.is_done == False)  # noqa: E712
         .order_by(func.random())
-        .limit(count)
+        .limit(count),
     )
-
-    return tasks
 
 
 @connection
 async def get_user_settings(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     settings = await session.scalar(
-        select(UserSettings).where(UserSettings.user_id == user.id)
+        select(UserSettings).where(UserSettings.user_id == user.id),
     )
     if not settings:
         new_settings = SettingsRepo(session)
@@ -113,16 +112,23 @@ async def get_user_settings(session: AsyncSession, user_tg: int) -> Any:
 async def get_list_of_all_tasks(
     session: AsyncSession,
     user_tg: int,
-    user_data: Optional[dict[str, Any]] = None,
+    user_data: dict[str, Any] | None = None,
 ) -> Any:
     try:
         user = await get_user_by_tgid(tgid=user_tg, user_data=user_data)
         tasks = await session.scalars(
-            select(Task).where(Task.user_id == user.id, Task.is_done == False)
+            select(Task).where(
+                Task.user_id == user.id,
+                Task.is_done == False,  # noqa: E712
+            ),
         )
     except Exception as e:
-        logger.error("Error get list of tasks: ", e)
-        raise Exception(f"Error get list of tasks: {e}")
+        logger.error(
+            "Error get list of tasks: ",
+            e,
+            exc_info=True,
+        )
+        raise
     return tasks
 
 
@@ -130,7 +136,7 @@ async def get_list_of_all_tasks(
 async def get_user_relationship(session: AsyncSession, user_tg: int) -> Any:
     user = await get_user_by_tgid(tgid=user_tg)
     # user = await session.get(User, user.id,  options=[selectinload(User.settings)])
-    user = await session.get(User, user.id)  # type: ignore
+    user = await session.get(User, user.id)  # type: ignore[assignment]
     await session.refresh(user, attribute_names=["settings"])
 
     return user

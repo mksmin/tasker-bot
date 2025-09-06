@@ -1,19 +1,16 @@
 import os
-from typing import Generator, Any
+from collections.abc import Generator
+from pathlib import Path
 
 import pytest
-
-from dotenv import load_dotenv
-from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
-from pathlib import Path
 from pydantic import PostgresDsn, ValidationError
-from unittest.mock import patch
+
+from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
 
 
 @pytest.fixture
 def test_env_path() -> Path:
-    path = Path(__file__).parent.parent.parent / ".env.template"
-    return path
+    return Path(__file__).parent.parent.parent / ".env.template"
 
 
 @pytest.fixture
@@ -26,7 +23,7 @@ def settings(
         if key.startswith("APP_CONFIG__"):
             monkeypatch.delenv(key)
 
-    monkeypatch.setattr("config.config.Path", lambda *args: test_env_path)
+    monkeypatch.setattr("config.config.Path", test_env_path)
     try:
         return Settings(_env_file=test_env_path)
     except ValueError as e:
@@ -39,7 +36,7 @@ def monkeypatch_env(
     test_env_path: Path,
 ) -> Generator[None, None, None]:
     # Подменяем путь, который используется внутри get_token, на путь к .env.test
-    def mock_get_token_path(*args: tuple[Any, ...]) -> Path:
+    def mock_get_token_path() -> Path:
         # Печатаем подмененный путь для отладки
         return test_env_path
 
@@ -53,10 +50,10 @@ def test_bot_config(settings: Settings) -> None:
     bot_config = settings.bot
 
     assert isinstance(bot_config, BotConfig), "Не является экземпляром BotConfig"
-    assert isinstance(bot_config.token, str), f"Токен не является строкой"
+    assert isinstance(bot_config.token, str), "Токен не является строкой"
     assert len(bot_config.token) > 0, "Токен не должен быть пустым"
     assert (
-        bot_config.token == "test_bot_token"
+        bot_config.token == "test_bot_token"  # noqa: S105
     ), f"Ожидается test_bot_token, получено {bot_config.token}"
 
 
@@ -64,7 +61,8 @@ def test_database_config(settings: Settings) -> None:
     db_config = settings.db
 
     assert isinstance(
-        db_config, DatabaseConfig
+        db_config,
+        DatabaseConfig,
     ), "Не является экземпляром DatabaseConfig"
     assert isinstance(db_config.url, PostgresDsn), "URL не является строкой"
     assert (
@@ -78,17 +76,18 @@ def test_database_config(settings: Settings) -> None:
 def test_rabbitmq_config(settings: Settings) -> None:
     rabbit_config = settings.rabbit
     assert isinstance(
-        rabbit_config, RabbitMQConfig
+        rabbit_config,
+        RabbitMQConfig,
     ), "Не является экземпляром RabbitMQConfig"
     assert isinstance(rabbit_config.url, str), "URL не является строкой"
     assert (
         rabbit_config.url == "amqps://username:password@host:1234/virtual_host_name"
-    ), ("URL не соответствует " "ожидаемому")
+    ), "URL не соответствует ожидаемому"
 
 
 def test_validation_error() -> None:
     """Проверяет обработку ошибок валидации"""
     with pytest.raises(ValidationError):
         BotConfig(token=None)
-        DatabaseConfig(url="invalid-url")  # type: ignore
-        RabbitMQConfig(url="invalid-url")
+        DatabaseConfig(url="invalid-url")  # type: ignore[call-arg]
+        RabbitMQConfig(url="invalid-url")  # type: ignore[call-arg]

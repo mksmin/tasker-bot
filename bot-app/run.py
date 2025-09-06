@@ -1,27 +1,23 @@
-# import lib
 import asyncio
 import logging
 
-# import from lib
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-# import from modules
 from bot.handlers import router
-from config.config import logger
-from bot.scheduler import setup_scheduler
-from database import db_helper, DbSessionMiddleware, SettingsMiddleware
-from config import settings
 from bot.rabbit_tasks import broker
+from bot.scheduler import setup_scheduler
+from config import settings
+from config.config import logger
+from database import DbSessionMiddleware, SettingsMiddleware, db_helper
 
 
 async def start_bot() -> Bot:
-    bot_class = Bot(
+    return Bot(
         token=settings.bot.token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
-    return bot_class
 
 
 async def run_bot() -> None:
@@ -55,7 +51,7 @@ async def on_startup() -> None:
 
 async def on_shutdown() -> None:
     await db_helper.dispose()
-    logger.info(f"Disposed database")
+    logger.info("Disposed database")
 
 
 if __name__ == "__main__":

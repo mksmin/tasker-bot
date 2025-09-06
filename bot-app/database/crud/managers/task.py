@@ -1,23 +1,26 @@
 # import from libs
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from database.models import Task
+from database.schemas import TaskCreateSchema, TaskReadSchema
 
 # import from modules
 from .base import BaseCRUDManager
-from .user import UserManager
-from database.models import Task
-from database.schemas import TaskCreateSchema, TaskReadSchema, UserReadSchema
+
+if TYPE_CHECKING:
+    from .user import UserManager
 
 
 class TaskManager(BaseCRUDManager[Task]):
-    def __init__(self, session_maker: async_sessionmaker[AsyncSession]):
+    def __init__(self, session_maker: async_sessionmaker[AsyncSession]) -> None:
         super().__init__(
             model=Task,
             session_maker=session_maker,
         )
-        self.user_manager: Optional["UserManager"] = None
+        self.user_manager: UserManager | None = None
 
     def set_user_manager(self, manager: "UserManager") -> None:
         self.user_manager = manager
@@ -64,7 +67,10 @@ class TaskManager(BaseCRUDManager[Task]):
             return [TaskReadSchema.model_validate(task) for task in tasks]
 
     async def get_paginated_tasks(
-        self, user_tg: int, offset: int, limit: int
+        self,
+        user_tg: int,
+        offset: int,
+        limit: int,
     ) -> list[TaskReadSchema]:
         assert self.user_manager is not None, "UserManager is not set"
         user = await self.user_manager.get_user(user_tg=user_tg)

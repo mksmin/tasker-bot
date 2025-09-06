@@ -1,24 +1,20 @@
-# import libs
-from typing import AsyncGenerator, Any
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import pytest
 import pytest_asyncio
-
-
-# import from libs
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    AsyncSession,
     AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 
-# import from modules
 from database.models import Base
 from database.schemas import UserCreateSchema
 
 # import external fixtures
-from testing.test_database.test_crud.test_managers.test_base_crud_manager import (
+from testing.test_database.test_crud.test_managers.test_base_crud_manager import (  # noqa: F401
     created_user,
     instance,
 )
@@ -63,5 +59,4 @@ def user_data() -> dict[str, Any]:
 
 @pytest.fixture
 def user_schema(user_data: dict[str, Any]) -> UserCreateSchema:
-    user = UserCreateSchema(**user_data)
-    return user
+    return UserCreateSchema(**user_data)

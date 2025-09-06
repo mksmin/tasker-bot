@@ -1,26 +1,22 @@
 # import libs
 import logging
+from collections.abc import AsyncGenerator, Callable, Coroutine, Sequence
 
 # import from libs
 from contextlib import asynccontextmanager
 from functools import wraps
+from typing import (
+    Any,
+    Concatenate,
+    Generic,
+    ParamSpec,
+    TypeVar,
+    cast,
+)
+
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from typing import (
-    TypeVar,
-    ParamSpec,
-    Generic,
-    Callable,
-    Concatenate,
-    Coroutine,
-    Any,
-    Type,
-    AsyncGenerator,
-    Optional,
-    cast,
-    Sequence,
-)
 
 from database import Base
 
@@ -52,11 +48,12 @@ def _auto_session(
                 kwargs["session"] = session
                 result = await func(self, *args, **kwargs)
                 await session.commit()
-                return result
-            except Exception as e:
+            except Exception:
                 await session.rollback()
-                logger.exception("Error in session: %s", e)
+                logger.exception("Error in session")
                 raise
+            else:
+                return result
 
     return cast(
         Callable[
@@ -70,9 +67,9 @@ def _auto_session(
 class BaseCRUDManager(Generic[ModelType]):
     def __init__(
         self,
-        model: Type[ModelType],
+        model: type[ModelType],
         session_maker: async_sessionmaker[AsyncSession],
-    ):
+    ) -> None:
         self.model = model
         self.session_maker = session_maker
 
@@ -82,24 +79,38 @@ class BaseCRUDManager(Generic[ModelType]):
             try:
                 yield session
                 await session.commit()
-            except Exception as e:
+            except Exception:
                 await session.rollback()
-                logger.exception("Error in session: %s", e)
+                logger.exception("Error in session: %s")
                 raise
 
     async def _create_one_entry(
-        self, session: AsyncSession, instance: ModelType
+        self,
+        session: AsyncSession,
+        instance: ModelType,
     ) -> ModelType:
         session.add(instance)
         await session.flush()
         await session.refresh(instance)
-        logger.info(f"Created {self.model.__name__} with id={instance.id}")
+        logger.info(
+            "Created %s with id=%d",
+            self.model.__name__,
+            instance.id,
+        )
         return instance
 
     async def _exist_entry_by_field(
-        self, session: AsyncSession, field: str, value: Any
+        self,
+        session: AsyncSession,
+        field: str,
+        value: Any,
     ) -> bool:
-        logger.info(f"Checking if {self.model.__name__} with {field}={value} exists")
+        logger.info(
+            "Checking if %s with %s=%s exists",
+            self.model.__name__,
+            field,
+            value,
+        )
         stmt = select(self.model).where(getattr(self.model, field) == value)
         result = await session.execute(stmt)
         return result.scalar_one_or_none() is not None
@@ -134,7 +145,9 @@ class BaseCRUDManager(Generic[ModelType]):
     ) -> bool:
         session: AsyncSession = kwargs["session"]
         return await self._exist_entry_by_field(
-            session=session, field=field, value=value
+            session=session,
+            field=field,
+            value=value,
         )
 
     @_auto_session
@@ -152,14 +165,15 @@ class BaseCRUDManager(Generic[ModelType]):
         *,
         offset: int = 0,
         limit: int = 5,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         order_by: Any = None,
         **kwargs: Any,
     ) -> Sequence[ModelType]:
         session: AsyncSession = kwargs["session"]
 
         if offset < 0 or limit <= 0:
-            raise ValueError("Offset must be >= 0 and limit > 0")
+            msg_error = "Offset must be >= 0 and limit > 0"
+            raise ValueError(msg_error)
 
         stmt = select(self.model)
 

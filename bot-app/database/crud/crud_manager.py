@@ -1,5 +1,6 @@
-from .managers import UserManager, TaskManager
 from database import db_helper
+
+from .managers import TaskManager, UserManager
 
 
 class CRUDManager:

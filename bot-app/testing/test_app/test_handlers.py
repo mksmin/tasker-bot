@@ -1,27 +1,25 @@
 """
 Модуль с тестами для обработчиков команд бота
 
-Проверяю логику работы обработчиков без обращения к БД, а только итоговое форматирование и ответы и логику работы
+Проверяю логику работы обработчиков без обращения к БД,
+а только итоговое форматирование и ответы и логику работы
 функций с полученными от БД объектами
 """
 
-# import libs
-import pytest
-
-# import from libs
-from aiogram.types import Message, User
-from aiogram.fsm.context import FSMContext
+from collections.abc import AsyncGenerator
 from datetime import time
-from unittest.mock import AsyncMock, patch, MagicMock
-from typing import AsyncGenerator, cast
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from aiogram.types import Message, User
 
 # import from modules
 import database.requests as rq
-
-from bot.handlers import cmd_start, cmd_daily_tasks
 from bot import keyboards as kb
-from database.models import UserSettings, Task
+from bot.handlers import cmd_daily_tasks, cmd_start
 from database.crud import crud_manager
+from database.models import Task, UserSettings
 
 
 @pytest.fixture
@@ -46,14 +44,18 @@ async def test_cmd_start(mock_message: Message) -> None:
     """
     Test that the /start command registers the user and sends a welcome message
     """
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
 
     with (
         patch.object(
-            crud_manager.user, "create_user", new_callable=AsyncMock
+            crud_manager.user,
+            "create_user",
+            new_callable=AsyncMock,
         ) as mock_create_user,
         patch.object(
-            rq, "get_user_settings", new_callable=AsyncMock
+            rq,
+            "get_user_settings",
+            new_callable=AsyncMock,
         ) as mock_get_user_settings,
     ):
         mock_user = AsyncMock()
@@ -70,12 +72,14 @@ async def test_cmd_start(mock_message: Message) -> None:
                 "first_name": "John",
                 "last_name": "Doe",
                 "username": "johndoe",
-            }
+            },
         )
         mock_message.answer.assert_awaited_once_with(
             "Привет! \n\n"
-            "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, а я буду каждый день присылать тебе 5 случайных! \n\n"
-            "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, чтобы изменить время отправки"
+            "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, "
+            "а я буду каждый день присылать тебе 5 случайных! \n\n"
+            "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, "
+            "чтобы изменить время отправки",
         )
 
         mock_get_user_settings.assert_awaited_once_with(user_tg=123456)
@@ -87,7 +91,7 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
     Test that the /daily command sends a message when no tasks are available
     """
     from_user = cast(User, mock_message.from_user)
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
 
     mock_settings = UserSettings(
         id=1,
@@ -98,7 +102,10 @@ async def test_cmd_daily_tasks_no_tasks(mock_message: Message) -> None:
 
     with (
         patch.object(
-            rq, "get_user_settings", new_callable=AsyncMock, return_value=mock_settings
+            rq,
+            "get_user_settings",
+            new_callable=AsyncMock,
+            return_value=mock_settings,
         ) as mock_get_user_settings,
         patch.object(
             crud_manager.task,
@@ -137,7 +144,7 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
         "3. Task 3"
     )
 
-    mock_message.answer = AsyncMock()  # type: ignore
+    mock_message.answer = AsyncMock()  # type: ignore[method-assign]
     mock_settings = UserSettings(
         id=1,
         user_id=from_user.id,
@@ -147,8 +154,11 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
 
     with (
         patch.object(
-            rq, "get_user_settings", new_callable=AsyncMock, return_value=mock_settings
-        ) as mock_get_user_settings,
+            rq,
+            "get_user_settings",
+            new_callable=AsyncMock,
+            return_value=mock_settings,
+        ) as mock_get_user_settings,  # noqa: F841
         patch.object(
             crud_manager.task,
             "get_random_tasks",
@@ -161,8 +171,10 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
             from_user=mock_message.from_user,
         )
         mock_get_list_of_random_tasks.assert_awaited_once_with(
-            user_tg=123456, count=expected_task_count
+            user_tg=123456,
+            count=expected_task_count,
         )
         mock_message.answer.assert_awaited_once_with(
-            text=expected_message, reply_markup=kb.finishing_task
+            text=expected_message,
+            reply_markup=kb.finishing_task,
         )

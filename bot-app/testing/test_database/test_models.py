@@ -1,19 +1,18 @@
-# import libs
-import pytest
-
-# import from libs
 from datetime import datetime, time
 
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# import from modules
 from database import models as md
 
 
 @pytest.fixture
 async def user(db_session: AsyncSession) -> md.User:
     user = md.User(
-        user_tg=999, first_name="Max", last_name="Testovich", username="test_user"
+        user_tg=999,
+        first_name="Max",
+        last_name="Testovich",
+        username="test_user",
     )
     db_session.add(user)
     await db_session.flush()

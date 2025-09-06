@@ -1,26 +1,27 @@
 # import from lib
+from datetime import time
 from typing import cast
 
-from aiogram import Router, F, Bot
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, User
+from aiogram import Bot, F, Router
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from datetime import time
+from aiogram.types import CallbackQuery, Message, User
 from sqlalchemy import select
 
 # import from modules
-from bot import statesuser as st
 from bot import keyboards as kb
-from . import update_schedule
+from bot import statesuser as st
 from config import logger
-from database import user_settings_ctx, SettingsRepo, db_helper
+from database import SettingsRepo, db_helper, user_settings_ctx
 from database import requests as rq
-from database.models import UserSettings
 from database.crud import crud_manager
+from database.models import UserSettings
+
+from . import update_schedule
 from .handler_filtres import (
-    HasUserFilter,
     HasCallbackMessageFilter,
     HasCallbackUserFilter,
+    HasUserFilter,
 )
 
 # globals
@@ -46,8 +47,10 @@ async def cmd_start(
     await rq.get_user_settings(user_tg=user.user_tg)
     await message.answer(
         "Привет! \n\n"
-        "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, а я буду каждый день присылать тебе 5 случайных! \n\n"
-        "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, чтобы изменить время отправки"
+        "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, "
+        "а я буду каждый день присылать тебе 5 случайных! \n\n"
+        "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, "
+        "чтобы изменить время отправки",
     )
 
 
@@ -64,21 +67,22 @@ async def cmd_daily_tasks(
     settings = await rq.get_user_settings(user_tg=user_tgid)
 
     tasks = await crud_manager.task.get_random_tasks(
-        user_tg=user_tgid, count=settings.count_tasks
+        user_tg=user_tgid,
+        count=settings.count_tasks,
     )
 
     if len(tasks) <= 0:
-        logger.info(f"No daily tasks to send to user %d", user_tgid)
+        logger.info("No daily tasks to send to user %d", user_tgid)
         await message.answer("У тебя нет сохраненных текстов")
         return
 
     stroke_tasks = "\n".join(
         f"{i}. {task.text_task}" for i, task in enumerate(tasks, 1)
     )
-    msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n" f"{stroke_tasks}"
+    msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
 
     await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
-    logger.info(f"Daily tasks sent to user %d", user_tgid)
+    logger.info("Daily tasks sent to user %d", user_tgid)
 
 
 @router.message(
@@ -117,7 +121,6 @@ async def cmd_settings(
     HasCallbackMessageFilter(),
 )
 async def cmd_change_settings(
-    callback: CallbackQuery,
     callback_message: Message,
 ) -> None:
     await callback_message.edit_text(
@@ -132,7 +135,6 @@ async def cmd_change_settings(
     HasCallbackMessageFilter(),
 )
 async def cmd_change_amount(
-    callback: CallbackQuery,
     state: FSMContext,
     from_user: User,
     callback_message: Message,
@@ -146,7 +148,7 @@ async def cmd_change_amount(
 
         await callback_message.edit_text(
             f"Отправь число, которое должно быть меньше или равно 5 и больше 0"
-            f"\nСейчас у тебя {settings.count_tasks} аффирмаций"
+            f"\nСейчас у тебя {settings.count_tasks} аффирмаций",
         )
 
 
@@ -160,9 +162,14 @@ async def set_count_of_affirm(
     state: FSMContext,
     from_user: User,
 ) -> None:
-    if int(cast(str, message.text)) > 5 or int(cast(str, message.text)) < 1:
+    min_len_text = 1
+    max_len_text = 5
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer(
-            "Ты ошибся, число должно быть меньше или равно 5 и больше 0"
+            "Ты ошибся, число должно быть меньше или равно 5 и больше 0",
         )
     else:
         user = await crud_manager.user.get_user(user_tg=from_user.id)
@@ -205,21 +212,27 @@ async def cmd_change_time(
         settings = executed.scalar_one()
 
         await callback_message.edit_text(
-            f"Отправь число от 0 до 23, это будет час отправки аффирмаций",
+            "Отправь число от 0 до 23, это будет час отправки аффирмаций",
             f"\nСейчас время отправки {settings.send_time} ",
         )
 
 
 @router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
 async def cmd_set_hour(message: Message, state: FSMContext) -> None:
-    if int(cast(str, message.text)) > 23 or int(cast(str, message.text)) < 0:
+    min_len_text = 0
+    max_len_text = 23
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
     else:
         await state.update_data(time_hour=message.text)
         data = await state.get_data()
         try:
             await message.answer(
-                f"Установил час отправки аффирмаций: {data['time_hour']}, теперь отправь минуты"
+                f"Установил час отправки аффирмаций: {data['time_hour']}, "
+                f"теперь отправь минуты",
             )
             await state.set_state(st.Settings.time_minute)
 
@@ -239,7 +252,12 @@ async def cmd_set_minutes(
     state: FSMContext,
     from_user: User,
 ) -> None:
-    if int(cast(str, message.text)) > 59 or int(cast(str, message.text)) < 0:
+    min_len_text = 0
+    max_len_text = 59
+    if (
+        int(cast(str, message.text)) > max_len_text
+        or int(cast(str, message.text)) < min_len_text
+    ):
         await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
         return
 
@@ -268,12 +286,13 @@ async def cmd_set_minutes(
         )
 
         await message.answer(
-            f"Установил время отправки аффирмаций: {new_time} (мск). Проверь настройки командой /settings"
+            f"Установил время отправки аффирмаций: {new_time} (мск). "
+            f"Проверь настройки командой /settings",
         )
         await state.set_state(st.Settings.time_minute)
 
     except Exception as e:
-        logger.error(f"Ошибка при изменении настроек: %s", e, exc_info=True)
+        logger.error("Ошибка при изменении настроек: %s", e, exc_info=True)
         await message.answer(f"Ошибка при изменении настроек, {e}")
         await state.clear()
         return
@@ -284,11 +303,11 @@ async def cmd_set_minutes(
     HasCallbackMessageFilter(),
 )
 async def cmd_back_to_settings(
-    callback: CallbackQuery,
     callback_message: Message,
 ) -> None:
     await callback_message.edit_text(
-        "Ничего менять не будем. Вызови команду /settings, чтобы вернуться к настройкам"
+        "Ничего менять не будем. Вызови команду /settings, "
+        "чтобы вернуться к настройкам",
     )
 
 
@@ -322,16 +341,16 @@ async def user_add_task(
             task_text=message.text,
             user_tg=from_user.id,
         )
-    except:
+    except Exception:
         await message.answer(
-            f"Возникла ошибка при добавлении аффирмации. Операция отменена"
+            "Возникла ошибка при добавлении аффирмации. Операция отменена",
         )
         return
 
     if task_added:
         await message.answer(
-            f"Добавил аффирмацию: \n\n" f"{task_added.text_task}",
+            f"Добавил аффирмацию: \n\n{task_added.text_task}",
             reply_markup=kb.list_of_tasks,
         )
     else:
-        await message.answer(f"Возникла ошибка")
+        await message.answer("Возникла ошибка")

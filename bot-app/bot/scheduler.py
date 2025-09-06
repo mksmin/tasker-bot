@@ -1,17 +1,18 @@
-import os
+from datetime import time
 
 from aiogram import Bot
-from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
-from datetime import time
-from sqlalchemy import select, ScalarResult
+from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
+    AsyncIOScheduler,
+)
+from sqlalchemy import ScalarResult, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from database.crud import crud_manager
-from . import send_daily_tasks
-from database import connection, User, UserSettings
-from database import requests as rq
 from config import logger
+from database import UserSettings, connection
+from database.crud import crud_manager
+
+from .utils import send_daily_tasks
 
 SCHEDULER = {}
 
@@ -23,7 +24,7 @@ async def setup_scheduler(bot: Bot) -> None:
     @connection
     async def schedule_all(session: AsyncSession) -> None:
         settings: ScalarResult[UserSettings] = await session.scalars(
-            select(UserSettings).options(joinedload(UserSettings.user))
+            select(UserSettings).options(joinedload(UserSettings.user)),
         )
         for setting in settings:
             user_tgid = setting.user.user_tg
@@ -32,7 +33,7 @@ async def setup_scheduler(bot: Bot) -> None:
             job_id = f"daily_{setting.user_id}"
 
             logger.info(
-                f"scheduler get user: %d, with time: %s and id: %s",
+                "scheduler get user: %d, with time: %s and id: %s",
                 user_tgid,
                 send_time.strftime("%H:%M"),
                 job_id,
@@ -77,4 +78,4 @@ async def update_schedule(
         coalesce=False,
     )
 
-    logger.info(f"Added new job: %s with time %s", job_id, new_time)
+    logger.info("Added new job: %s with time %s", job_id, new_time)

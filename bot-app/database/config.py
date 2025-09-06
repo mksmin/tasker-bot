@@ -1,14 +1,15 @@
-from typing import Any, Optional, Coroutine, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from contextvars import ContextVar
+from typing import Any
 
 from aiogram import BaseMiddleware
-from contextvars import ContextVar
-
 from aiogram.types import TelegramObject
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # import from modules
 from config.config import settings
+
 from .models import UserSettings
 
 engine = create_async_engine(url=str(settings.db.url), echo=False)
@@ -16,21 +17,20 @@ async_session = async_sessionmaker(bind=engine, expire_on_commit=True)
 
 
 class SettingsRepo:
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def get(self, user_id: int) -> UserSettings | None:
         query = await self.session.execute(
-            select(UserSettings).where(UserSettings.user_id == user_id)
+            select(UserSettings).where(UserSettings.user_id == user_id),
         )
-        row = query.scalar_one_or_none()
-        return row
+        return query.scalar_one_or_none()
 
     async def set(
         self,
         user_id: int,
-        key: Optional[str] = None,
-        value: Optional[Any] = None,
+        key: str | None = None,
+        value: Any | None = None,
     ) -> None:
         existing_settings = await self.get(user_id)
 
