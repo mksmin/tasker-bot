@@ -3,5 +3,5 @@ __all__ = (
     "send_daily_tasks",
 )
 
-from .utils import send_daily_tasks
 from .scheduler import update_schedule
+from .utils import send_daily_tasks

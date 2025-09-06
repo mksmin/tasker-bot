@@ -2,12 +2,11 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
-
 from sqlalchemy import text
 
+from database import Base
 from database.crud.managers.base import logger
 from database.db_helper import DatabaseHelper
-from database import Base
 
 
 @pytest_asyncio.fixture()

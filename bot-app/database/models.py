@@ -1,17 +1,18 @@
 # import from lib
 from datetime import datetime, time, timezone
+
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
+    BigInteger,
     Boolean,
+    Column,
     DateTime,
     ForeignKey,
-    BigInteger,
+    Integer,
+    String,
     Time,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):

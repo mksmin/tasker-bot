@@ -1,16 +1,11 @@
-# import libs
+from datetime import datetime
 from typing import Any
 
 import pytest
-
-# import from libs
-from datetime import datetime
-
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
-from database.models import User, Task
 from database.crud.managers import TaskManager, UserManager
+from database.models import Task, User
 from database.schemas import TaskReadSchema, UserReadSchema
 
 

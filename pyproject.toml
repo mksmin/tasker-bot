@@ -145,7 +145,7 @@ select = [
     "ARG", # flake8-unused-arguments (ARG)
     "PTH", # flake8-use-pathlib (PTH)
     "FLY", # flynt (FLY)
-#    "I", # isort (I)
+    "I", # isort (I)
 #    "C90", # mccabe (C90)
 #    "N", # pep8-naming (N)
 #    "PERF", # Perflint (PERF)

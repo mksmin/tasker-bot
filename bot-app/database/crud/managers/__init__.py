@@ -3,5 +3,5 @@ __all__ = (
     "TaskManager",
 )
 
-from .user import UserManager
 from .task import TaskManager
+from .user import UserManager

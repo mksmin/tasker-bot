@@ -1,17 +1,14 @@
-# import libs
+import json
 from collections.abc import Awaitable
+from functools import wraps
+from typing import Any, Callable, cast
 
 import aio_pika
-import json
-
-# import from libs
-from functools import wraps
-from typing import Callable, Any, cast
 from faststream.rabbit import RabbitBroker, RabbitMessage
 from pydantic import BaseModel
 
 # import from project
-from config import settings, logger
+from config import logger, settings
 from database.crud import crud_manager
 from database.schemas import TaskReadSchema
 

@@ -1,12 +1,8 @@
-# import libs
-import pytest
-
-# import from libs
 from datetime import datetime, time
 
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# import from modules
 from database import models as md
 
 

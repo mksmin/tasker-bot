@@ -1,26 +1,27 @@
 # import from lib
+from datetime import time
 from typing import cast
 
-from aiogram import Router, F, Bot
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, User
+from aiogram import Bot, F, Router
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from datetime import time
+from aiogram.types import CallbackQuery, Message, User
 from sqlalchemy import select
 
 # import from modules
-from bot import statesuser as st
 from bot import keyboards as kb
-from . import update_schedule
+from bot import statesuser as st
 from config import logger
-from database import user_settings_ctx, SettingsRepo, db_helper
+from database import SettingsRepo, db_helper, user_settings_ctx
 from database import requests as rq
-from database.models import UserSettings
 from database.crud import crud_manager
+from database.models import UserSettings
+
+from . import update_schedule
 from .handler_filtres import (
-    HasUserFilter,
     HasCallbackMessageFilter,
     HasCallbackUserFilter,
+    HasUserFilter,
 )
 
 # globals

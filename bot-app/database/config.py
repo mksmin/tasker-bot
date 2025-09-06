@@ -1,14 +1,14 @@
-from typing import Any, Optional, Coroutine, Callable, Awaitable
+from contextvars import ContextVar
+from typing import Any, Awaitable, Callable, Coroutine, Optional
 
 from aiogram import BaseMiddleware
-from contextvars import ContextVar
-
 from aiogram.types import TelegramObject
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # import from modules
 from config.config import settings
+
 from .models import UserSettings
 
 engine = create_async_engine(url=str(settings.db.url), echo=False)

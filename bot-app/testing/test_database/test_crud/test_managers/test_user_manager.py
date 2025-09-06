@@ -1,14 +1,12 @@
-# import libs
 from collections.abc import AsyncGenerator
 from typing import Any
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
-from database.models import User
 from database.crud import crud_manager
 from database.crud.managers import UserManager
+from database.models import User
 from database.schemas import UserReadSchema
 
 

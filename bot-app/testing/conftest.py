@@ -1,19 +1,14 @@
-# import libs
-from typing import AsyncGenerator, Any
+from typing import Any, AsyncGenerator
 
 import pytest
 import pytest_asyncio
-
-
-# import from libs
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    AsyncSession,
     AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 
-# import from modules
 from database.models import Base
 from database.schemas import UserCreateSchema
 

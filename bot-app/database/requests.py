@@ -1,21 +1,21 @@
 # import from lib
 from functools import wraps
-from typing import Optional, Any, TypeVar, Callable, Awaitable, Coroutine
+from typing import Any, Awaitable, Callable, Coroutine, Optional, TypeVar
 
-from sqlalchemy import select, func, false
+from sqlalchemy import false, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-# import from modules
-from database import (  # type: ignore
-    User,
-    Task,
-    UserSettings,
-    SettingsRepo,
-    db_helper,
-)
 from config import logger
 
+# import from modules
+from database import (  # type: ignore
+    SettingsRepo,
+    Task,
+    User,
+    UserSettings,
+    db_helper,
+)
 
 T = TypeVar("T")
 

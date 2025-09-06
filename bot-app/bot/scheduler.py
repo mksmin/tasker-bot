@@ -1,17 +1,18 @@
 import os
+from datetime import time
 
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore
-from datetime import time
-from sqlalchemy import select, ScalarResult
+from sqlalchemy import ScalarResult, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from database.crud import crud_manager
-from . import send_daily_tasks
-from database import connection, User, UserSettings
-from database import requests as rq
 from config import logger
+from database import User, UserSettings, connection
+from database import requests as rq
+from database.crud import crud_manager
+
+from . import send_daily_tasks
 
 SCHEDULER = {}
 

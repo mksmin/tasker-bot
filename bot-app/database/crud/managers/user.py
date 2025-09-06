@@ -1,12 +1,12 @@
 # import from libs
 from typing import Any
 
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
-from .base import BaseCRUDManager
 from database.models import User
 from database.schemas import UserCreateSchema, UserReadSchema
+
+from .base import BaseCRUDManager
 
 
 class UserManager(BaseCRUDManager[User]):

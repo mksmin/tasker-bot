@@ -1,13 +1,13 @@
 import os
-from typing import Generator, Any
+from pathlib import Path
+from typing import Any, Generator
+from unittest.mock import patch
 
 import pytest
-
 from dotenv import load_dotenv
-from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
-from pathlib import Path
 from pydantic import PostgresDsn, ValidationError
-from unittest.mock import patch
+
+from config.config import BotConfig, DatabaseConfig, RabbitMQConfig, Settings
 
 
 @pytest.fixture

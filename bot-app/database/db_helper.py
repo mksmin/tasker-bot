@@ -1,11 +1,13 @@
-from typing import AsyncGenerator, Any
+from typing import Any, AsyncGenerator
+
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncEngine,
-    async_sessionmaker,
     AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
+
 from config import settings
 
 

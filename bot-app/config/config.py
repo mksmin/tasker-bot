@@ -1,11 +1,11 @@
 # import lib
 import logging
+from pathlib import Path
 from urllib.parse import quote
 
-from pathlib import Path
 from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

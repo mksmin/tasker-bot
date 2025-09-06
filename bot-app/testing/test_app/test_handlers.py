@@ -5,23 +5,20 @@
 функций с полученными от БД объектами
 """
 
-# import libs
-import pytest
-
-# import from libs
-from aiogram.types import Message, User
-from aiogram.fsm.context import FSMContext
 from datetime import time
-from unittest.mock import AsyncMock, patch, MagicMock
 from typing import AsyncGenerator, cast
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, User
 
 # import from modules
 import database.requests as rq
-
-from bot.handlers import cmd_start, cmd_daily_tasks
 from bot import keyboards as kb
-from database.models import UserSettings, Task
+from bot.handlers import cmd_daily_tasks, cmd_start
 from database.crud import crud_manager
+from database.models import Task, UserSettings
 
 
 @pytest.fixture

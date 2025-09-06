@@ -1,17 +1,13 @@
-# import libs
+from datetime import datetime
 from typing import Any
 
 import pytest
-
-# import from libs
-from datetime import datetime
 from pydantic import ValidationError
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-# import from modules
+from database.crud.managers.base import BaseCRUDManager
 from database.models import User
 from database.schemas import UserCreateSchema
-from database.crud.managers.base import BaseCRUDManager
 
 
 @pytest.fixture

@@ -1,19 +1,16 @@
-# import lib
 import asyncio
 import logging
 
-# import from lib
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-# import from modules
 from bot.handlers import router
-from config.config import logger
-from bot.scheduler import setup_scheduler
-from database import db_helper, DbSessionMiddleware, SettingsMiddleware
-from config import settings
 from bot.rabbit_tasks import broker
+from bot.scheduler import setup_scheduler
+from config import settings
+from config.config import logger
+from database import DbSessionMiddleware, SettingsMiddleware, db_helper
 
 
 async def start_bot() -> Bot:
