@@ -1,4 +1,5 @@
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
 
 from bot import keyboards as kb
 from config import logger
@@ -28,6 +29,12 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
             reply_markup=kb.finishing_task,
         )
         logger.info("Daily tasks sent to user %s", user_tgid)
-    except Exception as e:
-        logger.error("Error while sending daily tasks to user %s: $s", user_tgid, e)
+    except TelegramForbiddenError as tfe:
+        logger.warning(
+            "Не удалось отправить сообщение пользователю %s. Message: %s",
+            user_tgid,
+            tfe.message,
+        )
+    except Exception:
+        logger.exception("Error while sending daily tasks to user %s", user_tgid)
         raise

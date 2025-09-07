@@ -63,7 +63,7 @@ class RabbitMQConfig(BaseModel):
         domain = quote(self.host.encode("idna").decode())
 
         return (
-            f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
+            f"amqp://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
         )
 
 
