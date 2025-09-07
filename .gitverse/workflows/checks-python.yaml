@@ -1,0 +1,36 @@
+name: Python checks 🐍 (gitverse)
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-checks:
+    runs-on: ubuntu-cloud-runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install poetry
+        run: |
+          pip install "poetry==2.1.1"
+
+      - name: Install dependencies
+        run: poetry sync --no-root --no-interaction --no-ansi
+
+      - name: Run ruff check --diff
+        run: poetry run ruff check --diff ./
+
+      - name: Run ruff check
+        run: poetry run ruff check ./
+
+      - name: Run mypy
+        run: poetry run mypy ./
+
+      # Создаю .env файл из шаблона для тестов
+      - name: Setup .env file
+        run: cp bot-app/.env.template bot-app/.env
+
+      # Запускаю тесты
+      - name: Run tests
+        run: poetry run pytest -s
