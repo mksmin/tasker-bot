@@ -2,6 +2,7 @@ tasker-bot.iml
 bot-app/.env.*
 !bot-app/.env.template
 gigaide.properties
+.secrets
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
