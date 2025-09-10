@@ -23,7 +23,11 @@ jobs:
 
       - name: Install poetry
         run: |
-          pip install "poetry==2.1.1"
+          export POETRY_HOME=/opt/poetry
+          python3 -m venv $POETRY_HOME
+          export PATH="$POETRY_HOME/bin:$PATH"
+          pip install poetry==2.1.4
+          echo "$POETRY_HOME/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: poetry sync --no-root --no-interaction --no-ansi
