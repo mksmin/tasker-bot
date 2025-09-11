@@ -45,7 +45,7 @@ jobs:
         run: cp bot-app/.env.template bot-app/.env
 
   run-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-cloud-runner
     needs:
       - run-checks
     steps:
