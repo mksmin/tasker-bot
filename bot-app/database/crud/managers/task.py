@@ -78,7 +78,10 @@ class TaskManager(BaseCRUDManager[Task]):
         tasks = await self.get_all(
             offset=offset,
             limit=limit,
-            filters={"user_id": user.id},
+            filters={
+                "user_id": user.id,
+                "is_done": False,
+            },
             order_by=Task.id.desc(),
         )
 
