@@ -15,6 +15,11 @@ broker = RabbitBroker(settings.rabbit.url)
 Handler = Callable[[dict[str, Any]], Awaitable[Any]]
 
 
+class RabbitResponseSchema(BaseModel):
+    status: str
+    message: str | None = None
+
+
 class RabbitCommandRouter:
     def __init__(self) -> None:
         self._routes: dict[str, Handler] = {}
@@ -82,8 +87,32 @@ async def get_paginated_tasks(data: dict[str, int]) -> list[TaskReadSchema]:
 
 
 @router.register("mark_as_done")
-async def mark_as_done(data: dict[str, int]) -> bool:
-    return await crud_manager.task.mark_as_done(**data)
+async def mark_as_done(data: dict[str, int]) -> dict[str, Any]:
+    user_tg = data.get("user_tg")
+    if not user_tg:
+        return RabbitResponseSchema(
+            status="error",
+            message="user_tg is required",
+        ).model_dump()
+
+    user = await crud_manager.user.get_user(user_tg=user_tg)
+
+    task = await crud_manager.task.get_task_by_id(task_id=data["task_id"])
+
+    if task.user_id != user.id:
+        return RabbitResponseSchema(
+            status="error",
+            message="user has no task with this id",
+        ).model_dump()
+
+    if await crud_manager.task.mark_as_done(data["task_id"]):
+        return RabbitResponseSchema(
+            status="success",
+        ).model_dump()
+    return RabbitResponseSchema(
+        status="error",
+        message="task not found",
+    ).model_dump()
 
 
 @broker.subscriber("affirmations")
