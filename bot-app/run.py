@@ -6,11 +6,11 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from bot.handlers import router
-from bot.rabbit_service import broker
 from bot.scheduler import setup_scheduler
 from config import settings
 from config.config import logger
 from database import DbSessionMiddleware, SettingsMiddleware, db_helper
+from rabbit_service.broker import broker
 
 
 async def start_bot() -> Bot:
