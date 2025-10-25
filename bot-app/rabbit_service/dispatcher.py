@@ -1,7 +1,10 @@
 import logging
 from typing import Any
 
-from rabbit_service.handlers.affirmations import GetPaginatedAffirmationsHandler
+from rabbit_service.handlers.affirmations import (
+    GetPaginatedAffirmationsHandler,
+    RemoveAffirmationHandler,
+)
 from rabbit_service.handlers.base import BaseHandler
 
 log = logging.getLogger(__name__)
@@ -34,3 +37,4 @@ class CommandDispatcher:
 dp = CommandDispatcher()
 
 dp.register_handler("GetPaginatedAffirmations", GetPaginatedAffirmationsHandler())
+dp.register_handler("RemoveAffirmation", RemoveAffirmationHandler())

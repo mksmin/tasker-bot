@@ -2,6 +2,7 @@ from typing import Any
 
 from database.crud import crud_manager
 from rabbit_service.handlers.base import BaseHandler
+from rabbit_service.schemas.commands import DeleteAffirmationCommand
 from rabbit_service.schemas.queries import GetPaginatedAffirmationsQuery
 from rabbit_service.schemas.results import AffirmationsListResult
 
@@ -27,3 +28,12 @@ class GetPaginatedAffirmationsHandler(BaseHandler):
                 status="error",
                 message=str(e),
             )
+
+
+class RemoveAffirmationHandler(BaseHandler):
+    async def handle(
+        self,
+        payload: dict[str, Any],
+    ) -> None:
+        query = DeleteAffirmationCommand(**payload)
+        await crud_manager.task.mark_as_done(task_id=query.affirmation_id)
