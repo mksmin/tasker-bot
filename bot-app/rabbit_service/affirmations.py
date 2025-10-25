@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, cast
 
 from faststream.rabbit import RabbitMessage, RabbitRouter
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ async def handle_commands(
     message: RabbitMessage,
 ) -> None:
     try:
-        command_type = msg.get("type")
+        command_type = cast(str, msg.get("type"))
         payload = msg.get("payload", {})
 
         log.info(
