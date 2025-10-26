@@ -62,5 +62,6 @@ class UserSettings(TimeStampMixin, Base):
         nullable=False,
         default=lambda: time(9, 0),
     )
+    send_enable: Mapped[bool] = mapped_column(default=True, server_default="true")
 
     user = relationship("User", back_populates="settings", uselist=False)
