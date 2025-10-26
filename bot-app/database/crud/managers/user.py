@@ -1,16 +1,21 @@
 # import from libs
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from database.models import User
+from database.models import User, UserSettings
 from database.schemas import UserCreateSchema, UserReadSchema
+from database.schemas.user import UserSettingsSchema
 
 from .base import BaseCRUDManager
 
 
 class UserManager(BaseCRUDManager[User]):
-    def __init__(self, session_maker: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_maker: async_sessionmaker[AsyncSession],
+    ) -> None:
         super().__init__(
             model=User,
             session_maker=session_maker,
@@ -61,3 +66,25 @@ class UserManager(BaseCRUDManager[User]):
             raise ValueError(msg_error)
 
         return UserReadSchema.model_validate(user_model)
+
+    async def get_user_settings(
+        self,
+        user_tg: int,
+    ) -> UserSettingsSchema:
+        async with self.session_maker() as session:
+            if not user_tg:
+                message = "User TG is required to get user settings"
+                raise ValueError(message)
+            stmt = select(User).where(User.user_tg == user_tg)
+            query = await session.execute(stmt)
+            user = query.scalar_one_or_none()
+
+            if not user:
+                message = "User not found"
+                raise ValueError(message)
+
+            stmt_settings = select(UserSettings).where(UserSettings.user_id == user.id)
+            query = await session.execute(stmt_settings)
+            user_settings = query.scalar_one_or_none()
+            user_settings.user_tg = user.user_tg  # type: ignore[union-attr]
+            return UserSettingsSchema.model_validate(user_settings)

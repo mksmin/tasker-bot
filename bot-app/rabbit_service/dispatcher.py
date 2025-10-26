@@ -6,6 +6,7 @@ from rabbit_service.handlers.affirmations import (
     RemoveAffirmationHandler,
 )
 from rabbit_service.handlers.base import BaseHandler
+from rabbit_service.handlers.user_settings import GetUserSettingsHandler
 
 log = logging.getLogger(__name__)
 
@@ -38,3 +39,4 @@ dp = CommandDispatcher()
 
 dp.register_handler("GetPaginatedAffirmations", GetPaginatedAffirmationsHandler())
 dp.register_handler("RemoveAffirmation", RemoveAffirmationHandler())
+dp.register_handler("GetUserSettings", GetUserSettingsHandler())

@@ -18,3 +18,7 @@ class GetPaginatedAffirmationsQuery(BaseQuery):
     user_tg: int
     limit: int
     offset: int
+
+
+class GetUserSettingsQuery(BaseQuery):
+    user_tg: int
