@@ -14,7 +14,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
 
 
 class TimeStampMixin:
@@ -28,12 +31,19 @@ class User(TimeStampMixin, Base):
     __tablename__ = "users"
 
     user_tg = mapped_column(BigInteger, nullable=False, unique=True)
-    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    last_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    username: Mapped[str] = mapped_column(String(50), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(50))
+    last_name: Mapped[str | None] = mapped_column(String(50))
+    username: Mapped[str | None] = mapped_column(String(50))
 
-    tasks = relationship("Task", back_populates="user")
-    settings = relationship("UserSettings", back_populates="user", uselist=False)
+    tasks = relationship(
+        "Task",
+        back_populates="user",
+    )
+    settings = relationship(
+        "UserSettings",
+        back_populates="user",
+        uselist=False,
+    )
 
 
 class Task(TimeStampMixin, Base):
