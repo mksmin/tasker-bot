@@ -16,7 +16,6 @@ from aiogram.types import Message, User
 
 # import from modules
 import database.requests as rq
-from bot import keyboards as kb
 from bot.handlers import cmd_daily_tasks, cmd_start
 from database.crud import crud_manager
 from database.models import Task, UserSettings
@@ -176,5 +175,4 @@ async def test_cmd_daily_tasks_with_tasks(mock_message: Message) -> None:
         )
         mock_message.answer.assert_awaited_once_with(
             text=expected_message,
-            reply_markup=kb.finishing_task,
         )

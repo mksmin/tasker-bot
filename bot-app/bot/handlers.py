@@ -81,7 +81,7 @@ async def cmd_daily_tasks(
     )
     msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
 
-    await message.answer(text=msg_to_send, reply_markup=kb.finishing_task)
+    await message.answer(text=msg_to_send)
     logger.info("Daily tasks sent to user %d", user_tgid)
 
 

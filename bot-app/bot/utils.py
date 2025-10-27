@@ -1,7 +1,6 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 
-from bot import keyboards as kb
 from config import logger
 from database import requests as rq
 from database.crud import crud_manager
@@ -26,7 +25,6 @@ async def send_daily_tasks(user_tgid: int, bot: Bot) -> None:
         await bot.send_message(
             chat_id=user_tgid,
             text=msg_to_send,
-            reply_markup=kb.finishing_task,
         )
         logger.info("Daily tasks sent to user %s", user_tgid)
     except TelegramForbiddenError as tfe:
