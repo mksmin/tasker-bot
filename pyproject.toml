@@ -188,3 +188,7 @@ unfixable = []
 ]
 "**/conftest.py" = [
 ]
+
+"bot-app/commands/*.py" = [
+    "T20", # flake8-print (T20)
+]
