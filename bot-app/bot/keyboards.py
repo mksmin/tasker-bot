@@ -31,7 +31,7 @@ class SettingsAction(StrEnum):
     change_amount = "change_amount"
     change_time = "change_time"
     switch_sending = "switch_sending"
-    back = "back_to_settings"
+    cancel = "cancel_change_settings"
 
 
 class SettingsCB(
@@ -58,8 +58,8 @@ def settings_kb(*, sending_on: bool) -> InlineKeyboardMarkup:
         callback_data=SettingsCB(action=SettingsAction.switch_sending),
     )
     builder.button(
-        text="Вернуться назад",
-        callback_data=SettingsCB(action=SettingsAction.back),
+        text="Отмена",
+        callback_data=SettingsCB(action=SettingsAction.cancel),
     )
     builder.adjust(2, 1, 1)
     return builder.as_markup()
