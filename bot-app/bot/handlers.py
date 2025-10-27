@@ -2,7 +2,7 @@
 from datetime import time
 from typing import cast
 
-from aiogram import Bot, F, Router
+from aiogram import Bot, F, Router, html
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
@@ -47,7 +47,7 @@ async def cmd_start(
     await rq.get_user_settings(user_tg=user.user_tg)
     await message.answer(
         "Привет! \n\n"
-        "Отправь мне любые афоризмы <i>(по одной шт за раз)</i>, "
+        "Отправь мне любые афоризмы или аффирмации <i>(по одной шт за раз)</i>, "
         "а я буду каждый день присылать тебе 5 случайных! \n\n"
         "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, "
         "чтобы изменить время отправки",
@@ -73,13 +73,13 @@ async def cmd_daily_tasks(
 
     if len(tasks) <= 0:
         logger.info("No daily tasks to send to user %d", user_tgid)
-        await message.answer("У тебя нет сохраненных текстов")
+        await message.answer("У тебя нет сохраненных аффирмаций")
         return
 
     stroke_tasks = "\n".join(
-        f"{i}. {task.text_task}" for i, task in enumerate(tasks, 1)
+        f"{i}. {html.code(task.text_task)} \n" for i, task in enumerate(tasks, 1)
     )
-    msg_to_send = f"Доброе утро, вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
+    msg_to_send = f"Привет! Вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
 
     await message.answer(text=msg_to_send)
     logger.info("Daily tasks sent to user %d", user_tgid)
@@ -110,6 +110,7 @@ async def cmd_settings(
 
     await message.answer(
         f"<b>Текущие настройки</b>\n\n"
+        f"<b>{n.send_enable}</b> — отправка\n"
         f"<b>{n.count_tasks}</b> — столько отправляется тебе аффирмаций в день\n"
         f"<b>{n.send_time.strftime('%H:%M')} (мск)</b> — время отправки\n",
         reply_markup=kb.settings_start,
@@ -119,20 +120,43 @@ async def cmd_settings(
 @router.callback_query(
     F.data == "change_settings",
     HasCallbackMessageFilter(),
+    HasUserFilter(),
 )
 async def cmd_change_settings(
     _callback: CallbackQuery,
     callback_message: Message,
+    from_user: User,
 ) -> None:
+    settings = await crud_manager.user.get_user_settings(
+        user_tg=from_user.id,
+    )
 
     await callback_message.edit_text(
         "Выбери, что хочешь изменить",
-        reply_markup=kb.settings_change,
+        reply_markup=kb.settings_kb(
+            sending_on=settings.send_enable,
+        ),
     )
 
 
 @router.callback_query(
-    F.data == "change_amount",
+    F.data == "set:switch_sending",
+    HasCallbackUserFilter(),
+    HasCallbackMessageFilter(),
+)
+async def cmd_switch_sending(
+    _callback: CallbackQuery,
+    state: FSMContext,
+    callback_message: Message,
+) -> None:
+    # WIP
+    await callback_message.answer("Пока в разработке")
+    await _callback.answer("Work in progress")
+    await state.clear()
+
+
+@router.callback_query(
+    F.data == "set:change_amount",
     HasCallbackUserFilter(),
     HasCallbackMessageFilter(),
 )
@@ -198,7 +222,7 @@ async def set_count_of_affirm(
 
 
 @router.callback_query(
-    F.data == "change_time",
+    F.data == "set:change_time",
     HasCallbackMessageFilter(),
 )
 async def cmd_change_time(
@@ -302,7 +326,7 @@ async def cmd_set_minutes(
 
 
 @router.callback_query(
-    F.data == "back_to_settings",
+    F.data == "set:back_to_settings",
     HasCallbackMessageFilter(),
 )
 async def cmd_back_to_settings(
