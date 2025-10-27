@@ -66,6 +66,9 @@ class UserService:
         user_tg: int,
     ) -> UserSettingsWithUserResponseSchema:
         user = await self._manager.get_user_by_tg_id(user_tg)
+        if not user:
+            raise UserNotFoundError
+
         settings = await self._manager.get_or_create_user_settings(user)
 
         return UserSettingsWithUserResponseSchema.model_validate(settings)

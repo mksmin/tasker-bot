@@ -16,7 +16,8 @@ from aiogram.types import Message, User
 
 # import from modules
 import database.requests as rq
-from bot.handlers import cmd_daily_tasks, cmd_start
+from bot.handlers.affirmations import cmd_daily_tasks
+from bot.handlers.start_handler import cmd_start
 from database.crud import crud_manager
 from database.models import Task, UserSettings
 

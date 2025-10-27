@@ -1,9 +1,12 @@
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 
 from commands.coro import coro
 from crud.crud_service import get_crud_service_with_session
+
+if TYPE_CHECKING:
+    from crud.crud_service import CRUDService  # noqa: F401
 
 app = typer.Typer(
     name="crud",
