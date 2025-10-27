@@ -2,7 +2,7 @@
 from datetime import time
 from typing import cast
 
-from aiogram import Bot, F, Router, html
+from aiogram import F, Router, html
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
@@ -17,12 +17,12 @@ from database import requests as rq
 from database.crud import crud_manager
 from database.models import UserSettings
 
-from . import update_schedule
 from .handler_filtres import (
     HasCallbackMessageFilter,
     HasCallbackUserFilter,
     HasUserFilter,
 )
+from .scheduler import scheduler_instance
 
 # globals
 router = Router()
@@ -107,10 +107,10 @@ async def cmd_settings(
             UserSettings,
             await repo.get(user.id),
         )
-
+    send_enable = "✅ Отправка включена" if n.send_enable else "❌ Отправка выключена"
     await message.answer(
-        f"<b>Текущие настройки</b>\n\n"
-        f"<b>{n.send_enable}</b> — отправка\n"
+        f"⚙️ <b>Настройки</b>\n\n"
+        f"<b>{send_enable}</b>\n"
         f"<b>{n.count_tasks}</b> — столько отправляется тебе аффирмаций в день\n"
         f"<b>{n.send_time.strftime('%H:%M')} (мск)</b> — время отправки\n",
         reply_markup=kb.settings_start,
@@ -148,11 +148,37 @@ async def cmd_switch_sending(
     _callback: CallbackQuery,
     state: FSMContext,
     callback_message: Message,
+    from_user: User,
 ) -> None:
-    # WIP
-    await callback_message.answer("Пока в разработке")
-    await _callback.answer("Work in progress")
-    await state.clear()
+    user = await crud_manager.user.get_user(user_tg=from_user.id)
+
+    async for session in db_helper.session_getter():
+        query = select(UserSettings).where(UserSettings.user_id == user.id)
+        executed = await session.execute(query)
+        settings = executed.scalar_one()
+        settings.send_enable = not settings.send_enable
+        session.add(settings)
+        await session.commit()
+
+        if settings.send_enable:
+            scheduler_instance.add_or_update_job(
+                user_id=user.id,
+                user_tg_id=user.user_tg,
+                send_time=settings.send_time,
+            )
+        else:
+            scheduler_instance.remove_job(
+                user_id=user.id,
+            )
+        await callback_message.edit_text(
+            "Выбери, что хочешь изменить",
+            reply_markup=kb.settings_kb(
+                sending_on=settings.send_enable,
+            ),
+        )
+        message = "Отправка включена" if settings.send_enable else "Отправка выключена"
+        await _callback.answer(message)
+        await state.clear()
 
 
 @router.callback_query(
@@ -303,14 +329,11 @@ async def cmd_set_minutes(
             session.add(user_setting)
             await session.commit()
 
-        await update_schedule(
-            user_tg_id=from_user.id,
-            new_time=new_time,
-            bot=cast(
-                Bot,
-                message.bot,
-            ),
-        )
+            scheduler_instance.add_or_update_job(
+                user_id=user.id,
+                user_tg_id=user.user_tg,
+                send_time=user_setting.send_time,
+            )
 
         await message.answer(
             f"Установил время отправки аффирмаций: {new_time} (мск). "

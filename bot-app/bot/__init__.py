@@ -1,7 +1,3 @@
-__all__ = (
-    "send_daily_tasks",
-    "update_schedule",
-)
+__all__ = ("send_daily_tasks",)
 
-from .scheduler import update_schedule
 from .utils import send_daily_tasks
