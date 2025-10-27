@@ -6,11 +6,11 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from bot.handlers import router
-from bot.middlewares import CRUDServiceMiddleware
+from bot.middlewares import CreateUserInjectMiddleware, CRUDServiceMiddleware
 from bot.scheduler import setup_scheduler
 from config import settings
 from config.config import logger
-from database import DbSessionMiddleware, SettingsMiddleware, db_helper
+from database import db_helper
 from rabbit_service.broker import broker
 
 
@@ -28,9 +28,8 @@ async def run_bot() -> None:
     dp.include_router(router)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
-    dp.message.middleware.register(DbSessionMiddleware())
-    dp.message.middleware.register(SettingsMiddleware())
     dp.message.middleware.register(CRUDServiceMiddleware(db_helper))
+    dp.message.middleware.register(CreateUserInjectMiddleware())
 
     await bot.delete_webhook(
         drop_pending_updates=True,

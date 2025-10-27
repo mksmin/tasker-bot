@@ -31,20 +31,13 @@ router = Router()
 @router.message(
     CommandStart(),
     HasUserFilter(),
+    flags={
+        "create_user": True,
+    },
 )
 async def cmd_start(
     message: Message,
-    from_user: User,
 ) -> None:
-    user_data = {
-        "user_tg": from_user.id,
-        "first_name": from_user.first_name,
-        "last_name": from_user.last_name,
-        "username": from_user.username,
-    }
-
-    user = await crud_manager.user.create_user(user_data=user_data)
-    await rq.get_user_settings(user_tg=user.user_tg)
     await message.answer(
         "Привет! \n\n"
         "Отправь мне любые афоризмы или аффирмации <i>(по одной шт за раз)</i>, "
