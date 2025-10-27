@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app_exceptions.exceptions import UserAlreadyExistsError, UserNotFoundError
 from crud.managers.users import UserManager
-from schemas.users import UserCreateSchema, UserReadSchema
+from database import User, UserSettings
+from schemas.users import (
+    UserCreateSchema,
+    UserReadSchema,
+    UserSettingsWithUserResponseSchema,
+)
 
 
 class UserService:
@@ -14,6 +19,12 @@ class UserService:
     ) -> None:
         self._session = session
         self._manager = UserManager(self._session)
+
+    async def _create_default_settings(
+        self,
+        user: User,
+    ) -> UserSettings:
+        return await self._manager.get_or_create_user_settings(user)
 
     async def create_user(
         self,
@@ -27,6 +38,8 @@ class UserService:
             raise UserAlreadyExistsError
 
         user = await self._manager.create_user(user_create)
+        await self._create_default_settings(user)
+
         await self._session.commit()
         return UserReadSchema.model_validate(user)
 
@@ -47,3 +60,12 @@ class UserService:
         if not user_exists:
             raise UserNotFoundError
         return UserReadSchema.model_validate(user_exists)
+
+    async def get_user_settings(
+        self,
+        user_tg: int,
+    ) -> UserSettingsWithUserResponseSchema:
+        settings = self._manager.get_or_create_user_settings(
+            User(user_tg=user_tg),
+        )
+        return UserSettingsWithUserResponseSchema.model_validate(settings)

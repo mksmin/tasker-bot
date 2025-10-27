@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 
 from pydantic import BaseModel, ConfigDict
 
@@ -31,3 +31,15 @@ class UserReadSchema(UserBase):
 
     id: int
     created_at: datetime
+
+
+class UserSettingsBaseSchema(BaseModel):
+    count_tasks: int
+    send_time: time
+    send_enable: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserSettingsWithUserResponseSchema(UserSettingsBaseSchema):
+    user: UserResponseSchema | None = None

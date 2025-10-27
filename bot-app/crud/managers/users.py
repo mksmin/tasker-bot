@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 
 from crud.managers import BaseCRUDManager
 from database import User, UserSettings
@@ -23,6 +23,7 @@ class UserManager(BaseCRUDManager[User]):
     ) -> User:
         instance = User(**user_data.model_dump())
         self.session.add(instance)
+        await self.session.flush()
         return instance
 
     async def get_user_by_tg_id(
@@ -36,18 +37,28 @@ class UserManager(BaseCRUDManager[User]):
     async def get_user_by_id(
         self,
         user_id: int,
-    ) -> User:
+    ) -> User | None:
         return await super().get(obj_id=user_id)
 
-    async def get_user_with_settings(
+    async def get_or_create_user_settings(
         self,
-        user_tg: int,
-    ) -> UserSettings | None:
-        stmt = select(UserSettings).options(
-            joinedload(UserSettings.user),
-        )
-        filtered_stmt = stmt.where(
-            UserSettings.user.user_tg == user_tg,
-        )
-        query = await self.session.execute(filtered_stmt)
-        return query.scalar_one_or_none()
+        user: User,
+    ) -> UserSettings:
+        settings = (
+            await self.session.execute(
+                select(UserSettings)
+                .where(UserSettings.user_id == user.id)
+                .options(
+                    selectinload(
+                        UserSettings.user,
+                    ),
+                ),
+            )
+        ).scalar_one_or_none()
+
+        if settings is None:
+            settings = UserSettings(user_id=user.id)
+            self.session.add(settings)
+            await self.session.flush()
+
+        return settings
