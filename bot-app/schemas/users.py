@@ -47,3 +47,13 @@ class UserSettingsWithUserResponseSchema(UserSettingsBaseSchema):
 
 class UserSettingsWithUserReadSchema(UserSettingsBaseSchema):
     user: UserReadSchema
+
+
+class UserSettingsUpdateSchema(UserSettingsBaseSchema):
+    """
+    Schema for updating user settings
+    """
+
+    count_tasks: int | None = None
+    send_time: time | None = None
+    send_enable: bool | None = None
