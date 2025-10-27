@@ -37,7 +37,7 @@ async def run_bot() -> None:
     dp.message.middleware.register(CreateUserInjectMiddleware())
     dp.message.middleware.register(GetUserMiddleware())
     dp.message.middleware.register(GetUserSettingsMiddleware())
-
+    dp.callback_query.middleware.register(GetUserSettingsMiddleware())
     await bot.delete_webhook(
         drop_pending_updates=True,
     )

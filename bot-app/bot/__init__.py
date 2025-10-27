@@ -5,10 +5,10 @@ __all__ = (
 
 from aiogram import Router
 
+from bot.dependencies import send_daily_tasks
 from bot.handlers.affirmations import router as affirmations_router
 from bot.handlers.start_handler import router as start_router
 from bot.handlers.user_settings import router as user_settings_router
-from bot.utils import send_daily_tasks
 
 router = Router()
 

@@ -7,6 +7,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from bot import keyboards as kb
 from bot import statesuser as st
@@ -18,7 +19,10 @@ from bot.handler_filtres import (
 from bot.scheduler import scheduler_instance
 from database import UserSettings, db_helper
 from database.crud import crud_manager
-from schemas.users import UserSettingsWithUserResponseSchema
+from schemas.users import (
+    UserSettingsWithUserReadSchema,
+    UserSettingsWithUserResponseSchema,
+)
 
 router = Router()
 log = logging.getLogger(__name__)
@@ -89,18 +93,21 @@ async def cmd_switch_sending(
     user = await crud_manager.user.get_user(user_tg=from_user.id)
 
     async for session in db_helper.session_getter():
-        query = select(UserSettings).where(UserSettings.user_id == user.id)
-        executed = await session.execute(query)
-        settings = executed.scalar_one()
+        query = (
+            select(UserSettings)
+            .options(
+                joinedload(UserSettings.user),
+            )
+            .where(UserSettings.user_id == user.id)
+        )
+        settings = await session.scalar(query)
         settings.send_enable = not settings.send_enable
         session.add(settings)
         await session.commit()
 
         if settings.send_enable:
             scheduler_instance.add_or_update_job(
-                user_id=user.id,
-                user_tg_id=user.user_tg,
-                send_time=settings.send_time,
+                user_settings=UserSettingsWithUserReadSchema.model_validate(settings),
             )
         else:
             scheduler_instance.remove_job(
@@ -258,18 +265,25 @@ async def cmd_set_minutes(
 
     try:
         async for session in db_helper.session_getter():
-            query = select(UserSettings).where(UserSettings.user_id == user.id)
+            query = (
+                select(UserSettings)
+                .where(UserSettings.user_id == user.id)
+                .options(
+                    joinedload(UserSettings.user),
+                )
+            )
             executed = await session.execute(query)
             user_setting = executed.scalar_one()
             user_setting.send_time = new_time
             session.add(user_setting)
             await session.commit()
 
-            scheduler_instance.add_or_update_job(
-                user_id=user.id,
-                user_tg_id=user.user_tg,
-                send_time=user_setting.send_time,
-            )
+            if user_setting.send_enable:
+                scheduler_instance.add_or_update_job(
+                    user_settings=UserSettingsWithUserReadSchema.model_validate(
+                        user_setting,
+                    ),
+                )
 
         await message.answer(
             f"Установил время отправки аффирмаций: {new_time} (мск). "

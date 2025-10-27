@@ -3,16 +3,18 @@ import logging
 from aiogram import (
     F,
     Router,
-    html,
 )
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, User
 
+from app_exceptions.exceptions import UserHasNoTasksError
 from bot import keyboards as kb
+from bot.dependencies import get_list_user_tasks, prepare_user_message_for_tasks
 from bot.handler_filtres import HasUserFilter
 from database import requests as rq
 from database.crud import crud_manager
+from schemas.users import UserSettingsWithUserResponseSchema
 
 router = Router()
 log = logging.getLogger(__name__)
@@ -21,32 +23,22 @@ log = logging.getLogger(__name__)
 @router.message(
     Command("daily"),
     HasUserFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
 async def cmd_daily_tasks(
     message: Message,
-    from_user: User,
+    user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
-    user_tgid = from_user.id
-
-    settings = await rq.get_user_settings(user_tg=user_tgid)
-
-    tasks = await crud_manager.task.get_random_tasks(
-        user_tg=user_tgid,
-        count=settings.count_tasks,
-    )
-
-    if len(tasks) <= 0:
-        log.info("No daily tasks to send to user %d", user_tgid)
+    try:
+        tasks = await get_list_user_tasks(user_settings_db)
+        msg_to_send = prepare_user_message_for_tasks(tasks)
+        await message.answer(text=msg_to_send)
+        log.info("Daily tasks sent to user %d", user_settings_db.user.user_tg)
+    except UserHasNoTasksError:
+        log.info("No daily tasks to send to user %d", user_settings_db.user.user_tg)
         await message.answer("У тебя нет сохраненных аффирмаций")
-        return
-
-    stroke_tasks = "\n".join(
-        f"{i}. {html.code(task.text_task)} \n" for i, task in enumerate(tasks, 1)
-    )
-    msg_to_send = f"Привет! Вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
-
-    await message.answer(text=msg_to_send)
-    log.info("Daily tasks sent to user %d", user_tgid)
 
 
 @router.message(

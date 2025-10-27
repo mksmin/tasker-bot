@@ -43,3 +43,7 @@ class UserSettingsBaseSchema(BaseModel):
 
 class UserSettingsWithUserResponseSchema(UserSettingsBaseSchema):
     user: UserResponseSchema | None = None
+
+
+class UserSettingsWithUserReadSchema(UserSettingsBaseSchema):
+    user: UserReadSchema
