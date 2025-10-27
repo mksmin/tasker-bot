@@ -31,7 +31,7 @@ async def create_user(
         ),
     ],
 ) -> None:
-    async with get_crud_service_with_session() as crud_service:
+    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
         user = await crud_service.user.create_user(
             {
                 "user_tg": user_tg,
@@ -53,7 +53,7 @@ async def get_by_id(
         ),
     ],
 ) -> None:
-    async with get_crud_service_with_session() as crud_service:
+    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
         user = await crud_service.user.get_by_id(
             user_id=user_id,
         )
@@ -72,7 +72,7 @@ async def get_by_tg_id(
         ),
     ],
 ) -> None:
-    async with get_crud_service_with_session() as crud_service:
+    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
         user = await crud_service.user.get_by_tg_id(
             user_tg=user_tg,
         )

@@ -1,9 +1,9 @@
 import asyncio
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable, Coroutine
 from functools import wraps
 from typing import Any, TypeVar
 
-F = TypeVar("F", bound=Callable[..., Awaitable[Any]])
+F = TypeVar("F", bound=Callable[..., Coroutine[Any, Any, Any]])
 
 
 def coro(f: F) -> Callable[..., Any]:
