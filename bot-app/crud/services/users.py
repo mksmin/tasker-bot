@@ -8,7 +8,8 @@ from database import User, UserSettings
 from schemas.users import (
     UserCreateSchema,
     UserReadSchema,
-    UserSettingsWithUserResponseSchema,
+    UserSettingsUpdateSchema,
+    UserSettingsWithUserReadSchema,
 )
 
 
@@ -64,11 +65,31 @@ class UserService:
     async def get_user_settings(
         self,
         user_tg: int,
-    ) -> UserSettingsWithUserResponseSchema:
+    ) -> UserSettingsWithUserReadSchema:
+        user = await self._manager.get_user_by_tg_id(user_tg)
+        if not user:
+            raise UserNotFoundError
+        settings = await self._manager.get_or_create_user_settings(user)
+        return UserSettingsWithUserReadSchema.model_validate(settings)
+
+    async def update_user_settings(
+        self,
+        user_tg: int,
+        settings_in: UserSettingsUpdateSchema,
+    ) -> UserSettingsWithUserReadSchema:
         user = await self._manager.get_user_by_tg_id(user_tg)
         if not user:
             raise UserNotFoundError
 
         settings = await self._manager.get_or_create_user_settings(user)
 
-        return UserSettingsWithUserResponseSchema.model_validate(settings)
+        update_dict = {
+            k: v
+            for k, v in settings_in.model_dump().items()
+            if v is not None and k != "user"
+        }
+        for key, value in update_dict.items():
+            setattr(settings, key, value)
+
+        await self._session.commit()
+        return UserSettingsWithUserReadSchema.model_validate(settings)

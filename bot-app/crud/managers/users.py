@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from crud.managers import BaseCRUDManager
 from database import User, UserSettings
-from schemas.users import UserCreateSchema
+from schemas.users import UserCreateSchema, UserSettingsUpdateSchema
 
 
 class UserManager(BaseCRUDManager[User]):
@@ -61,4 +61,14 @@ class UserManager(BaseCRUDManager[User]):
             self.session.add(settings)
             await self.session.flush()
 
+        return settings
+
+    async def update_user_settings(
+        self,
+        settings: UserSettings,
+        settings_in: UserSettingsUpdateSchema,
+    ) -> UserSettings:
+        for field_name, value in settings_in:
+            setattr(settings, field_name, value)
+        self.session.add(settings)
         return settings

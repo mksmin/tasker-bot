@@ -17,6 +17,7 @@ from bot.handler_filtres import (
     HasUserFilter,
 )
 from bot.scheduler import scheduler_instance
+from crud.crud_service import CRUDService
 from database import UserSettings, db_helper
 from database.crud import crud_manager
 from schemas.users import (
@@ -89,39 +90,34 @@ async def cmd_switch_sending(
     state: FSMContext,
     callback_message: Message,
     from_user: User,
+    crud_service: CRUDService,
 ) -> None:
-    user = await crud_manager.user.get_user(user_tg=from_user.id)
-
-    async for session in db_helper.session_getter():
-        query = (
-            select(UserSettings)
-            .options(
-                joinedload(UserSettings.user),
-            )
-            .where(UserSettings.user_id == user.id)
+    user_settings = await crud_service.user.get_user_settings(from_user.id)
+    user_settings.send_enable = not user_settings.send_enable
+    updated_settings = await crud_service.user.update_user_settings(
+        user_tg=from_user.id,
+        settings_in=user_settings,
+    )
+    if updated_settings.send_enable:
+        scheduler_instance.add_or_update_job(
+            user_settings=updated_settings,
         )
-        settings = await session.scalar(query)
-        settings.send_enable = not settings.send_enable
-        session.add(settings)
-        await session.commit()
-
-        if settings.send_enable:
-            scheduler_instance.add_or_update_job(
-                user_settings=UserSettingsWithUserReadSchema.model_validate(settings),
-            )
-        else:
-            scheduler_instance.remove_job(
-                user_id=user.id,
-            )
-        await callback_message.edit_text(
-            "Выбери, что хочешь изменить",
-            reply_markup=kb.settings_kb(
-                sending_on=settings.send_enable,
-            ),
+    else:
+        scheduler_instance.remove_job(
+            user_id=updated_settings.user.id,
         )
-        message = "Отправка включена" if settings.send_enable else "Отправка выключена"
-        await _callback.answer(message)
-        await state.clear()
+
+    await callback_message.edit_text(
+        "Выбери, что хочешь изменить",
+        reply_markup=kb.settings_kb(
+            sending_on=user_settings.send_enable,
+        ),
+    )
+    message = (
+        "Отправка включена" if updated_settings.send_enable else "Отправка выключена"
+    )
+    await _callback.answer(message)
+    await state.clear()
 
 
 @router.callback_query(
