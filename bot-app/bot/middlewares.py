@@ -59,3 +59,36 @@ class CreateUserInjectMiddleware(BaseMiddleware):
                 data["user_db"] = UserResponseSchema.model_validate(user)
 
         return await handler(event, data)
+
+
+class GetUserMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        if data.get("handler") and data["handler"].flags.get("user"):
+            async for session in db_helper.session_getter():
+                crud_service = CRUDService(session)
+                user = await crud_service.user.get_by_tg_id(event.from_user.id)  # type: ignore[attr-defined]
+                data["user_db"] = UserResponseSchema.model_validate(user)
+
+        return await handler(event, data)
+
+
+class GetUserSettingsMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        if data.get("handler") and data["handler"].flags.get("user_settings"):
+            async for session in db_helper.session_getter():
+                crud_service = CRUDService(session)
+                data["user_settings_db"] = await crud_service.user.get_user_settings(
+                    event.from_user.id,  # type: ignore[attr-defined]
+                )
+
+        return await handler(event, data)

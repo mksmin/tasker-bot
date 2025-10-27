@@ -1,111 +1,55 @@
-# import from lib
+import logging
 from datetime import time
 from typing import cast
 
-from aiogram import F, Router, html
-from aiogram.filters import Command, CommandStart
+from aiogram import F, Router
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
 from sqlalchemy import select
 
-# import from modules
 from bot import keyboards as kb
 from bot import statesuser as st
-from config import logger
-from database import SettingsRepo, db_helper, user_settings_ctx
-from database import requests as rq
-from database.crud import crud_manager
-from database.models import UserSettings
-
-from .handler_filtres import (
+from bot.handler_filtres import (
     HasCallbackMessageFilter,
     HasCallbackUserFilter,
     HasUserFilter,
 )
-from .scheduler import scheduler_instance
+from bot.scheduler import scheduler_instance
+from database import UserSettings, db_helper
+from database.crud import crud_manager
+from schemas.users import UserSettingsWithUserResponseSchema
 
-# globals
 router = Router()
-
-
-@router.message(
-    CommandStart(),
-    HasUserFilter(),
-    flags={
-        "create_user": True,
-    },
-)
-async def cmd_start(
-    message: Message,
-) -> None:
-    await message.answer(
-        "Привет! \n\n"
-        "Отправь мне любые афоризмы или аффирмации <i>(по одной шт за раз)</i>, "
-        "а я буду каждый день присылать тебе 5 случайных! \n\n"
-        "Обычно я отправляю в 9 утра по Москве. Используй команду /settings, "
-        "чтобы изменить время отправки",
-    )
-
-
-@router.message(
-    Command("daily"),
-    HasUserFilter(),
-)
-async def cmd_daily_tasks(
-    message: Message,
-    from_user: User,
-) -> None:
-    user_tgid = from_user.id
-
-    settings = await rq.get_user_settings(user_tg=user_tgid)
-
-    tasks = await crud_manager.task.get_random_tasks(
-        user_tg=user_tgid,
-        count=settings.count_tasks,
-    )
-
-    if len(tasks) <= 0:
-        logger.info("No daily tasks to send to user %d", user_tgid)
-        await message.answer("У тебя нет сохраненных аффирмаций")
-        return
-
-    stroke_tasks = "\n".join(
-        f"{i}. {html.code(task.text_task)} \n" for i, task in enumerate(tasks, 1)
-    )
-    msg_to_send = f"Привет! Вот твои аффирмации на сегодня:\n\n{stroke_tasks}"
-
-    await message.answer(text=msg_to_send)
-    logger.info("Daily tasks sent to user %d", user_tgid)
+log = logging.getLogger(__name__)
 
 
 @router.message(
     Command("settings"),
     HasUserFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
 async def cmd_settings(
     message: Message,
     state: FSMContext,
-    from_user: User,
+    user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
     await state.clear()
-    repo: SettingsRepo = user_settings_ctx.get()
-    user = await crud_manager.user.get_user(user_tg=from_user.id)
 
-    n = await repo.get(user.id)
-
-    if not n:
-        logger.debug("User has no settings. Creating new one...")
-        await repo.set(user_id=user.id)
-        n = cast(
-            UserSettings,
-            await repo.get(user.id),
-        )
-    send_enable = "✅ Отправка включена" if n.send_enable else "❌ Отправка выключена"
+    send_enable = (
+        "✅ Отправка включена"
+        if user_settings_db.send_enable
+        else "❌ Отправка выключена"
+    )
     await message.answer(
         f"⚙️ <b>Настройки</b>\n\n"
         f"<b>{send_enable}</b>\n"
-        f"<b>{n.count_tasks}</b> — столько отправляется тебе аффирмаций в день\n"
-        f"<b>{n.send_time.strftime('%H:%M')} (мск)</b> — время отправки\n",
+        f"<b>{user_settings_db.count_tasks}</b> "
+        f"— столько отправляется тебе аффирмаций в день\n"
+        f"<b>{user_settings_db.send_time.strftime('%H:%M')} (мск)</b> "
+        f"— время отправки\n",
         reply_markup=kb.settings_start,
     )
 
@@ -114,20 +58,19 @@ async def cmd_settings(
     F.data == "change_settings",
     HasCallbackMessageFilter(),
     HasUserFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
 async def cmd_change_settings(
     _callback: CallbackQuery,
     callback_message: Message,
-    from_user: User,
+    user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
-    settings = await crud_manager.user.get_user_settings(
-        user_tg=from_user.id,
-    )
-
     await callback_message.edit_text(
         "Выбери, что хочешь изменить",
         reply_markup=kb.settings_kb(
-            sending_on=settings.send_enable,
+            sending_on=user_settings_db.send_enable,
         ),
     )
 
@@ -335,14 +278,14 @@ async def cmd_set_minutes(
         await state.set_state(st.Settings.time_minute)
 
     except Exception as e:
-        logger.error("Ошибка при изменении настроек: %s", e, exc_info=True)
+        log.exception("Ошибка при изменении настроек")
         await message.answer(f"Ошибка при изменении настроек, {e}")
         await state.clear()
         return
 
 
 @router.callback_query(
-    F.data == "set:back_to_settings",
+    F.data == "set:cancel_change_settings",
     HasCallbackMessageFilter(),
 )
 async def cmd_back_to_settings(
@@ -353,48 +296,3 @@ async def cmd_back_to_settings(
         "Ничего менять не будем. Вызови команду /settings, "
         "чтобы вернуться к настройкам",
     )
-
-
-@router.message(
-    F.text,
-    HasUserFilter(),
-)
-async def user_add_task(
-    message: Message,
-    state: FSMContext,
-    from_user: User,
-) -> None:
-    await state.clear()
-
-    user_data = {
-        "first_name": from_user.first_name,
-        "last_name": from_user.last_name,
-        "username": from_user.username,
-    }
-    # TODO: сделать метод для crud_manager на обновление данных пользователя
-    # TODO: и заменить метод get_user_by_tgid на него
-    await rq.get_user_by_tgid(from_user.id, user_data=user_data)
-    await rq.get_user_settings(user_tg=from_user.id)
-
-    if not message.text:
-        await message.answer("Возникла ошибка при добавлении аффирмации")
-        return
-
-    try:
-        task_added = await crud_manager.task.create_task(
-            task_text=message.text,
-            user_tg=from_user.id,
-        )
-    except Exception:
-        await message.answer(
-            "Возникла ошибка при добавлении аффирмации. Операция отменена",
-        )
-        return
-
-    if task_added:
-        await message.answer(
-            f"Добавил аффирмацию: \n\n{task_added.text_task}",
-            reply_markup=kb.list_of_tasks,
-        )
-    else:
-        await message.answer("Возникла ошибка")
