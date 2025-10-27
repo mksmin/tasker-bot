@@ -65,7 +65,7 @@ class UserService:
         self,
         user_tg: int,
     ) -> UserSettingsWithUserResponseSchema:
-        settings = self._manager.get_or_create_user_settings(
-            User(user_tg=user_tg),
-        )
+        user = await self._manager.get_user_by_tg_id(user_tg)
+        settings = await self._manager.get_or_create_user_settings(user)
+
         return UserSettingsWithUserResponseSchema.model_validate(settings)
