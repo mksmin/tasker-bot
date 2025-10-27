@@ -26,33 +26,6 @@ settings_start = InlineKeyboardMarkup(
     ],
 )
 
-settings_change = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="Количество аффирмаций",
-                callback_data="change_amount",
-            ),
-            InlineKeyboardButton(
-                text="Время отправки",
-                callback_data="change_time",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="Отправка аффирмаций",
-                callback_data="switch_sending",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="Вернуться назад",
-                callback_data="back_to_settings",
-            ),
-        ],
-    ],
-)
-
 
 class SettingsAction(StrEnum):
     change_amount = "change_amount"
@@ -70,7 +43,7 @@ class SettingsCB(
 
 def settings_kb(*, sending_on: bool) -> InlineKeyboardMarkup:
     mark = "✅" if sending_on else "❌"
-    turn_text = "включена" if sending_on else "выкючена"
+    turn_text = "включена" if sending_on else "выключена"
     builder = InlineKeyboardBuilder()
     builder.button(
         text="Количество аффирмаций",
