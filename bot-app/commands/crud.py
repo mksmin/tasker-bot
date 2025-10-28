@@ -83,6 +83,36 @@ async def get_by_tg_id(
         print(f"Getted user: {user}")
 
 
+@app.command(help="get random user affirmations")
+@coro
+async def get_random_affirmations(
+    user_tg: Annotated[
+        int,
+        typer.Argument(
+            help="User telegram id",
+        ),
+    ],
+    count: Annotated[
+        int | None,
+        typer.Argument(
+            help="Count of affirmations to get",
+        ),
+    ] = None,
+) -> None:
+
+    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
+        try:
+            affirmations = await crud_service.affirm.get_random_affirmations(
+                user_tg=user_tg,
+                count=count,
+            )
+        except TaskNotFoundError:
+            print("Tasks not found")
+        else:
+            for i, affirmation in enumerate(affirmations, 1):
+                print(f"{i}. {affirmation}")
+
+
 @app.command(help="Remove a user affirmation")
 @coro
 async def remove_affirmation(

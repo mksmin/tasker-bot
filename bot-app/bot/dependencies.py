@@ -5,7 +5,6 @@ from aiogram.exceptions import TelegramForbiddenError
 
 from app_exceptions.exceptions import UserHasNoTasksError
 from crud.crud_service import get_crud_service_with_session
-from database.crud import crud_manager
 
 log = logging.getLogger(__name__)
 
@@ -14,14 +13,11 @@ async def get_list_user_tasks(
     user_tg: int,
 ) -> list[str]:
     async with get_crud_service_with_session() as crud_service:  # type: CRUDService
-        user_settings = await crud_service.user.get_user_settings(user_tg)
-        tasks = await crud_manager.task.get_random_tasks(
-            user_tg=user_settings.user.user_tg,
-            count=user_settings.count_tasks,
-        )
-        list_of_tasks = [task.text_task for task in tasks]
+        tasks = await crud_service.affirm.get_random_affirmations(user_tg=user_tg)
+
+        list_of_tasks = [task.text for task in tasks]
         if len(list_of_tasks) <= 0:
-            error_message = f"User {user_settings.user.user_tg} has no tasks"
+            error_message = f"User {user_tg} has no tasks"
             raise UserHasNoTasksError(error_message)
         return list_of_tasks
 

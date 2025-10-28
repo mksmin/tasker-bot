@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from collections.abc import Sequence
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.managers import BaseCRUDManager
@@ -27,9 +29,19 @@ class AffirmationManager(BaseCRUDManager[Task]):
     async def get_random_affirmation(
         self,
         user_id: int,
-        count: int = 5,
-    ) -> list[Task]:
-        pass
+        count: int,
+    ) -> Sequence[Task]:
+        stmt = (
+            select(Task)
+            .where(
+                Task.user_id == user_id,
+                Task.is_done.is_(False),
+            )
+            .order_by(func.random())
+            .limit(count)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     async def get_paginated_affirmations(
         self,

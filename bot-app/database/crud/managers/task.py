@@ -1,7 +1,6 @@
 # import from libs
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from database.models import Task
@@ -43,28 +42,6 @@ class TaskManager(BaseCRUDManager[Task]):
     async def get_task_by_id(self, task_id: int) -> TaskReadSchema:
         result = await self.get(id=task_id)
         return TaskReadSchema.model_validate(result)
-
-    async def get_random_tasks(
-        self,
-        user_tg: int,
-        count: int = 5,
-    ) -> list[TaskReadSchema]:
-        assert self.user_manager is not None, "UserManager is not set"
-        user = await self.user_manager.get_user(user_tg=user_tg)
-        async with self.get_session() as session:
-            stmt = (
-                select(Task)
-                .where(Task.user_id == user.id, Task.is_done.is_(False))
-                .order_by(func.random())
-                .limit(count)
-            )
-            result = await session.execute(stmt)
-            tasks = result.scalars().all()
-
-            if not tasks:
-                return []
-
-            return [TaskReadSchema.model_validate(task) for task in tasks]
 
     async def get_paginated_tasks(
         self,
