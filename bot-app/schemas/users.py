@@ -49,7 +49,7 @@ class UserSettingsWithUserReadSchema(UserSettingsBaseSchema):
     user: UserReadSchema
 
 
-class UserSettingsUpdateSchema(UserSettingsBaseSchema):
+class UserSettingsUpdateSchema(BaseModel):
     """
     Schema for updating user settings
     """
@@ -57,3 +57,5 @@ class UserSettingsUpdateSchema(UserSettingsBaseSchema):
     count_tasks: int | None = None
     send_time: time | None = None
     send_enable: bool | None = None
+
+    model_config = ConfigDict(from_attributes=True)

@@ -15,9 +15,8 @@ class CRUDService:
     ) -> None:
         self._session = session
         self.user = UserService(self._session)
-        self.affirm = AffirmationService(self._session)
-
-        self.affirm.set_user_manager(
+        self.affirm = AffirmationService(
+            self._session,
             UserManager(self._session),
         )
 

@@ -89,17 +89,3 @@ class TaskManager(BaseCRUDManager[Task]):
             return []
 
         return [TaskReadSchema.model_validate(task) for task in tasks]
-
-    async def mark_as_done(self, task_id: int) -> bool:
-        async with self.get_session() as session:
-            stmt = select(Task).where(Task.id == task_id, Task.is_done.is_(False))
-            result = await session.scalar(stmt)
-
-            if not result:
-                return False
-
-            if not result.is_done:
-                result.is_done = True
-                await session.commit()
-                return True
-            return False

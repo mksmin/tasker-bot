@@ -1,5 +1,6 @@
 from typing import Any
 
+from crud.crud_service import get_crud_service_with_session
 from database.crud import crud_manager
 from rabbit_service.handlers.base import BaseHandler
 from rabbit_service.schemas.commands import DeleteAffirmationCommand
@@ -36,4 +37,8 @@ class RemoveAffirmationHandler(BaseHandler):
         payload: dict[str, Any],
     ) -> None:
         query = DeleteAffirmationCommand(**payload)
-        await crud_manager.task.mark_as_done(task_id=query.affirmation_id)
+        async with get_crud_service_with_session() as crud_service:  # type: CRUDService
+            await crud_service.affirm.remove_affirmation(
+                user_tg=query.user_tg,
+                affirm_id=query.affirmation_id,
+            )
