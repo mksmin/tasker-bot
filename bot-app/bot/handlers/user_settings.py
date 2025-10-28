@@ -77,6 +77,7 @@ async def cmd_change_settings(
             sending_on=user_settings_db.send_enable,
         ),
     )
+    await _callback.answer()
 
 
 @router.callback_query(
@@ -138,6 +139,7 @@ async def cmd_change_amount(
         f"Сейчас я отправляю в день аффирмаций: <b>{user_settings_db.count_tasks}</b>",
         reply_markup=kb.set_count_tasks_kb(5),
     )
+    await _callback.answer()
 
 
 @router.callback_query(
@@ -268,6 +270,7 @@ async def confirm_time(
         f"<b>{updated_settings.send_time:%H:%M}</b> (мск).\n"
         f"Проверь настройки командой /settings",
     )
+    await _callback.answer()
     await state.clear()
 
 
@@ -329,4 +332,5 @@ async def cmd_back_to_settings(
         "Ничего менять не будем. Вызови команду /settings, "
         "чтобы вернуться к настройкам",
     )
+    await _callback.answer()
     await state.clear()

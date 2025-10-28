@@ -95,6 +95,12 @@ def set_count_tasks_kb(
                 value=i,
             ).pack(),
         )
+    builder.row(
+        InlineKeyboardButton(
+            text="Отмена",
+            callback_data="set:cancel_change_settings",
+        ),
+    )
     builder.adjust(5)
     return builder.as_markup()
 
