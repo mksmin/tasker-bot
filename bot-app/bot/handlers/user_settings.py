@@ -1,5 +1,6 @@
 import logging
 from datetime import time
+from typing import cast
 
 from aiogram import F, Router
 from aiogram.filters import Command
@@ -203,6 +204,10 @@ async def choose_minutes(
     callback_message: Message,
     callback_data: TimePickerCallback,
 ) -> None:
+    callback_data.hour = cast(
+        int,
+        callback_data.hour,
+    )
     await state.update_data(time_hour=callback_data.hour)
     await callback_message.edit_text(
         f"Выбран час: <b>{callback_data.hour:02d}</b>\nТеперь выбери минуты:",
@@ -245,8 +250,8 @@ async def confirm_time(
     crud_service: CRUDService,
     from_user: User,
 ) -> None:
-    hour = callback_data.hour
-    minute = callback_data.minute
+    hour = cast(int, callback_data.hour)
+    minute = cast(int, callback_data.minute)
     new_time = time(hour=hour, minute=minute)
 
     user_settings = await crud_service.user.get_user_settings(from_user.id)
@@ -277,7 +282,12 @@ async def cmd_save_custom_minutes(
     crud_service: CRUDService,
     from_user: User,
 ) -> None:
-    minute = int(message.text)
+    minute = int(
+        cast(
+            str,
+            message.text,
+        ),
+    )
 
     if not MINIMUM_MINUTE <= minute <= MAXIMUM_MINUTE:
         await message.answer("Ошибка: нужно число от 0 до 59. Попробуй снова.")

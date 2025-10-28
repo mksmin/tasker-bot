@@ -75,7 +75,7 @@ class UserService:
     async def update_user_settings(
         self,
         user_tg: int,
-        settings_in: UserSettingsUpdateSchema,
+        settings_in: UserSettingsUpdateSchema | UserSettingsWithUserReadSchema,
     ) -> UserSettingsWithUserReadSchema:
         user = await self._manager.get_user_by_tg_id(user_tg)
         if not user:

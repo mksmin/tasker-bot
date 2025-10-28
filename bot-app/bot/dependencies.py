@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 async def get_list_user_tasks(
     user_tg: int,
 ) -> list[str]:
-    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
+    async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
         tasks = await crud_service.affirm.get_random_affirmations(user_tg=user_tg)
 
         list_of_tasks = [task.text for task in tasks]

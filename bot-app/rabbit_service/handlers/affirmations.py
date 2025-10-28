@@ -14,7 +14,7 @@ class GetPaginatedAffirmationsHandler(BaseHandler):
     ) -> AffirmationsListResult:
         try:
             query = GetPaginatedAffirmationsQuery(**payload)
-            async with get_crud_service_with_session() as crud_service:  # type: ignore[CRUDService]
+            async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
                 affirmations = await crud_service.affirm.get_paginated_affirmations(
                     user_tg=query.user_tg,
                     limit=query.limit,
@@ -38,7 +38,7 @@ class RemoveAffirmationHandler(BaseHandler):
         payload: dict[str, Any],
     ) -> None:
         query = DeleteAffirmationCommand(**payload)
-        async with get_crud_service_with_session() as crud_service:  # type: ignore[CRUDService]
+        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
             await crud_service.affirm.remove_affirmation(
                 user_tg=query.user_tg,
                 affirm_id=query.affirmation_id,

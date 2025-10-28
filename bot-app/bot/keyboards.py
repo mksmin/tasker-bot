@@ -125,7 +125,9 @@ def hour_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def minute_keyboard(hour: int) -> InlineKeyboardMarkup:
+def minute_keyboard(
+    hour: int,
+) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for m in [0, 15, 30, 45]:
         builder.button(

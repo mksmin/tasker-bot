@@ -13,7 +13,9 @@ from bot import keyboards as kb
 from bot.dependencies import get_list_user_tasks, prepare_user_message_for_tasks
 from bot.handler_filtres import HasUserFilter
 from crud.crud_service import CRUDService
-from schemas.users import UserSettingsWithUserResponseSchema
+from schemas.users import (
+    UserSettingsWithUserReadSchema,
+)
 
 router = Router()
 log = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ log = logging.getLogger(__name__)
 )
 async def cmd_daily_tasks(
     message: Message,
-    user_settings_db: UserSettingsWithUserResponseSchema,
+    user_settings_db: UserSettingsWithUserReadSchema,
 ) -> None:
     try:
         tasks = await get_list_user_tasks(user_settings_db.user.user_tg)
@@ -52,6 +54,9 @@ async def user_add_task(
 ) -> None:
     await state.clear()
     try:
+        if not message.text:
+            return
+
         task_added = await crud_service.affirm.create_affirmation(
             text=message.text,
             user_tg=from_user.id,

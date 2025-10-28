@@ -31,7 +31,7 @@ class AffirmationManager(BaseCRUDManager[Task]):
     async def get_affirmations_by_id(
         self,
         affirm_id: int,
-    ) -> Task:
+    ) -> Task | None:
         return await self.get(obj_id=affirm_id)
 
     async def get_random_affirmation(

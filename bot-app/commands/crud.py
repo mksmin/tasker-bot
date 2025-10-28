@@ -126,13 +126,13 @@ async def get_paginated_affirmations(
         ),
     ],
     limit: Annotated[
-        int | None,
+        int,
         typer.Argument(
             help="Count of affirmations to get",
         ),
     ] = 10,
     offset: Annotated[
-        int | None,
+        int,
         typer.Argument(
             help="Count of affirmations to get",
         ),
