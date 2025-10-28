@@ -84,6 +84,5 @@ async def instance(
 @pytest.fixture
 async def created_user(
     user_schema: UserCreateSchema,
-    instance: BaseCRUDManager[User],
 ) -> User:
-    return await instance.create(data=user_schema)
+    return User(**user_schema.model_dump())
