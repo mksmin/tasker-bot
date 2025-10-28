@@ -16,6 +16,7 @@ from bot.handler_filtres import (
     HasCallbackUserFilter,
     HasUserFilter,
 )
+from bot.keyboards import CountTasksCallback
 from bot.scheduler import scheduler_instance
 from crud.crud_service import CRUDService
 from database import UserSettings, db_helper
@@ -122,68 +123,54 @@ async def cmd_switch_sending(
 
 @router.callback_query(
     F.data == "set:change_amount",
-    HasCallbackUserFilter(),
     HasCallbackMessageFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
 async def cmd_change_amount(
-    _callback: CallbackQuery,
     state: FSMContext,
-    from_user: User,
+    _callback: CallbackQuery,
     callback_message: Message,
+    user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
     await state.set_state(st.Settings.count_tasks)
-    user = await crud_manager.user.get_user(user_tg=from_user.id)
-    async for session in db_helper.session_getter():
-        query = select(UserSettings).where(UserSettings.user_id == user.id)
-        executed = await session.execute(query)
-        settings = executed.scalar_one()
-
-        await callback_message.edit_text(
-            f"Отправь число, которое должно быть меньше или равно 5 и больше 0"
-            f"\nСейчас у тебя {settings.count_tasks} аффирмаций",
-        )
+    await callback_message.edit_text(
+        f"Выбери, сколько тебе отправлять аффирмаций в день. "
+        f"Сейчас я отправляю в день аффирмаций: <b>{user_settings_db.count_tasks}</b>",
+        reply_markup=kb.set_count_tasks_kb(5),
+    )
 
 
-@router.message(
+@router.callback_query(
     st.Settings.count_tasks,
-    F.text.regexp(r"^\d+$"),
-    HasUserFilter(),
+    CountTasksCallback.filter(F.action == "choose_count"),
+    HasCallbackUserFilter(),
+    HasCallbackMessageFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
-async def set_count_of_affirm(
-    message: Message,
+async def set_count_of_affirm2(
     state: FSMContext,
+    _callback: CallbackQuery,
+    callback_message: Message,
     from_user: User,
+    callback_data: CountTasksCallback,
+    crud_service: CRUDService,
 ) -> None:
-    min_len_text = 1
-    max_len_text = 5
-    if (
-        int(cast(str, message.text)) > max_len_text
-        or int(cast(str, message.text)) < min_len_text
-    ):
-        await message.answer(
-            "Ты ошибся, число должно быть меньше или равно 5 и больше 0",
-        )
-    else:
-        user = await crud_manager.user.get_user(user_tg=from_user.id)
+    user_settings = await crud_service.user.get_user_settings(from_user.id)
+    user_settings.count_tasks = callback_data.value
+    updated_settings = await crud_service.user.update_user_settings(
+        user_tg=from_user.id,
+        settings_in=user_settings,
+    )
 
-        await state.update_data(count_tasks=message.text)
-        data = await state.get_data()
-        try:
-            async for session in db_helper.session_getter():
-                query = select(UserSettings).where(UserSettings.user_id == user.id)
-                executed = await session.execute(query)
-                user_setting = executed.scalar_one()
-                user_setting.count_tasks = int(data["count_tasks"])
-                session.add(user_setting)
-                await session.commit()
-
-            await message.answer(f"Установил число аффирмаций: {data['count_tasks']}")
-            await state.clear()
-
-        except Exception as e:
-            await message.answer(f"Ошибка при изменении настроек, {e}")
-            await state.clear()
-            return
+    await callback_message.answer(
+        f"Установил число аффирмаций: {updated_settings.count_tasks}",
+    )
+    await _callback.answer()
+    await state.clear()
 
 
 @router.callback_query(

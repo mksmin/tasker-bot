@@ -63,3 +63,27 @@ def settings_kb(*, sending_on: bool) -> InlineKeyboardMarkup:
     )
     builder.adjust(2, 1, 1)
     return builder.as_markup()
+
+
+class CountTasksCallback(
+    CallbackData,
+    prefix="set",
+):
+    action: str
+    value: int
+
+
+def set_count_tasks_kb(
+    num: int,
+) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for i in range(1, num + 1):
+        builder.button(
+            text=str(i),
+            callback_data=CountTasksCallback(
+                action="choose_count",
+                value=i,
+            ).pack(),
+        )
+    builder.adjust(5)
+    return builder.as_markup()

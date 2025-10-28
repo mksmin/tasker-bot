@@ -38,6 +38,7 @@ async def run_bot() -> None:
     dp.message.middleware.register(GetUserMiddleware())
     dp.message.middleware.register(GetUserSettingsMiddleware())
 
+    dp.callback_query.middleware.register(GetUserMiddleware())
     dp.callback_query.middleware.register(CRUDServiceMiddleware(db_helper))
     dp.callback_query.middleware.register(GetUserSettingsMiddleware())
     await bot.delete_webhook(
