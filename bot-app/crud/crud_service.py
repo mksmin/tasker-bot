@@ -2,6 +2,8 @@ from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.managers import UserManager
+from crud.services.affirmations import AffirmationService
 from crud.services.users import UserService
 from database import db_helper
 
@@ -13,7 +15,11 @@ class CRUDService:
     ) -> None:
         self._session = session
         self.user = UserService(self._session)
-        self.tasks = None
+        self.affirm = AffirmationService(self._session)
+
+        self.affirm.set_user_manager(
+            UserManager(self._session),
+        )
 
 
 def get_crud_service(

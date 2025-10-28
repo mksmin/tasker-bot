@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from app_exceptions.exceptions import TaskNotFoundError
 from commands.coro import coro
 from crud.crud_service import get_crud_service_with_session
 
@@ -80,3 +81,31 @@ async def get_by_tg_id(
             user_tg=user_tg,
         )
         print(f"Getted user: {user}")
+
+
+@app.command(help="Remove a user affirmation")
+@coro
+async def remove_affirmation(
+    user_tg: Annotated[
+        int,
+        typer.Argument(
+            help="User telegram id",
+        ),
+    ],
+    affirm_id: Annotated[
+        int,
+        typer.Argument(
+            help="Affirmation id",
+        ),
+    ],
+) -> None:
+    async with get_crud_service_with_session() as crud_service:  # type: CRUDService
+        try:
+            await crud_service.affirm.remove_affirmation(
+                user_tg=user_tg,
+                affirm_id=affirm_id,
+            )
+        except TaskNotFoundError:
+            print("Task not found or already removed")
+        else:
+            print("Successfully removed affirmation")
