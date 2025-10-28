@@ -13,9 +13,9 @@ class CRUDService:
         self,
         session: AsyncSession,
     ) -> None:
-        self._session = session
-        self.user = UserService(self._session)
-        self.affirm = AffirmationService(
+        self._session: AsyncSession = session
+        self.user: UserService = UserService(self._session)
+        self.affirm: AffirmationService = AffirmationService(
             self._session,
             UserManager(self._session),
         )
