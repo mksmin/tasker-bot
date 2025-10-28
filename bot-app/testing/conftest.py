@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
@@ -10,14 +11,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from database.models import Base
+from crud.crud_service import CRUDService
+from crud.managers import BaseCRUDManager
+from database.models import Base, User
 from database.schemas import UserCreateSchema
-
-# import external fixtures
-from testing.test_database.test_crud.test_managers.test_base_crud_manager import (  # noqa: F401
-    created_user,
-    instance,
-)
 
 
 @pytest.fixture(scope="function")
@@ -60,3 +57,33 @@ def user_data() -> dict[str, Any]:
 @pytest.fixture
 def user_schema(user_data: dict[str, Any]) -> UserCreateSchema:
     return UserCreateSchema(**user_data)
+
+
+@pytest.fixture
+async def mock_session() -> AsyncSession:
+    return AsyncMock(spec=AsyncSession)
+
+
+@pytest.fixture
+async def mock_crud_service(
+    mock_session: AsyncSession,
+) -> CRUDService:
+    return CRUDService(mock_session)
+
+
+@pytest.fixture
+async def instance(
+    mock_session: AsyncSession,
+) -> BaseCRUDManager[User]:
+    return BaseCRUDManager[User](
+        model=User,
+        session=mock_session,
+    )
+
+
+@pytest.fixture
+async def created_user(
+    user_schema: UserCreateSchema,
+    instance: BaseCRUDManager[User],
+) -> User:
+    return await instance.create(data=user_schema)
