@@ -17,8 +17,16 @@ class AffirmationManager(BaseCRUDManager[Task]):
             model=Task,
         )
 
-    async def create_affirmation(self) -> Task:
-        pass
+    async def create_affirmation(
+        self,
+        user_id: int,
+        text: str,
+    ) -> Task:
+        instance = Task(
+            text_task=text,
+            user_id=user_id,
+        )
+        return self.add(obj=instance)
 
     async def get_affirmations_by_id(
         self,

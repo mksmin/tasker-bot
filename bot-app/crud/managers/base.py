@@ -24,7 +24,7 @@ class BaseCRUDManager(Generic[ModelType]):
     ) -> ModelType | None:
         return await self.session.get(self.model, obj_id)
 
-    async def add(
+    def add(
         self,
         obj: ModelType,
     ) -> ModelType:

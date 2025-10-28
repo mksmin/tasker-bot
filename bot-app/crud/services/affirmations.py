@@ -28,6 +28,20 @@ class AffirmationService:
 
         return await self.user_manager.get_or_create_user_settings(user)
 
+    async def create_affirmation(
+        self,
+        user_tg: int,
+        text: str,
+    ) -> AffirmationReadSchema:
+        settings_with_user = await self._get_user_with_settings(user_tg)
+        affirmation = await self._manager.create_affirmation(
+            user_id=settings_with_user.user_id,
+            text=text,
+        )
+        await self._session.commit()
+
+        return AffirmationReadSchema.model_validate(affirmation)
+
     async def get_paginated_affirmations(
         self,
         user_tg: int,
@@ -35,16 +49,18 @@ class AffirmationService:
         limit: int,
     ) -> list[AffirmationReadSchema]:
         settings_with_user = await self._get_user_with_settings(user_tg)
-        tasks = await self._manager.get_paginated_affirmations(
+        list_affirmations = await self._manager.get_paginated_affirmations(
             user_id=settings_with_user.user_id,
             offset=offset,
             limit=limit,
         )
-        if not tasks:
+        if not list_affirmations:
             message_error = "No affirmations found"
             raise TaskNotFoundError(message_error)
 
-        return [AffirmationReadSchema.model_validate(task) for task in tasks]
+        return [
+            AffirmationReadSchema.model_validate(task) for task in list_affirmations
+        ]
 
     async def get_random_affirmations(
         self,
@@ -52,15 +68,17 @@ class AffirmationService:
         count: int | None = None,
     ) -> list[AffirmationReadSchema]:
         settings_with_user = await self._get_user_with_settings(user_tg)
-        tasks = await self._manager.get_random_affirmation(
+        list_affirmations = await self._manager.get_random_affirmation(
             settings_with_user.user_id,
             count=count if count else settings_with_user.count_tasks,
         )
-        if not tasks:
+        if not list_affirmations:
             message_error = "No affirmations found"
             raise TaskNotFoundError(message_error)
 
-        return [AffirmationReadSchema.model_validate(task) for task in tasks]
+        return [
+            AffirmationReadSchema.model_validate(task) for task in list_affirmations
+        ]
 
     async def remove_affirmation(
         self,
