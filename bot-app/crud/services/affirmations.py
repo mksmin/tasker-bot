@@ -28,6 +28,24 @@ class AffirmationService:
 
         return await self.user_manager.get_or_create_user_settings(user)
 
+    async def get_paginated_affirmations(
+        self,
+        user_tg: int,
+        offset: int,
+        limit: int,
+    ) -> list[AffirmationReadSchema]:
+        settings_with_user = await self._get_user_with_settings(user_tg)
+        tasks = await self._manager.get_paginated_affirmations(
+            user_id=settings_with_user.user_id,
+            offset=offset,
+            limit=limit,
+        )
+        if not tasks:
+            message_error = "No affirmations found"
+            raise TaskNotFoundError(message_error)
+
+        return [AffirmationReadSchema.model_validate(task) for task in tasks]
+
     async def get_random_affirmations(
         self,
         user_tg: int,

@@ -24,7 +24,7 @@ class AffirmationManager(BaseCRUDManager[Task]):
         self,
         affirm_id: int,
     ) -> Task:
-        pass
+        return await self.get(obj_id=affirm_id)
 
     async def get_random_affirmation(
         self,
@@ -48,8 +48,19 @@ class AffirmationManager(BaseCRUDManager[Task]):
         user_id: int,
         offset: int,
         limit: int,
-    ) -> list[Task]:
-        pass
+    ) -> Sequence[Task]:
+        stmt = (
+            select(Task)
+            .where(
+                Task.is_done.is_(False),
+                Task.user_id == user_id,
+            )
+            .order_by(Task.id)
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     async def remove_affirmation(
         self,

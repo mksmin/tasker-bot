@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from database.schemas import TaskReadSchema
+from schemas.affirmations import AffirmationReadSchema
 
 
 class BaseResult(BaseModel):
@@ -9,8 +9,8 @@ class BaseResult(BaseModel):
 
 
 class AffirmationResult(BaseResult):
-    affirmation: TaskReadSchema | None = None
+    affirmation: AffirmationReadSchema | None = None
 
 
 class AffirmationsListResult(BaseResult):
-    affirmations: list[TaskReadSchema] = []
+    affirmations: list[AffirmationReadSchema] = []
