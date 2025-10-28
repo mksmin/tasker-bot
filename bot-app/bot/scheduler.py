@@ -59,7 +59,7 @@ class DailyTaskSheduler:
             minute=user_settings.send_time.minute,
             args=[
                 self._bot,
-                user_settings,
+                user_settings.user.user_tg,
             ],
             id=job_id,
             misfire_grace_time=300,

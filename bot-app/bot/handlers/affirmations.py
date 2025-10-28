@@ -32,7 +32,7 @@ async def cmd_daily_tasks(
     user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
     try:
-        tasks = await get_list_user_tasks(user_settings_db)
+        tasks = await get_list_user_tasks(user_settings_db.user.user_tg)
         msg_to_send = prepare_user_message_for_tasks(tasks)
         await message.answer(text=msg_to_send)
         log.info("Daily tasks sent to user %d", user_settings_db.user.user_tg)

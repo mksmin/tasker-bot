@@ -160,8 +160,9 @@ async def set_count_of_affirm2(
         settings_in=user_settings,
     )
 
-    await callback_message.answer(
-        f"Установил число аффирмаций: {updated_settings.count_tasks}",
+    await callback_message.edit_text(
+        f"Установил число случайных аффирмаций в день: {updated_settings.count_tasks}",
+        reply_markup=kb.back_to_settings,
     )
     await _callback.answer()
     await state.clear()

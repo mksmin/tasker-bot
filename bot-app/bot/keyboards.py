@@ -25,6 +25,16 @@ settings_start = InlineKeyboardMarkup(
         ],
     ],
 )
+back_to_settings = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Вернуться к настройкам",
+                callback_data="change_settings",
+            ),
+        ],
+    ],
+)
 
 
 class SettingsAction(StrEnum):
