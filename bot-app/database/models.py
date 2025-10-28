@@ -14,7 +14,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        autoincrement=True,
+    )
 
 
 class TimeStampMixin:
@@ -28,12 +31,19 @@ class User(TimeStampMixin, Base):
     __tablename__ = "users"
 
     user_tg = mapped_column(BigInteger, nullable=False, unique=True)
-    first_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    last_name: Mapped[str] = mapped_column(String(50), nullable=True)
-    username: Mapped[str] = mapped_column(String(50), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(50))
+    last_name: Mapped[str | None] = mapped_column(String(50))
+    username: Mapped[str | None] = mapped_column(String(50))
 
-    tasks = relationship("Task", back_populates="user")
-    settings = relationship("UserSettings", back_populates="user", uselist=False)
+    tasks = relationship(
+        "Task",
+        back_populates="user",
+    )
+    settings = relationship(
+        "UserSettings",
+        back_populates="user",
+        uselist=False,
+    )
 
 
 class Task(TimeStampMixin, Base):
@@ -56,12 +66,22 @@ class UserSettings(TimeStampMixin, Base):
         nullable=False,
         index=True,
     )
-    count_tasks: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
+    count_tasks: Mapped[int] = mapped_column(
+        Integer,
+        default=5,
+    )
     send_time: Mapped[time] = mapped_column(
         Time,
         nullable=False,
         default=lambda: time(9, 0),
     )
-    send_enable: Mapped[bool] = mapped_column(default=True, server_default="true")
+    send_enable: Mapped[bool] = mapped_column(
+        default=True,
+        server_default="true",
+    )
 
-    user = relationship("User", back_populates="settings", uselist=False)
+    user = relationship(
+        "User",
+        back_populates="settings",
+        uselist=False,
+    )
