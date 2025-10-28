@@ -87,3 +87,56 @@ def set_count_tasks_kb(
         )
     builder.adjust(5)
     return builder.as_markup()
+
+
+class TimePickerCallback(CallbackData, prefix="time"):
+    action: str
+    hour: int | None = None
+    minute: int | None = None
+
+
+def hour_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for h in range(24):
+        builder.button(
+            text=f"{h:02d}",
+            callback_data=TimePickerCallback(
+                action="hour",
+                hour=h,
+            ).pack(),
+        )
+    builder.row(
+        InlineKeyboardButton(
+            text="Отмена",
+            callback_data="set:cancel_change_settings",
+        ),
+    )
+    builder.adjust(6)
+    return builder.as_markup()
+
+
+def minute_keyboard(hour: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for m in [0, 15, 30, 45]:
+        builder.button(
+            text=f"{m:02d}",
+            callback_data=TimePickerCallback(
+                action="minute",
+                hour=hour,
+                minute=m,
+            ).pack(),
+        )
+    builder.row(
+        InlineKeyboardButton(
+            text="Задать минуты вручную",
+            callback_data="set:custom_time",
+        ),
+    )
+    builder.row(
+        InlineKeyboardButton(
+            text="Отмена",
+            callback_data="set:cancel_change_settings",
+        ),
+    )
+    builder.adjust(4)
+    return builder.as_markup()

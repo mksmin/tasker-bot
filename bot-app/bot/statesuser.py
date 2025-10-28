@@ -10,3 +10,4 @@ class Settings(StatesGroup):
     count_tasks = State()
     time_hour = State()
     time_minute = State()
+    time_custom_minute = State()

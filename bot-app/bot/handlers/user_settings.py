@@ -1,13 +1,10 @@
 import logging
 from datetime import time
-from typing import cast
 
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 
 from bot import keyboards as kb
 from bot import statesuser as st
@@ -16,18 +13,18 @@ from bot.handler_filtres import (
     HasCallbackUserFilter,
     HasUserFilter,
 )
-from bot.keyboards import CountTasksCallback
+from bot.keyboards import CountTasksCallback, TimePickerCallback
 from bot.scheduler import scheduler_instance
 from crud.crud_service import CRUDService
-from database import UserSettings, db_helper
-from database.crud import crud_manager
 from schemas.users import (
-    UserSettingsWithUserReadSchema,
     UserSettingsWithUserResponseSchema,
 )
 
 router = Router()
 log = logging.getLogger(__name__)
+
+MINIMUM_MINUTE = 0
+MAXIMUM_MINUTE = 59
 
 
 @router.message(
@@ -129,8 +126,8 @@ async def cmd_switch_sending(
     },
 )
 async def cmd_change_amount(
-    state: FSMContext,
     _callback: CallbackQuery,
+    state: FSMContext,
     callback_message: Message,
     user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
@@ -147,13 +144,10 @@ async def cmd_change_amount(
     CountTasksCallback.filter(F.action == "choose_count"),
     HasCallbackUserFilter(),
     HasCallbackMessageFilter(),
-    flags={
-        "user_settings": True,
-    },
 )
 async def set_count_of_affirm2(
-    state: FSMContext,
     _callback: CallbackQuery,
+    state: FSMContext,
     callback_message: Message,
     from_user: User,
     callback_data: CountTasksCallback,
@@ -176,109 +170,139 @@ async def set_count_of_affirm2(
 @router.callback_query(
     F.data == "set:change_time",
     HasCallbackMessageFilter(),
+    flags={
+        "user_settings": True,
+    },
 )
 async def cmd_change_time(
-    callback: CallbackQuery,
+    _callback: CallbackQuery,
+    state: FSMContext,
+    callback_message: Message,
+    user_settings_db: UserSettingsWithUserResponseSchema,
+) -> None:
+
+    await callback_message.edit_text(
+        f"🕐"
+        f"Выбери час отправки аффирмаций (мск).\n"
+        f"Текущее время отправки: <b>{user_settings_db.send_time:%H:%M}</b>",
+        reply_markup=kb.hour_keyboard(),
+    )
+    await _callback.answer()
+    await state.set_state(st.Settings.time_hour)
+
+
+@router.callback_query(
+    st.Settings.time_hour,
+    TimePickerCallback.filter(F.action == "hour"),
+    HasCallbackMessageFilter(),
+)
+async def choose_minutes(
+    _callback: CallbackQuery,
+    state: FSMContext,
+    callback_message: Message,
+    callback_data: TimePickerCallback,
+) -> None:
+    await state.update_data(time_hour=callback_data.hour)
+    await callback_message.edit_text(
+        f"Выбран час: <b>{callback_data.hour:02d}</b>\nТеперь выбери минуты:",
+        reply_markup=kb.minute_keyboard(callback_data.hour),
+    )
+    await _callback.answer()
+    await state.set_state(st.Settings.time_minute)
+
+
+@router.callback_query(
+    st.Settings.time_minute,
+    F.data == "set:custom_time",
+    HasCallbackMessageFilter(),
+)
+async def cmd_custom_minutes(
+    _callback: CallbackQuery,
     state: FSMContext,
     callback_message: Message,
 ) -> None:
-    await state.set_state(st.Settings.time_hour)
-    user = await crud_manager.user.get_user(user_tg=callback.from_user.id)
-
-    async for session in db_helper.session_getter():
-        query = select(UserSettings).where(UserSettings.user_id == user.id)
-        executed = await session.execute(query)
-        settings = executed.scalar_one()
-
-        await callback_message.edit_text(
-            "Отправь число от 0 до 23, это будет час отправки аффирмаций",
-            f"\nСейчас время отправки {settings.send_time} ",
-        )
+    data = await state.get_data()
+    await callback_message.edit_text(
+        f"Выбран час: <b>{data.get('time_hour', 0):02d}</b>\n"
+        f"Теперь введи минуты вручную (0–59):",
+    )
+    await _callback.answer()
+    await state.set_state(st.Settings.time_custom_minute)
 
 
-@router.message(st.Settings.time_hour, F.text.regexp(r"^\d+$"))
-async def cmd_set_hour(message: Message, state: FSMContext) -> None:
-    min_len_text = 0
-    max_len_text = 23
-    if (
-        int(cast(str, message.text)) > max_len_text
-        or int(cast(str, message.text)) < min_len_text
-    ):
-        await message.answer("Ошибка, число должно быть меньше или равно 23 и больше 0")
-    else:
-        await state.update_data(time_hour=message.text)
-        data = await state.get_data()
-        try:
-            await message.answer(
-                f"Установил час отправки аффирмаций: {data['time_hour']}, "
-                f"теперь отправь минуты",
-            )
-            await state.set_state(st.Settings.time_minute)
+@router.callback_query(
+    st.Settings.time_minute,
+    TimePickerCallback.filter(F.action == "minute"),
+    HasCallbackUserFilter(),
+    HasCallbackMessageFilter(),
+)
+async def confirm_time(
+    _callback: CallbackQuery,
+    state: FSMContext,
+    callback_message: Message,
+    callback_data: TimePickerCallback,
+    crud_service: CRUDService,
+    from_user: User,
+) -> None:
+    hour = callback_data.hour
+    minute = callback_data.minute
+    new_time = time(hour=hour, minute=minute)
 
-        except Exception as e:
-            await message.answer(f"Ошибка при изменении настроек, {e}")
-            await state.clear()
-            return
+    user_settings = await crud_service.user.get_user_settings(from_user.id)
+    user_settings.send_time = new_time
+    updated_settings = await crud_service.user.update_user_settings(
+        user_tg=from_user.id,
+        settings_in=user_settings,
+    )
+    scheduler_instance.add_or_update_job(
+        user_settings=updated_settings,
+    )
+    await callback_message.edit_text(
+        f"✅ Время отправки аффирмаций установлено: "
+        f"<b>{updated_settings.send_time:%H:%M}</b> (мск).\n"
+        f"Проверь настройки командой /settings",
+    )
+    await state.clear()
 
 
 @router.message(
-    st.Settings.time_minute,
+    st.Settings.time_custom_minute,
     F.text.regexp(r"^\d+$"),
     HasUserFilter(),
 )
-async def cmd_set_minutes(
+async def cmd_save_custom_minutes(
     message: Message,
     state: FSMContext,
+    crud_service: CRUDService,
     from_user: User,
 ) -> None:
-    min_len_text = 0
-    max_len_text = 59
-    if (
-        int(cast(str, message.text)) > max_len_text
-        or int(cast(str, message.text)) < min_len_text
-    ):
-        await message.answer("Ошибка, число должно быть меньше или равно 59 и больше 0")
+    minute = int(message.text)
+
+    if not MINIMUM_MINUTE <= minute <= MAXIMUM_MINUTE:
+        await message.answer("Ошибка: нужно число от 0 до 59. Попробуй снова.")
         return
 
-    await state.update_data(time_minute=message.text)
     data = await state.get_data()
-    new_time = time(hour=int(data["time_hour"]), minute=int(data["time_minute"]))
+    hour = int(data["time_hour"])
+    new_time = time(hour=hour, minute=minute)
 
-    user = await crud_manager.user.get_user(user_tg=from_user.id)
+    user_settings = await crud_service.user.get_user_settings(from_user.id)
+    user_settings.send_time = new_time
+    updated_settings = await crud_service.user.update_user_settings(
+        user_tg=from_user.id,
+        settings_in=user_settings,
+    )
 
-    try:
-        async for session in db_helper.session_getter():
-            query = (
-                select(UserSettings)
-                .where(UserSettings.user_id == user.id)
-                .options(
-                    joinedload(UserSettings.user),
-                )
-            )
-            executed = await session.execute(query)
-            user_setting = executed.scalar_one()
-            user_setting.send_time = new_time
-            session.add(user_setting)
-            await session.commit()
+    scheduler_instance.add_or_update_job(
+        user_settings=updated_settings,
+    )
 
-            if user_setting.send_enable:
-                scheduler_instance.add_or_update_job(
-                    user_settings=UserSettingsWithUserReadSchema.model_validate(
-                        user_setting,
-                    ),
-                )
-
-        await message.answer(
-            f"Установил время отправки аффирмаций: {new_time} (мск). "
-            f"Проверь настройки командой /settings",
-        )
-        await state.set_state(st.Settings.time_minute)
-
-    except Exception as e:
-        log.exception("Ошибка при изменении настроек")
-        await message.answer(f"Ошибка при изменении настроек, {e}")
-        await state.clear()
-        return
+    await message.answer(
+        f"✅ Время отправки аффирмаций установлено: "
+        f"<b>{updated_settings.send_time:%H:%M}</b> (мск).\n"
+        f"Проверь настройки командой /settings",
+    )
+    await state.clear()
 
 
 @router.callback_query(
@@ -287,9 +311,11 @@ async def cmd_set_minutes(
 )
 async def cmd_back_to_settings(
     _callback: CallbackQuery,
+    state: FSMContext,
     callback_message: Message,
 ) -> None:
     await callback_message.edit_text(
         "Ничего менять не будем. Вызови команду /settings, "
         "чтобы вернуться к настройкам",
     )
+    await state.clear()
