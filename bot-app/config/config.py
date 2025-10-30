@@ -19,6 +19,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 class BotConfig(BaseModel):
     token: str
+    owner_tg_id: int
 
 
 class DatabaseConfig(BaseModel):

@@ -1,5 +1,7 @@
-from aiogram.filters import BaseFilter
+from aiogram.filters import BaseFilter, Filter
 from aiogram.types import Message, User
+
+from config import settings
 
 
 class HasUserFilter(BaseFilter):
@@ -12,3 +14,11 @@ class HasUserFilter(BaseFilter):
         return {
             "from_user": message.from_user,
         }
+
+
+class RootPermissionFilter(Filter):
+    async def __call__(
+        self,
+        message: Message,
+    ) -> bool:
+        return message.from_user.id == settings.bot.owner_tg_id
