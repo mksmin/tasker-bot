@@ -1,6 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_exceptions.exceptions import TaskNotFoundError, UserNotFoundError
+from app_exceptions.exceptions import (
+    TaskNotFoundError,
+    UserHasNoTasksError,
+    UserNotFoundError,
+)
 from crud.managers import UserManager
 from crud.managers.affirmations import AffirmationManager
 from database import UserSettings
@@ -73,8 +77,10 @@ class AffirmationService:
             count=count if count else settings_with_user.count_tasks,
         )
         if not list_affirmations:
-            message_error = "No affirmations found"
-            raise TaskNotFoundError(message_error)
+            message_error = (
+                f"No affirmations found for user={settings_with_user.user_id}"
+            )
+            raise UserHasNoTasksError(message_error)
 
         return [
             AffirmationReadSchema.model_validate(task) for task in list_affirmations
