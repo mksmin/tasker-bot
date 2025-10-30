@@ -1,0 +1,16 @@
+tasks-bot:
+  db:
+    scheme: postgresql # sqlite, etc
+    engine: asyncpg
+    host: host
+    port: 1234
+
+    echo: false
+    echo_pool: false
+    pool_size: 50
+    max_overflow: 10
+
+  rabbit:
+    host: host
+    port: 1234
+    vhostname: virtual_host_name
