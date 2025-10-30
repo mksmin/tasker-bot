@@ -158,3 +158,19 @@ def minute_keyboard(
     )
     builder.adjust(4)
     return builder.as_markup()
+
+
+sending_message_to_users_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Отправить сообщения",
+                callback_data="send_message",
+            ),
+            InlineKeyboardButton(
+                text="Отменить",
+                callback_data="cancel_sending",
+            ),
+        ],
+    ],
+)
