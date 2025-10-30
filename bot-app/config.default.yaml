@@ -14,3 +14,4 @@ tasks-bot:
     host: host
     port: 1234
     vhostname: virtual_host_name
+    secure: true

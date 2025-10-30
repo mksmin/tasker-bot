@@ -58,6 +58,7 @@ class RabbitMQConfig(BaseModel):
     username: str
     password: str
     vhostname: str
+    secure: bool = True
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -66,10 +67,9 @@ class RabbitMQConfig(BaseModel):
         safe_password = quote(self.password, safe="")
         safe_vhost = quote(self.vhostname, safe="")
         domain = quote(self.host.encode("idna").decode())
+        protocol = "amqps" if self.secure else "amqp"
 
-        return (
-            f"amqps://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
-        )
+        return f"{protocol}://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
 
 
 class Settings(BaseSettings):
