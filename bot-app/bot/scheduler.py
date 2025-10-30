@@ -51,6 +51,8 @@ class DailyTaskScheduler:
     ) -> None:
         from bot.dependencies import send_daily_tasks  # noqa: PLC0415
 
+        assert self._bot is not None, "Bot instance must be set before scheduling jobs"
+
         try:
             await send_daily_tasks(self._bot, user_tg)
         except TelegramForbiddenError as e:
