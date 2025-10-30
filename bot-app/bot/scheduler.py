@@ -1,11 +1,11 @@
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
     AsyncIOScheduler,
 )
 from sqlalchemy import ScalarResult, select
 from sqlalchemy.orm import joinedload
 
-from bot.dependencies import send_daily_tasks
 from config import logger
 from database import UserSettings, db_helper
 from schemas.users import (
@@ -13,7 +13,7 @@ from schemas.users import (
 )
 
 
-class DailyTaskSheduler:
+class DailyTaskScheduler:
     def __init__(self) -> None:
         self.scheduler = AsyncIOScheduler()
         self._bot: Bot | None = None
@@ -44,6 +44,23 @@ class DailyTaskSheduler:
 
             self.scheduler.start()
 
+    async def safe_send_wrapper(
+        self,
+        user_id: int,
+        user_tg: int,
+    ) -> None:
+        from bot.dependencies import send_daily_tasks  # noqa: PLC0415
+
+        try:
+            await send_daily_tasks(self._bot, user_tg)
+        except TelegramForbiddenError as e:
+            logger.warning(
+                "Removing job for user %d due to TelegramForbiddenError: %s",
+                user_id,
+                e,
+            )
+            self.remove_job(user_id)
+
     def add_or_update_job(
         self,
         user_settings: UserSettingsWithUserReadSchema,
@@ -53,7 +70,7 @@ class DailyTaskSheduler:
             self.scheduler.remove_job(job_id)
 
         self.scheduler.add_job(
-            send_daily_tasks,
+            self.safe_send_wrapper,
             trigger="cron",
             hour=user_settings.send_time.hour,
             minute=user_settings.send_time.minute,
@@ -87,9 +104,11 @@ class DailyTaskSheduler:
             )
 
 
-scheduler_instance = DailyTaskSheduler()
+scheduler_instance = DailyTaskScheduler()
 
 
-async def setup_scheduler(bot: Bot) -> None:
+async def setup_scheduler(
+    bot: Bot,
+) -> None:
     scheduler_instance.set_bot(bot)
     await scheduler_instance.init_jobs_from_db()
