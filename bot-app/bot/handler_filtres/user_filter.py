@@ -21,4 +21,6 @@ class RootPermissionFilter(Filter):
         self,
         message: Message,
     ) -> bool:
-        return message.from_user.id == settings.bot.owner_tg_id
+        if message.from_user:
+            return message.from_user.id == settings.bot.owner_tg_id
+        return False

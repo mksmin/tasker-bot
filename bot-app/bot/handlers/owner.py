@@ -1,4 +1,4 @@
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -32,6 +32,7 @@ async def confirm_message_for_send(
     message: Message,
     state: FSMContext,
 ) -> None:
+    assert message.bot
     await state.update_data(
         value=message.html_text,
     )
@@ -67,6 +68,11 @@ async def send_message(
     _callback: CallbackQuery,
     state: FSMContext,
 ) -> None:
+    if not isinstance(_callback.message, Message):
+        return
+    if not isinstance(_callback.bot, Bot):
+        return
+
     bot = _callback.bot
     errors_msg = []
 
@@ -116,6 +122,9 @@ async def cancel_send(
     _callback: CallbackQuery,
     state: FSMContext,
 ) -> None:
+    if not isinstance(_callback.message, Message):
+        return
+
     await _callback.message.edit_text(
         "Ты решил не отправлять сообщение",
         reply_markup=None,
