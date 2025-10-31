@@ -1,6 +1,6 @@
 [project]
 name = "tasker-bot"
-version = "1.0.1"
+version = "1.1.0"
 description = "Telegram bot for my projects"
 authors = [
     {name = "mks_min",email = "mininname@vk.com"}
