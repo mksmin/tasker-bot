@@ -15,3 +15,6 @@ tasks-bot:
     port: 1234
     vhostname: virtual_host_name
     secure: true
+
+  bot:
+    owner_tg_id: 87396076
