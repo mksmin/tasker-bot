@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -25,6 +27,11 @@ class UserManager(BaseCRUDManager[User]):
         self.session.add(instance)
         await self.session.flush()
         return instance
+
+    async def get_all_users(self) -> Sequence[User]:
+        stmt = select(User).order_by(User.id)
+        query = await self.session.execute(stmt)
+        return query.scalars().all()
 
     async def get_user_by_tg_id(
         self,

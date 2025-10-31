@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from bot import keyboards as kb
 from bot import statesuser as st
 from bot.handler_filtres.user_filter import RootPermissionFilter
+from crud.crud_service import CRUDService
 
 router = Router()
 
@@ -67,6 +68,7 @@ async def confirm_message_for_send(
 async def send_message(
     _callback: CallbackQuery,
     state: FSMContext,
+    crud_service: CRUDService,
 ) -> None:
     if not isinstance(_callback.message, Message):
         return
@@ -79,24 +81,24 @@ async def send_message(
     await _callback.answer("Запустил отправку")
 
     data = await state.get_data()
-    list_users_ids = [...]  # TODO: добавить метод выгрузки всех id пользователей бота
+    list_users_ids = await crud_service.user.get_all_users()
 
-    for user_id in list_users_ids:
+    for user in list_users_ids:
         try:
             if photo_id := data.get("image_id"):
                 await bot.send_photo(
-                    chat_id=user_id,
+                    chat_id=user.user_tg,
                     photo=photo_id,
                     caption=data["value"],
                 )
                 continue
             await bot.send_message(
-                chat_id=user_id,
+                chat_id=user.user_tg,
                 text=data["value"],
             )
         except (TelegramForbiddenError, TelegramBadRequest) as e:
             errors_msg.append(
-                f"Не удалось отправить сообщение пользователю {user_id}: {e!s}",
+                f"Не удалось отправить сообщение пользователю {user.user_tg}: {e!s}",
             )
     if errors_msg:
         list_errors = "\n".join(errors_msg)
