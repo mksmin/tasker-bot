@@ -62,6 +62,10 @@ class UserService:
             raise UserNotFoundError
         return UserReadSchema.model_validate(user_exists)
 
+    async def get_all_users(self) -> list[UserReadSchema]:
+        users = await self._manager.get_all_users()
+        return [UserReadSchema.model_validate(user) for user in users]
+
     async def get_user_settings(
         self,
         user_tg: int,

@@ -11,3 +11,9 @@ class Settings(StatesGroup):
     time_hour = State()
     time_minute = State()
     time_custom_minute = State()
+
+
+class SendingMessage(StatesGroup):
+    value = State()
+    confirm_sending = State()
+    image_id = State()

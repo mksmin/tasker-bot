@@ -1,3 +1,4 @@
+config.local.yaml
 tasker-bot.iml
 bot-app/.env.*
 !bot-app/.env.template
