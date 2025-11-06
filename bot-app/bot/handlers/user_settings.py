@@ -3,6 +3,7 @@ from datetime import time
 from typing import cast
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, User
@@ -106,18 +107,29 @@ async def cmd_switch_sending(
         scheduler_instance.remove_job(
             user_id=updated_settings.user.id,
         )
-
-    await callback_message.edit_text(
-        "Выбери, что хочешь изменить",
-        reply_markup=kb.settings_kb(
-            sending_on=user_settings.send_enable,
-        ),
-    )
-    message = (
-        "Отправка включена" if updated_settings.send_enable else "Отправка выключена"
-    )
-    await _callback.answer(message)
-    await state.clear()
+    try:
+        await callback_message.edit_text(
+            "Выбери, что хочешь изменить",
+            reply_markup=kb.settings_kb(
+                sending_on=user_settings.send_enable,
+            ),
+        )
+    except TelegramBadRequest as e:
+        error_message = (
+            f"Ошибка во время обновления настроек пользователя {from_user.id}: {e}"
+        )
+        log.exception(error_message)
+        message = "Кажется, настройки уже были изменены"
+        await _callback.answer(message)
+    else:
+        message = (
+            "Отправка включена"
+            if updated_settings.send_enable
+            else "Отправка выключена"
+        )
+        await _callback.answer(message)
+    finally:
+        await state.clear()
 
 
 @router.callback_query(
