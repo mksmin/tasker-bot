@@ -27,7 +27,7 @@ class AffirmationService:
     ) -> UserSettings:
         user = await self.user_manager.get_user_by_tg_id(user_tg)
         if not user:
-            message_error = "User not found"
+            message_error = f"User with tg_id={user_tg} not found"
             raise UserNotFoundError(message_error)
 
         return await self.user_manager.get_or_create_user_settings(user)
@@ -59,7 +59,7 @@ class AffirmationService:
             limit=limit,
         )
         if not list_affirmations:
-            message_error = "No affirmations found"
+            message_error = f"No affirmations found for user={user_tg}"
             raise TaskNotFoundError(message_error)
 
         return [
@@ -77,9 +77,7 @@ class AffirmationService:
             count=count if count else settings_with_user.count_tasks,
         )
         if not list_affirmations:
-            message_error = (
-                f"No affirmations found for user={settings_with_user.user_id}"
-            )
+            message_error = f"No affirmations found for user={user_tg}"
             raise UserHasNoTasksError(message_error)
 
         return [
@@ -97,7 +95,10 @@ class AffirmationService:
             affirm_id,
         )
         if not result:
-            message_error = "Affirmation not found or already deleted"
+            message_error = (
+                f"Affirmation {affirm_id} not found "
+                f"or already deleted for user={user_tg}"
+            )
             raise TaskNotFoundError(message_error)
 
         await self._session.commit()

@@ -69,7 +69,11 @@ async def on_shutdown() -> None:
 
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s]  %(levelname)s: —— %(message)s"
-    logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=FORMAT)
+    logging.basicConfig(
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        format=FORMAT,
+    )
 
     try:
         asyncio.run(main())
