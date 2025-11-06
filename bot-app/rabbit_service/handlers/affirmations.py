@@ -63,9 +63,13 @@ class PatchAffirmationsSettingsHandler(BaseHandler):
                 settings_in=query,
             )
             if (
-                payload_in.settings_in.send_enable is not None
-                or payload_in.settings_in.send_time is not None
-            ) and updated_settings.send_enable:
+                payload_in.settings_in
+                and (
+                    payload_in.settings_in.send_enable is not None
+                    or payload_in.settings_in.send_time is not None
+                )
+                and updated_settings.send_enable
+            ):
                 scheduler_instance.add_or_update_job(
                     user_settings=updated_settings,
                 )
