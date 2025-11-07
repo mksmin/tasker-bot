@@ -1,8 +1,12 @@
+from datetime import datetime
+from typing import TypedDict
+
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
     AsyncIOScheduler,
 )
+from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import ScalarResult, select
 from sqlalchemy.orm import joinedload
 
@@ -11,6 +15,20 @@ from database import UserSettings, db_helper
 from schemas.users import (
     UserSettingsWithUserReadSchema,
 )
+
+
+class JobInfo(TypedDict, total=False):
+    id: str
+    name: str | None
+    next_run_time: datetime | None
+    trigger: str
+    hour: str | None
+    minute: str | None
+    timezone: str | None
+    coalesce: bool
+    misfire_grace_time: int | None
+    user_id: int | None
+    user_tg: int | None
 
 
 class DailyTaskScheduler:
@@ -77,7 +95,7 @@ class DailyTaskScheduler:
             hour=user_settings.send_time.hour,
             minute=user_settings.send_time.minute,
             args=[
-                self._bot,
+                user_settings.user.id,
                 user_settings.user.user_tg,
             ],
             id=job_id,
@@ -104,6 +122,45 @@ class DailyTaskScheduler:
                 job_id,
                 user_id,
             )
+
+    def list_jobs(self) -> list[JobInfo]:
+        items: list[JobInfo] = []
+        for job in self.scheduler.get_jobs():
+            tz = None
+            hour = None
+            minute = None
+            if isinstance(job.trigger, CronTrigger):
+                tz = str(job.trigger.timezone)
+                minute = str(job.trigger.fields[1])
+                hour = str(job.trigger.fields[2])
+
+            args = list(job.args or [])
+            user_id = None
+            user_tg = None
+            len_args_constant = 2
+            if (
+                len(args) >= len_args_constant
+                and isinstance(args[0], int)
+                and isinstance(args[1], int)
+            ):
+                user_id, user_tg = args[0], args[1]
+
+            items.append(
+                {
+                    "id": job.id,
+                    "name": job.name,
+                    "next_run_time": job.next_run_time,
+                    "trigger": str(job.trigger),
+                    "hour": hour,
+                    "minute": minute,
+                    "timezone": tz,
+                    "coalesce": job.coalesce,
+                    "misfire_grace_time": job.misfire_grace_time,
+                    "user_id": user_id,
+                    "user_tg": user_tg,
+                },
+            )
+        return items
 
 
 scheduler_instance = DailyTaskScheduler()

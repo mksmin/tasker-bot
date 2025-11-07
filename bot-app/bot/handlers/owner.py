@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from bot import keyboards as kb
 from bot import statesuser as st
 from bot.handler_filtres.user_filter import RootPermissionFilter
+from bot.scheduler import scheduler_instance
 from crud.crud_service import CRUDService
 
 router = Router()
@@ -133,3 +134,73 @@ async def cancel_send(
     )
     await _callback.answer("Операция отменена")
     await state.clear()
+
+
+@router.message(
+    Command("jobs"),
+    RootPermissionFilter(),
+)
+async def get_scheduler_jobs(message: Message) -> None:  # noqa: C901
+    jobs = scheduler_instance.list_jobs()
+
+    def user_link(job: dict) -> str:
+        tg_id = job.get("user_tg")
+        return f'<a href="tg://user?id={tg_id}">{tg_id}</a>' if tg_id else "—"
+
+    entries = []
+    for job in jobs:
+        next_run = (
+            job["next_run_time"].strftime("%Y-%m-%d %H:%M")
+            if job.get("next_run_time")
+            else "—"
+        )
+        entry = (
+            f"id: <code>{job['id']}</code>\n"
+            f"Next run: <code>{next_run}</code>\n"
+            f"User: {user_link(job)}"
+        )
+        entries.append(entry)
+
+    def chunk_entries(
+        parts: list[str],
+        limit: int = 4000,
+        sep: str = "\n\n",
+    ) -> list[str]:
+        chunks: list[str] = []
+        buf: list[str] = []
+        cur_len = 0
+        for p in parts:
+            add_len = (len(sep) if buf else 0) + len(p)
+            if cur_len + add_len > limit:
+                if buf:
+                    chunks.append(sep.join(buf))
+                buf = [p]
+                cur_len = len(p)
+            elif buf:
+                buf.append(p)
+                cur_len += add_len
+            else:
+                buf = [p]
+                cur_len = len(p)
+        if buf:
+            chunks.append(sep.join(buf))
+        return chunks
+
+    result = "\n\n".join(entries)
+    try:
+        await message.answer(
+            result,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    except TelegramBadRequest as e:
+        text = str(e).lower()
+        if "message is too long" in text or "message_too_long" in text:
+            for part in chunk_entries(entries):
+                await message.answer(
+                    part,
+                    parse_mode="HTML",
+                    disable_web_page_preview=True,
+                )
+        else:
+            raise

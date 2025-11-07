@@ -63,3 +63,5 @@ async def send_daily_tasks(
                     user_tg,
                 )
                 scheduler_instance.remove_job(user_settings.user.id)
+
+        raise
