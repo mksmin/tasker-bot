@@ -1,34 +1,18 @@
-from datetime import datetime
-from typing import TypedDict
-
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
     AsyncIOScheduler,
 )
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.cron import CronTrigger  # type: ignore[import-untyped]
 from sqlalchemy import ScalarResult, select
 from sqlalchemy.orm import joinedload
 
+from bot.schemas import JobInfo
 from config import logger
 from database import UserSettings, db_helper
 from schemas.users import (
     UserSettingsWithUserReadSchema,
 )
-
-
-class JobInfo(TypedDict, total=False):
-    id: str
-    name: str | None
-    next_run_time: datetime | None
-    trigger: str
-    hour: str | None
-    minute: str | None
-    timezone: str | None
-    coalesce: bool
-    misfire_grace_time: int | None
-    user_id: int | None
-    user_tg: int | None
 
 
 class DailyTaskScheduler:

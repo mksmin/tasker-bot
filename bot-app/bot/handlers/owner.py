@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command
@@ -8,6 +10,7 @@ from bot import keyboards as kb
 from bot import statesuser as st
 from bot.handler_filtres.user_filter import RootPermissionFilter
 from bot.scheduler import scheduler_instance
+from bot.schemas import JobInfo
 from crud.crud_service import CRUDService
 
 router = Router()
@@ -143,17 +146,14 @@ async def cancel_send(
 async def get_scheduler_jobs(message: Message) -> None:  # noqa: C901
     jobs = scheduler_instance.list_jobs()
 
-    def user_link(job: dict) -> str:
-        tg_id = job.get("user_tg")
+    def user_link(job_dict: JobInfo) -> str:
+        tg_id = job_dict.get("user_tg")
         return f'<a href="tg://user?id={tg_id}">{tg_id}</a>' if tg_id else "—"
 
     entries = []
     for job in jobs:
-        next_run = (
-            job["next_run_time"].strftime("%Y-%m-%d %H:%M")
-            if job.get("next_run_time")
-            else "—"
-        )
+        nrt = job.get("next_run_time")  # type: datetime | None
+        next_run = nrt.strftime("%Y-%m-%d %H:%M") if isinstance(nrt, datetime) else "—"
         entry = (
             f"id: <code>{job['id']}</code>\n"
             f"Next run: <code>{next_run}</code>\n"
