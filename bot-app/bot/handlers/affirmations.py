@@ -57,6 +57,16 @@ async def user_add_task(
         if not message.text:
             return
 
+        max_len_affirm = 500
+
+        if len(message.text) > max_len_affirm:
+            await message.answer(
+                f"Аффирмация слишком длинная"
+                f"\nМаксимальная длина - <strong>{max_len_affirm}</strong> символов"
+                f"\nВ твоем тексте <strong>{len(message.text)}</strong> символов",
+            )
+            return
+
         task_added = await crud_service.affirm.create_affirmation(
             text=message.text,
             user_tg=from_user.id,
