@@ -15,6 +15,12 @@ class DeleteAffirmationCommand(BaseCommand):
     affirmation_id: int
 
 
+class UpdateAffirmationCommand(BaseCommand):
+    user_tg: int
+    affirmation_id: int
+    affirmation_in: str
+
+
 class AffirmationsSettings(BaseCommand):
     count_tasks: int | None = None
     send_time: str | None = None

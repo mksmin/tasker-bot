@@ -87,3 +87,23 @@ class AffirmationManager(BaseCRUDManager[Task]):
             return True
 
         return None
+
+    async def update_affirmation(
+        self,
+        user_id: int,
+        affirm_id: int,
+        affirm_text: str,
+    ) -> bool | Task:
+        stmt = select(Task).where(
+            Task.id == affirm_id,
+            Task.is_done.is_(False),
+            Task.user_id == user_id,
+        )
+        result = await self.session.execute(stmt)
+        affirmation = result.scalar_one_or_none()
+
+        if not affirmation:
+            return False
+
+        affirmation.text_task = affirm_text
+        return self.add(affirmation)

@@ -6,6 +6,7 @@ from rabbit_service.handlers.base import BaseHandler
 from rabbit_service.schemas.commands import (
     DeleteAffirmationCommand,
     PatchAffirmationsSettingsCommand,
+    UpdateAffirmationCommand,
 )
 from rabbit_service.schemas.queries import GetPaginatedAffirmationsQuery
 from rabbit_service.schemas.results import AffirmationsListResult
@@ -47,6 +48,21 @@ class RemoveAffirmationHandler(BaseHandler):
             await crud_service.affirm.remove_affirmation(
                 user_tg=query.user_tg,
                 affirm_id=query.affirmation_id,
+            )
+
+
+class UpdateAffirmationHandler(BaseHandler):
+    async def handle(
+        self,
+        payload: dict[str, Any],
+    ) -> None:
+        query = UpdateAffirmationCommand(**payload)
+
+        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+            await crud_service.affirm.update_affirmation(
+                user_tg=query.user_tg,
+                affirm_id=query.affirmation_id,
+                affirm_text=query.affirmation_in,
             )
 
 
