@@ -102,3 +102,24 @@ class AffirmationService:
             raise TaskNotFoundError(message_error)
 
         await self._session.commit()
+
+    async def update_affirmation(
+        self,
+        user_tg: int,
+        affirm_id: int,
+        affirm_text: str,
+    ) -> None:
+        user = await self._get_user_with_settings(user_tg)
+        result = await self._manager.update_affirmation(
+            user.user_id,
+            affirm_id,
+            affirm_text,
+        )
+        if not result:
+            message_error = (
+                f"Affirmation {affirm_id} not found "
+                f"or already deleted for user={user_tg}"
+            )
+            raise TaskNotFoundError(message_error)
+
+        await self._session.commit()
