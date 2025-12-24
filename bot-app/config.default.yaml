@@ -18,3 +18,11 @@ tasks-bot:
 
   bot:
     owner_tg_id: 87396076
+
+  run:
+    host: 0.0.0.0
+    port: 8080
+
+    webhook:
+      host: https://example.com
+      path: /any/webhook
