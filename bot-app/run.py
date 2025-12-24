@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Any
 
@@ -6,14 +5,6 @@ import uvicorn
 
 from config import settings
 from config.config import logger
-from rabbit_service.broker import broker
-
-
-async def main() -> None:
-    await asyncio.gather(
-        broker.start(),
-    )
-
 
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s]  %(levelname)s: —— %(message)s"
@@ -34,6 +25,5 @@ if __name__ == "__main__":
 
     try:
         uvicorn.run(**run_args)
-        asyncio.run(main())
     except KeyboardInterrupt:
         logger.warning("KeyboardInterrupt")

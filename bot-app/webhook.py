@@ -23,6 +23,7 @@ from bot.middlewares import (
 from bot.scheduler import setup_scheduler
 from config import logger, settings
 from database import db_helper
+from rabbit_service.broker import broker
 
 log = logging.getLogger(__name__)
 
@@ -68,6 +69,7 @@ async def lifespan(
         log.info("Webhook is up to date.")
 
     await setup_scheduler(bot)
+    await broker.start()
     yield
     log.info("Deleting webhook")
     await bot.delete_webhook()
