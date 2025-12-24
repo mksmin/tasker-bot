@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from urllib.parse import quote
 
-from pydantic import BaseModel, PostgresDsn, ValidationError, computed_field
+from pydantic import BaseModel, HttpUrl, PostgresDsn, ValidationError, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import (
     BaseSettings,
@@ -73,6 +73,24 @@ class RabbitMQConfig(BaseModel):
         return f"{protocol}://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
 
 
+class WebhookConfig(BaseModel):
+    host: HttpUrl
+    path: str
+
+    @property
+    def url(self) -> str:
+        host = str(self.host).rstrip("/")
+        path = self.path if self.path.startswith("/") else f"/{self.path}"
+        return host + path
+
+
+class RunConfig(BaseModel):
+    host: str
+    port: int
+
+    webhook: WebhookConfig
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(
@@ -123,6 +141,7 @@ class Settings(BaseSettings):
     bot: BotConfig
     db: DatabaseConfig
     rabbit: RabbitMQConfig
+    run: RunConfig
 
 
 settings = Settings()
