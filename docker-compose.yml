@@ -1,6 +1,7 @@
 services:
   bot:
     build: .
+    container_name: tasker_bot
     restart: on-failure
     tty: true
     stdin_open: true
@@ -8,6 +9,12 @@ services:
       - bot-app/.env
     environment:
       - TZ=Europe/Moscow
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - webhook
+
+
+networks:
+  webhook:
+    external: true
