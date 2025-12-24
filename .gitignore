@@ -4,6 +4,7 @@ bot-app/.env.*
 !bot-app/.env.template
 gigaide.properties
 .secrets
+docker-compose.local.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
