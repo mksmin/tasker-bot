@@ -70,6 +70,12 @@ async def lifespan(
             allowed_updates=dp.resolve_used_update_types(),
             drop_pending_updates=True,
         )
+        webhook_info = await bot.get_webhook_info()
+        log.info(
+            "Updated webhook url: %s, ip: %s",
+            webhook_info.url,
+            webhook_info.ip_address,
+        )
     else:
         log.info("Webhook is up to date.")
 
