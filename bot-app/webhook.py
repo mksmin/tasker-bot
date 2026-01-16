@@ -58,6 +58,11 @@ async def lifespan(
     app: FastAPI,  # noqa: ARG001
 ) -> AsyncGenerator[None, None]:
     webhook_info = await bot.get_webhook_info()
+    log.info(
+        "Webhook url: %s, ip: %s",
+        webhook_info.url,
+        webhook_info.ip_address,
+    )
     if webhook_info.url != settings.run.webhook.url:
         log.info("Updating webhook to: %s", settings.run.webhook.url)
         await bot.set_webhook(
@@ -71,8 +76,6 @@ async def lifespan(
     await setup_scheduler(bot)
     await broker.start()
     yield
-    log.info("Deleting webhook")
-    await bot.delete_webhook()
 
 
 app = FastAPI(
