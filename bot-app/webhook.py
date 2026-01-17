@@ -112,3 +112,13 @@ async def handle_update(
         content={"status": "ok"},
         status_code=status.HTTP_200_OK,
     )
+
+
+@app.get(
+    settings.run.webhook.path + "/health",
+)
+async def health() -> JSONResponse:
+    return JSONResponse(
+        content={"status": "ok"},
+        status_code=status.HTTP_200_OK,
+    )
