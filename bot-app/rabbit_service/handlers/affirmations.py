@@ -23,6 +23,8 @@ class GetPaginatedAffirmationsHandler(BaseHandler):
                     user_tg=query.user_tg,
                     limit=query.limit,
                     offset=query.offset,
+                    sort_by=query.sort_by,
+                    order=query.order,
                 )
 
             return AffirmationsListResult(

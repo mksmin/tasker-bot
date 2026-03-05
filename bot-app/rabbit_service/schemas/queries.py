@@ -18,6 +18,8 @@ class GetPaginatedAffirmationsQuery(BaseQuery):
     user_tg: int
     limit: int
     offset: int
+    sort_by: str = "id"
+    order: str = "asc"
 
 
 class GetUserSettingsQuery(BaseQuery):

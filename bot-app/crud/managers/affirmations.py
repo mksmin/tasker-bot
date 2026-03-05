@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy import select
@@ -57,14 +58,31 @@ class AffirmationManager(BaseCRUDManager[Task]):
         user_id: int,
         offset: int,
         limit: int,
+        sort_by: str = "id",
+        order: str = "asc",
     ) -> Sequence[Task]:
+        sort_column: Any
+        if sort_by == "text":
+            sort_column = func.lower(Task.text_task)
+        elif sort_by == "created_at":
+            sort_column = Task.created_at
+        else:
+            sort_column = Task.id
+
+        if order == "asc":
+            order_by_clause = sort_column.asc()
+            secondary_order = Task.id.asc()
+        else:
+            order_by_clause = sort_column.desc()
+            secondary_order = Task.id.desc()
+
         stmt = (
             select(Task)
             .where(
                 Task.is_done.is_(False),
                 Task.user_id == user_id,
             )
-            .order_by(Task.id)
+            .order_by(order_by_clause, secondary_order)
             .limit(limit)
             .offset(offset)
         )
