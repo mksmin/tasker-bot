@@ -72,6 +72,9 @@ class PatchAffirmationsSettingsHandler(BaseHandler):
         payload: dict[str, Any],
     ) -> Any:
         payload_in = PatchAffirmationsSettingsCommand(**payload)
+        if payload_in.settings_in is None:
+            return
+
         query = UserSettingsUpdateSchema.model_validate(payload_in.settings_in)
         async with get_crud_service_with_session() as crud_service:
             updated_settings = await crud_service.user.update_user_settings(

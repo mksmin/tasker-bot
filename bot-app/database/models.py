@@ -33,7 +33,7 @@ class TimeStampMixin:
 class User(TimeStampMixin, Base):
     __tablename__ = "users"
 
-    user_tg = mapped_column(BigInteger, nullable=False, unique=True)
+    user_tg: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True)
     first_name: Mapped[str | None] = mapped_column(String(50))
     last_name: Mapped[str | None] = mapped_column(String(50))
     username: Mapped[str | None] = mapped_column(String(50))

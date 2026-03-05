@@ -78,8 +78,10 @@ class UserManager(BaseCRUDManager[User]):
         settings: UserSettings,
         settings_in: UserSettingsUpdateSchema | UserSettingsWithUserReadSchema,
     ) -> UserSettings:
-        update_data = settings_in.model_dump(exclude_unset=True)
-        # Убираем 'user', если он есть в схеме UserSettingsWithUserReadSchema
+        update_data = settings_in.model_dump(
+            exclude_unset=True,
+            exclude_none=True,
+        )
         update_data.pop("user", None)
         for field_name, value in update_data.items():
             setattr(settings, field_name, value)
