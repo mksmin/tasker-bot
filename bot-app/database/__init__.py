@@ -7,7 +7,6 @@ __all__ = (
     "User",
     "UserSettings",
     "async_session",
-    "connection",
     "db_helper",
     "user_settings_ctx",
 )
@@ -22,4 +21,3 @@ from database.models import Base
 from database.models import Task
 from database.models import User
 from database.models import UserSettings
-from database.requests import connection
