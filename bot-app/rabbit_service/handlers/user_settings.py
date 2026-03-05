@@ -12,7 +12,7 @@ class GetUserSettingsHandler(BaseHandler):
         payload: dict[str, Any],
     ) -> UserSettingsWithUserReadSchema:
         query = GetUserSettingsQuery(**payload)
-        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
-            return await crud_service.user.get_user_settings(  # type: ignore[no-any-return]
+        async with get_crud_service_with_session() as crud_service:
+            return await crud_service.user.get_user_settings(
                 user_tg=query.user_tg,
             )

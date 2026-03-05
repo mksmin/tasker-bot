@@ -1,4 +1,5 @@
-from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,8 +28,8 @@ def get_crud_service(
     return CRUDService(session)
 
 
-@asynccontextmanager  # type: ignore[arg-type]
-async def get_crud_service_with_session() -> AbstractAsyncContextManager[CRUDService]:  # type: ignore[misc]
+@asynccontextmanager
+async def get_crud_service_with_session() -> AsyncGenerator[CRUDService, None]:
     async with db_helper.session_factory() as session:
         crud = CRUDService(session)
         yield crud
