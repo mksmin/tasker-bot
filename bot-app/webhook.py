@@ -2,26 +2,24 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
+from aiogram import Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import Update
-from fastapi import (
-    FastAPI,
-    Request,
-    status,
-)
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi import status
 from fastapi.responses import JSONResponse
 
 from bot import router as main_router
-from bot.middlewares import (
-    CreateUserInjectMiddleware,
-    CRUDServiceMiddleware,
-    GetUserMiddleware,
-    GetUserSettingsMiddleware,
-)
+from bot.middlewares import CreateUserInjectMiddleware
+from bot.middlewares import CRUDServiceMiddleware
+from bot.middlewares import GetUserMiddleware
+from bot.middlewares import GetUserSettingsMiddleware
 from bot.scheduler import setup_scheduler
-from config import logger, settings
+from config import logger
+from config import settings
 from database import db_helper
 from rabbit_service.broker import broker
 

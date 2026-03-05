@@ -9,17 +9,21 @@
 from collections.abc import AsyncGenerator
 from datetime import time
 from typing import cast
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
-from aiogram.types import Message, User
+from aiogram.types import Message
+from aiogram.types import User
 
 # import from modules
 import database.requests as rq
 from bot.handlers.affirmations import cmd_daily_tasks
 from bot.handlers.start_handler import cmd_start
 from crud.crud_service import CRUDService
-from database.models import Task, UserSettings
+from database.models import Task
+from database.models import UserSettings
 
 
 @pytest.fixture

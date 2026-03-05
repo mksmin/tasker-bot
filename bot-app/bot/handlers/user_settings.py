@@ -2,25 +2,25 @@ import logging
 from datetime import time
 from typing import cast
 
-from aiogram import F, Router
+from aiogram import F
+from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, User
+from aiogram.types import CallbackQuery
+from aiogram.types import Message
+from aiogram.types import User
 
 from bot import keyboards as kb
 from bot import statesuser as st
-from bot.handler_filtres import (
-    HasCallbackMessageFilter,
-    HasCallbackUserFilter,
-    HasUserFilter,
-)
-from bot.keyboards import CountTasksCallback, TimePickerCallback
+from bot.handler_filtres import HasCallbackMessageFilter
+from bot.handler_filtres import HasCallbackUserFilter
+from bot.handler_filtres import HasUserFilter
+from bot.keyboards import CountTasksCallback
+from bot.keyboards import TimePickerCallback
 from bot.scheduler import scheduler_instance
 from crud.crud_service import CRUDService
-from schemas.users import (
-    UserSettingsWithUserResponseSchema,
-)
+from schemas.users import UserSettingsWithUserResponseSchema
 
 router = Router()
 log = logging.getLogger(__name__)
@@ -196,7 +196,6 @@ async def cmd_change_time(
     callback_message: Message,
     user_settings_db: UserSettingsWithUserResponseSchema,
 ) -> None:
-
     await callback_message.edit_text(
         f"🕐"
         f"Выбери час отправки аффирмаций (мск).\n"

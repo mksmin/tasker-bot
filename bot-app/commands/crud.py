@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
+from typing import Annotated
 
 import typer
 

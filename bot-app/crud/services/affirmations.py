@@ -1,10 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_exceptions.exceptions import (
-    TaskNotFoundError,
-    UserHasNoTasksError,
-    UserNotFoundError,
-)
+from app_exceptions.exceptions import TaskNotFoundError
+from app_exceptions.exceptions import UserHasNoTasksError
+from app_exceptions.exceptions import UserNotFoundError
 from crud.managers import UserManager
 from crud.managers.affirmations import AffirmationManager
 from database import UserSettings

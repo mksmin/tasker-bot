@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
-from sqlalchemy import func, select
+from sqlalchemy import func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.managers import BaseCRUDManager

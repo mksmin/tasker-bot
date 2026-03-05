@@ -1,12 +1,10 @@
 import logging
 from typing import Any
 
-from rabbit_service.handlers.affirmations import (
-    GetPaginatedAffirmationsHandler,
-    PatchAffirmationsSettingsHandler,
-    RemoveAffirmationHandler,
-    UpdateAffirmationHandler,
-)
+from rabbit_service.handlers.affirmations import GetPaginatedAffirmationsHandler
+from rabbit_service.handlers.affirmations import PatchAffirmationsSettingsHandler
+from rabbit_service.handlers.affirmations import RemoveAffirmationHandler
+from rabbit_service.handlers.affirmations import UpdateAffirmationHandler
 from rabbit_service.handlers.base import BaseHandler
 from rabbit_service.handlers.user_settings import GetUserSettingsHandler
 

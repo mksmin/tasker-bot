@@ -1,7 +1,9 @@
 from enum import StrEnum
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 list_of_tasks = InlineKeyboardMarkup(

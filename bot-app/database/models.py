@@ -1,16 +1,19 @@
 # import from lib
-from datetime import datetime, time, timezone
+from datetime import datetime
+from datetime import time
+from datetime import timezone
 
-from sqlalchemy import (
-    BigInteger,
-    Boolean,
-    ForeignKey,
-    Integer,
-    String,
-    Time,
-)
+from sqlalchemy import BigInteger
+from sqlalchemy import Boolean
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Time
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):

@@ -1,5 +1,7 @@
-from aiogram.filters import BaseFilter, Filter
-from aiogram.types import Message, User
+from aiogram.filters import BaseFilter
+from aiogram.filters import Filter
+from aiogram.types import Message
+from aiogram.types import User
 
 from config import settings
 

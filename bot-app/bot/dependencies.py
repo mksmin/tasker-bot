@@ -1,6 +1,7 @@
 import logging
 
-from aiogram import Bot, html
+from aiogram import Bot
+from aiogram import html
 from aiogram.exceptions import TelegramForbiddenError
 
 from app_exceptions.exceptions import UserHasNoTasksError

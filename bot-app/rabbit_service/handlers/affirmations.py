@@ -3,11 +3,9 @@ from typing import Any
 from bot.scheduler import scheduler_instance
 from crud.crud_service import get_crud_service_with_session
 from rabbit_service.handlers.base import BaseHandler
-from rabbit_service.schemas.commands import (
-    DeleteAffirmationCommand,
-    PatchAffirmationsSettingsCommand,
-    UpdateAffirmationCommand,
-)
+from rabbit_service.schemas.commands import DeleteAffirmationCommand
+from rabbit_service.schemas.commands import PatchAffirmationsSettingsCommand
+from rabbit_service.schemas.commands import UpdateAffirmationCommand
 from rabbit_service.schemas.queries import GetPaginatedAffirmationsQuery
 from rabbit_service.schemas.results import AffirmationsListResult
 from schemas.users import UserSettingsUpdateSchema

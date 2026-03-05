@@ -2,15 +2,15 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app_exceptions.exceptions import UserAlreadyExistsError, UserNotFoundError
+from app_exceptions.exceptions import UserAlreadyExistsError
+from app_exceptions.exceptions import UserNotFoundError
 from crud.managers.users import UserManager
-from database import User, UserSettings
-from schemas.users import (
-    UserCreateSchema,
-    UserReadSchema,
-    UserSettingsUpdateSchema,
-    UserSettingsWithUserReadSchema,
-)
+from database import User
+from database import UserSettings
+from schemas.users import UserCreateSchema
+from schemas.users import UserReadSchema
+from schemas.users import UserSettingsUpdateSchema
+from schemas.users import UserSettingsWithUserReadSchema
 
 
 class UserService:
@@ -86,14 +86,10 @@ class UserService:
             raise UserNotFoundError
 
         settings = await self._manager.get_or_create_user_settings(user)
-
-        update_dict = {
-            k: v
-            for k, v in settings_in.model_dump().items()
-            if v is not None and k != "user"
-        }
-        for key, value in update_dict.items():
-            setattr(settings, key, value)
+        await self._manager.update_user_settings(
+            settings=settings,
+            settings_in=settings_in,
+        )
 
         await self._session.commit()
         return UserSettingsWithUserReadSchema.model_validate(settings)
