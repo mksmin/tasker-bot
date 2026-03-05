@@ -1,21 +1,19 @@
 import logging
 
-from aiogram import (
-    F,
-    Router,
-)
+from aiogram import F
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, User
+from aiogram.types import Message
+from aiogram.types import User
 
 from app_exceptions.exceptions import UserHasNoTasksError
 from bot import keyboards as kb
-from bot.dependencies import get_list_user_tasks, prepare_user_message_for_tasks
+from bot.dependencies import get_list_user_tasks
+from bot.dependencies import prepare_user_message_for_tasks
 from bot.handler_filtres import HasUserFilter
 from crud.crud_service import CRUDService
-from schemas.users import (
-    UserSettingsWithUserReadSchema,
-)
+from schemas.users import UserSettingsWithUserReadSchema
 
 router = Router()
 log = logging.getLogger(__name__)

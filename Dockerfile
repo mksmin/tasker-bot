@@ -13,7 +13,7 @@ RUN poetry config  virtualenvs.create false \
     && poetry install --no-root --no-interaction --no-ansi --with main,tests
 
 # Копирование исходного кода приложения
-COPY . .
+COPY ./bot-app ./bot-app
 
 # Команда для запуска приложения
 CMD ["python", "-u", "bot-app/run.py"]

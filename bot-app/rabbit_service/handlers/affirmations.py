@@ -3,11 +3,9 @@ from typing import Any
 from bot.scheduler import scheduler_instance
 from crud.crud_service import get_crud_service_with_session
 from rabbit_service.handlers.base import BaseHandler
-from rabbit_service.schemas.commands import (
-    DeleteAffirmationCommand,
-    PatchAffirmationsSettingsCommand,
-    UpdateAffirmationCommand,
-)
+from rabbit_service.schemas.commands import DeleteAffirmationCommand
+from rabbit_service.schemas.commands import PatchAffirmationsSettingsCommand
+from rabbit_service.schemas.commands import UpdateAffirmationCommand
 from rabbit_service.schemas.queries import GetPaginatedAffirmationsQuery
 from rabbit_service.schemas.results import AffirmationsListResult
 from schemas.users import UserSettingsUpdateSchema
@@ -20,11 +18,13 @@ class GetPaginatedAffirmationsHandler(BaseHandler):
     ) -> AffirmationsListResult:
         try:
             query = GetPaginatedAffirmationsQuery(**payload)
-            async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+            async with get_crud_service_with_session() as crud_service:
                 affirmations = await crud_service.affirm.get_paginated_affirmations(
                     user_tg=query.user_tg,
                     limit=query.limit,
                     offset=query.offset,
+                    sort_by=query.sort_by,
+                    order=query.order,
                 )
 
             return AffirmationsListResult(
@@ -44,7 +44,7 @@ class RemoveAffirmationHandler(BaseHandler):
         payload: dict[str, Any],
     ) -> None:
         query = DeleteAffirmationCommand(**payload)
-        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+        async with get_crud_service_with_session() as crud_service:
             await crud_service.affirm.remove_affirmation(
                 user_tg=query.user_tg,
                 affirm_id=query.affirmation_id,
@@ -58,7 +58,7 @@ class UpdateAffirmationHandler(BaseHandler):
     ) -> None:
         query = UpdateAffirmationCommand(**payload)
 
-        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+        async with get_crud_service_with_session() as crud_service:
             await crud_service.affirm.update_affirmation(
                 user_tg=query.user_tg,
                 affirm_id=query.affirmation_id,
@@ -73,7 +73,7 @@ class PatchAffirmationsSettingsHandler(BaseHandler):
     ) -> Any:
         payload_in = PatchAffirmationsSettingsCommand(**payload)
         query = UserSettingsUpdateSchema.model_validate(payload_in.settings_in)
-        async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+        async with get_crud_service_with_session() as crud_service:
             updated_settings = await crud_service.user.update_user_settings(
                 user_tg=payload_in.user_tg,
                 settings_in=query,

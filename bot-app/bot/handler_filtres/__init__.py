@@ -5,5 +5,6 @@ __all__ = (
 )
 
 
-from .callback_filter import HasCallbackMessageFilter, HasCallbackUserFilter
+from .callback_filter import HasCallbackMessageFilter
+from .callback_filter import HasCallbackUserFilter
 from .user_filter import HasUserFilter

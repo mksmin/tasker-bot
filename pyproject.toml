@@ -194,3 +194,6 @@ unfixable = []
 "bot-app/commands/*.py" = [
     "T20", # flake8-print (T20)
 ]
+
+[tool.ruff.lint.isort]
+force-single-line = true

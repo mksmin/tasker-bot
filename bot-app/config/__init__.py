@@ -3,4 +3,5 @@ __all__ = (
     "settings",
 )
 
-from .config import logger, settings
+from .config import logger
+from .config import settings

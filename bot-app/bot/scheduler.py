@@ -4,15 +4,15 @@ from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
     AsyncIOScheduler,
 )
 from apscheduler.triggers.cron import CronTrigger  # type: ignore[import-untyped]
-from sqlalchemy import ScalarResult, select
+from sqlalchemy import ScalarResult
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from bot.schemas import JobInfo
 from config import logger
-from database import UserSettings, db_helper
-from schemas.users import (
-    UserSettingsWithUserReadSchema,
-)
+from database import UserSettings
+from database import db_helper
+from schemas.users import UserSettingsWithUserReadSchema
 
 
 class DailyTaskScheduler:

@@ -1,6 +1,8 @@
-from datetime import datetime, time
+from datetime import datetime
+from datetime import time
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+from pydantic import ConfigDict
 
 
 class UserBase(BaseModel):

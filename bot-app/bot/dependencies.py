@@ -1,6 +1,7 @@
 import logging
 
-from aiogram import Bot, html
+from aiogram import Bot
+from aiogram import html
 from aiogram.exceptions import TelegramForbiddenError
 
 from app_exceptions.exceptions import UserHasNoTasksError
@@ -13,7 +14,7 @@ log = logging.getLogger(__name__)
 async def get_list_user_tasks(
     user_tg: int,
 ) -> list[str]:
-    async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+    async with get_crud_service_with_session() as crud_service:
         tasks = await crud_service.affirm.get_random_affirmations(user_tg=user_tg)
         return [task.text for task in tasks]
 
@@ -51,7 +52,7 @@ async def send_daily_tasks(
             tfe.message,
         )
         if tfe.message == "Forbidden: bot was blocked by the user":
-            async with get_crud_service_with_session() as crud_service:  # type: ignore[var-annotated]
+            async with get_crud_service_with_session() as crud_service:
                 user_settings = await crud_service.user.get_user_settings(user_tg)
                 user_settings.send_enable = not user_settings.send_enable
                 await crud_service.user.update_user_settings(

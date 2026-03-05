@@ -1,4 +1,5 @@
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable
+from collections.abc import Callable
 from typing import Any
 
 from aiogram import BaseMiddleware
@@ -7,7 +8,8 @@ from aiogram.types import TelegramObject
 from app_exceptions.exceptions import UserAlreadyExistsError
 from bot.scheduler import scheduler_instance
 from crud.crud_service import CRUDService
-from database.db_helper import DatabaseHelper, db_helper
+from database.db_helper import DatabaseHelper
+from database.db_helper import db_helper
 from schemas.users import UserResponseSchema
 
 

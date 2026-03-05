@@ -1,6 +1,19 @@
 from datetime import datetime
+from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
+
+
+class SortBy(str, Enum):
+    CREATED_AT = "created_at"
+    TEXT = "text"
+
+
+class SortOrder(str, Enum):
+    ASC = "asc"
+    DESC = "desc"
 
 
 class AffirmationBaseSchema(BaseModel):

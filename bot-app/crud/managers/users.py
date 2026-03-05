@@ -5,8 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from crud.managers import BaseCRUDManager
-from database import User, UserSettings
-from schemas.users import UserCreateSchema, UserSettingsUpdateSchema
+from database import User
+from database import UserSettings
+from schemas.users import UserCreateSchema
+from schemas.users import UserSettingsUpdateSchema
+from schemas.users import UserSettingsWithUserReadSchema
 
 
 class UserManager(BaseCRUDManager[User]):
@@ -73,9 +76,12 @@ class UserManager(BaseCRUDManager[User]):
     async def update_user_settings(
         self,
         settings: UserSettings,
-        settings_in: UserSettingsUpdateSchema,
+        settings_in: UserSettingsUpdateSchema | UserSettingsWithUserReadSchema,
     ) -> UserSettings:
-        for field_name, value in settings_in:
+        update_data = settings_in.model_dump(exclude_unset=True)
+        # Убираем 'user', если он есть в схеме UserSettingsWithUserReadSchema
+        update_data.pop("user", None)
+        for field_name, value in update_data.items():
             setattr(settings, field_name, value)
         self.session.add(settings)
         return settings

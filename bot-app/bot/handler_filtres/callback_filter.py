@@ -1,5 +1,8 @@
 from aiogram.filters import BaseFilter
-from aiogram.types import CallbackQuery, InaccessibleMessage, Message, User
+from aiogram.types import CallbackQuery
+from aiogram.types import InaccessibleMessage
+from aiogram.types import Message
+from aiogram.types import User
 
 
 class HasCallbackMessageFilter(BaseFilter):

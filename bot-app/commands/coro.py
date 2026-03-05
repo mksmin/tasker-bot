@@ -1,7 +1,9 @@
 import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable
+from collections.abc import Coroutine
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any
+from typing import TypeVar
 
 F = TypeVar("F", bound=Callable[..., Coroutine[Any, Any, Any]])
 
