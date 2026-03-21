@@ -5,7 +5,9 @@ from contextlib import asynccontextmanager
 from aiogram import Bot
 from aiogram import Dispatcher
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramNetworkError
 from aiogram.types import Update
 from fastapi import FastAPI
 from fastapi import Request
@@ -25,8 +27,15 @@ from rabbit_service.broker import broker
 
 log = logging.getLogger(__name__)
 
+bot_session: AiohttpSession | None = None
+if settings.bot.proxy_url and settings.bot.proxy_url.startswith("socks"):
+    bot_session = AiohttpSession(
+        proxy=settings.bot.proxy_url,
+    )
+
 bot = Bot(
     token=settings.bot.token,
+    session=bot_session,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
 dp = Dispatcher()
@@ -77,6 +86,12 @@ async def lifespan(
     else:
         log.info("Webhook is up to date.")
 
+    try:
+        me = await bot.get_me()
+        log.info("Бот успешно запущен как @%s", me.username)
+    except TelegramNetworkError:
+        log.exception("Ошибка подключения")
+        raise
     await setup_scheduler(bot)
     await broker.start()
     yield

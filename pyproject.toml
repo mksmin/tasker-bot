@@ -12,18 +12,19 @@ requires-python = ">=3.10,<4.0"
 package-mode = false
 
 [tool.poetry.dependencies]
-aiogram = "^3.20.0.post0"
-aiohttp = "^3.11.18"
-alembic = "^1.15.2"
-asyncpg = "^0.30.0"
-pydantic = "^2.11.4"
-pydantic-settings = {extras = ["yaml"], version = "^2.11.0"}
-sqlalchemy = "^2.0.40"
-apscheduler = "^3.11.0"
-faststream = {extras = ["rabbit"], version = "^0.5.47"}
-typer = "^0.20.0"
-fastapi = "^0.127.0"
-uvicorn = "^0.40.0"
+aiogram = ">=3.20.0.post0"
+aiohttp = ">=3.11.18"
+alembic = ">=1.15.2"
+asyncpg = ">=0.30.0"
+pydantic = ">=2.11.4"
+pydantic-settings = {extras = ["yaml"], version = ">=2.11.0"}
+sqlalchemy = ">=2.0.40"
+apscheduler = ">=3.11.0"
+faststream = {extras = ["rabbit"], version = ">=0.5.47"}
+typer = ">=0.20.0"
+fastapi = ">=0.127.0"
+uvicorn = ">=0.40.0"
+aiohttp-socks = ">=0.11.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
@@ -64,10 +65,17 @@ markers = []
 # mypy settings
 [tool.mypy]
 strict = true
+
+# Add the subdirectory to mypy's search path
+mypy_path = "bot-app"
+
 plugins = [
     "pydantic.mypy",
 ]
 
+# Улучшаем читаемость вывода (опционально)
+pretty = true
+show_error_codes = true
 
 # ruff settings
 [tool.ruff]
