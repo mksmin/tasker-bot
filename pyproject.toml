@@ -64,10 +64,17 @@ markers = []
 # mypy settings
 [tool.mypy]
 strict = true
+
+# Add the subdirectory to mypy's search path
+mypy_path = "bot-app"
+
 plugins = [
     "pydantic.mypy",
 ]
 
+# Улучшаем читаемость вывода (опционально)
+pretty = true
+show_error_codes = true
 
 # ruff settings
 [tool.ruff]
