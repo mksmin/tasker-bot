@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 from apscheduler.schedulers.asyncio import (  # type: ignore[import-untyped]
@@ -9,10 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from bot.schemas import JobInfo
-from config import logger
 from database import UserSettings
 from database import db_helper
 from schemas.users import UserSettingsWithUserReadSchema
+
+log = logging.getLogger(__name__)
 
 
 class DailyTaskScheduler:
@@ -58,7 +61,7 @@ class DailyTaskScheduler:
         try:
             await send_daily_tasks(self._bot, user_tg)
         except TelegramForbiddenError as e:
-            logger.warning(
+            log.warning(
                 "Removing job for user %d due to TelegramForbiddenError: %s",
                 user_id,
                 e,
@@ -86,7 +89,7 @@ class DailyTaskScheduler:
             misfire_grace_time=300,
             coalesce=False,
         )
-        logger.info(
+        log.info(
             "Scheduled job %s at time %s for user %s",
             job_id,
             user_settings.send_time,
@@ -101,7 +104,7 @@ class DailyTaskScheduler:
         job = self.scheduler.get_job(job_id)
         if job:
             self.scheduler.remove_job(job_id)
-            logger.info(
+            log.info(
                 "Removed job %s for user %s",
                 job_id,
                 user_id,
