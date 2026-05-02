@@ -76,7 +76,7 @@ class AffirmationService:
         settings_with_user = await self._get_user_with_settings(user_tg)
         list_affirmations = await self._manager.get_random_affirmation(
             settings_with_user.user_id,
-            count=count if count else settings_with_user.count_tasks,
+            count=count or settings_with_user.count_tasks,
         )
         if not list_affirmations:
             message_error = f"No affirmations found for user={user_tg}"
