@@ -1,102 +1,17 @@
 import logging
 from pathlib import Path
-from typing import Final
-from typing import Literal
-from urllib.parse import quote
 
-from pydantic import BaseModel
-from pydantic import HttpUrl
-from pydantic import PostgresDsn
-from pydantic import ValidationError
-from pydantic import computed_field
-from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings
 from pydantic_settings import PydanticBaseSettingsSource
 from pydantic_settings import SettingsConfigDict
 from pydantic_settings import YamlConfigSettingsSource
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from config.bot import BotConfig
+from config.database import DatabaseConfig
+from config.rabbitmq import RabbitMQConfig
+from config.run import RunConfig
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-
-POLLING_MODE: Final = "polling"
-WEBHOOK_MODE: Final = "webhooks"
-
-
-class BotConfig(BaseModel):
-    token: str
-    owner_tg_id: int
-    proxy_url: str | None = None
-
-
-class DatabaseConfig(BaseModel):
-    scheme: str
-    engine: str = "asyncpg"
-    username: str
-    password: str
-    host: str = "localhost"
-    port: int = 5432
-    path: str = "postgres"
-
-    echo: bool = False
-    echo_pool: bool = False
-    pool_size: int = 50
-    max_overflow: int = 10
-
-    @property
-    def url(self) -> PostgresDsn:
-        try:
-            url_path = MultiHostUrl.build(
-                scheme=f"{self.scheme}+{self.engine}",
-                username=self.username,
-                password=self.password,
-                host=self.host,
-                port=self.port,
-                path=self.path,
-            )
-        except ValidationError:
-            logger.exception("Invalid connection string")
-            raise
-        return PostgresDsn(url_path)
-
-
-class RabbitMQConfig(BaseModel):
-    host: str = "host"
-    port: int = 1234
-    username: str
-    password: str
-    vhostname: str
-    secure: bool = True
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def url(self) -> str:
-        safe_username = quote(self.username, safe="")
-        safe_password = quote(self.password, safe="")
-        safe_vhost = quote(self.vhostname, safe="")
-        domain = quote(self.host.encode("idna").decode())
-        protocol = "amqps" if self.secure else "amqp"
-
-        return f"{protocol}://{safe_username}:{safe_password}@{domain}:{self.port}/{safe_vhost}"
-
-
-class WebhookConfig(BaseModel):
-    host: HttpUrl
-    path: str
-
-    @property
-    def url(self) -> str:
-        host = str(self.host).rstrip("/")
-        path = self.path if self.path.startswith("/") else f"/{self.path}"
-        return host + path
-
-
-class RunConfig(BaseModel):
-    host: str
-    port: int
-    mode: Literal["polling", "webhooks"] | None = POLLING_MODE
-
-    webhook: WebhookConfig
 
 
 class Settings(BaseSettings):

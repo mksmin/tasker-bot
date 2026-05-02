@@ -1,7 +1,1 @@
-__all__ = (
-    "logger",
-    "settings",
-)
-
-from .config import logger
-from .config import settings
+from config.config import settings as settings
