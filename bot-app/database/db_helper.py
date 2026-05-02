@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from sqlalchemy import URL
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +14,7 @@ from config import settings
 class DatabaseHelper:
     def __init__(
         self,
-        url: str,
+        url: str | URL,
         echo: bool = False,  # noqa: FBT002, FBT001
         echo_pool: bool = False,  # noqa: FBT002, FBT001
         pool_size: int = 5,
@@ -55,7 +56,7 @@ class DatabaseHelper:
 
 
 db_helper = DatabaseHelper(
-    url=str(settings.db.url),
+    url=settings.db.db_url,
     echo=settings.db.echo,
     echo_pool=settings.db.echo_pool,
     pool_size=settings.db.pool_size,
