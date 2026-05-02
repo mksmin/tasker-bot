@@ -5,7 +5,7 @@ import uvicorn
 
 from bot.scheduler import setup_scheduler
 from config import settings
-from config.config import WEBHOOK_MODE
+from config.run import WEBHOOK_MODE
 from rabbit_service.broker import broker
 from run_config.bot import bot
 from run_config.bot import dp

@@ -1,8 +1,9 @@
 import asyncio
 import logging
 
-from config.config import logger
 from run_config import start_app
+
+log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s]  %(levelname)s: —— %(message)s"
@@ -17,4 +18,4 @@ if __name__ == "__main__":
             start_app(),
         )
     except KeyboardInterrupt:
-        logger.warning("KeyboardInterrupt")
+        log.warning("KeyboardInterrupt")
