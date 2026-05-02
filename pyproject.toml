@@ -27,16 +27,16 @@ uvicorn = ">=0.40.0"
 aiohttp-socks = ">=0.11.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
-mypy = "^1.15.0"
-ruff = "^0.12.12"
-pre-commit = "^4.3.0"
+black = ">=25.1.0"
+mypy = ">=1.15.0"
+ruff = ">=0.12.12"
+pre-commit = ">=4.3.0"
 
 [tool.poetry.group.tests.dependencies]
-pytest = "^8.4.1"
-pytest-asyncio = "^1.0.0"
-coverage = "^7.9.2"
-aiosqlite = "^0.21.0"
+pytest = ">=8.4.1"
+pytest-asyncio = ">=1.0.0"
+coverage = ">=7.9.2"
+aiosqlite = ">=0.21.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
