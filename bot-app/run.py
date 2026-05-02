@@ -1,10 +1,8 @@
+import asyncio
 import logging
-from typing import Any
 
-import uvicorn
-
-from config import settings
 from config.config import logger
+from run_config import start_app
 
 if __name__ == "__main__":
     FORMAT = "[%(asctime)s]  %(levelname)s: —— %(message)s"
@@ -14,16 +12,9 @@ if __name__ == "__main__":
         format=FORMAT,
     )
 
-    run_args: dict[str, Any] = {
-        "app": "webhook:app",
-        "host": settings.run.host,
-        "port": settings.run.port,
-        "reload": False,
-        "log_config": None,
-        "workers": 1,
-    }
-
     try:
-        uvicorn.run(**run_args)
+        asyncio.run(
+            start_app(),
+        )
     except KeyboardInterrupt:
         logger.warning("KeyboardInterrupt")
