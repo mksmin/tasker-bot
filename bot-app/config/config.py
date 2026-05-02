@@ -1,6 +1,7 @@
-# import lib
 import logging
 from pathlib import Path
+from typing import Final
+from typing import Literal
 from urllib.parse import quote
 
 from pydantic import BaseModel
@@ -17,6 +18,9 @@ from pydantic_settings import YamlConfigSettingsSource
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+
+POLLING_MODE: Final = "polling"
+WEBHOOK_MODE: Final = "webhooks"
 
 
 class BotConfig(BaseModel):
@@ -90,6 +94,7 @@ class WebhookConfig(BaseModel):
 class RunConfig(BaseModel):
     host: str
     port: int
+    mode: Literal["polling", "webhooks"] | None = POLLING_MODE
 
     webhook: WebhookConfig
 
