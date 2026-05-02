@@ -1,22 +1,9 @@
-from collections.abc import Awaitable
-from collections.abc import Callable
-from contextvars import ContextVar
 from typing import Any
 
-from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine
-
-# import from modules
-from config.config import settings
 
 from .models import UserSettings
-
-engine = create_async_engine(url=str(settings.db.url), echo=False)
-async_session = async_sessionmaker(bind=engine, expire_on_commit=True)
 
 
 class SettingsRepo:
@@ -47,36 +34,3 @@ class SettingsRepo:
         if key:
             setattr(existing_settings, key, value)
         await self.session.commit()
-
-
-# ContextVar
-user_settings_ctx: ContextVar[SettingsRepo] = ContextVar("user_settings")
-
-
-# Middleware
-class DbSessionMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: dict[str, Any],
-    ) -> Any:
-        async with async_session() as session:
-            data["session"] = session
-            return await handler(event, data)
-
-
-class SettingsMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: dict[str, Any],
-    ) -> Any:
-        session: AsyncSession = data["session"]
-        repo = SettingsRepo(session)
-        token = user_settings_ctx.set(repo)
-        try:
-            return await handler(event, data)
-        finally:
-            user_settings_ctx.reset(token)
